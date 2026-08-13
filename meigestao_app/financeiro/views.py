@@ -2,7 +2,7 @@ import logging
 from datetime import date
 from types import SimpleNamespace
 from django.db import transaction
-from django.db.models import QuerySet, Sum, Q
+from django.db.models import F, QuerySet, Sum, Q
 from django import forms
 from django.http import HttpResponse, HttpRequest
 from typing import Any, Dict, Optional
@@ -37,18 +37,20 @@ def _aplicar_efeito_saldo(transacao: Transacao, reverse: bool = False) -> None:
     if not transacao.conta or not transacao.paga:
         return
 
-    # Recarrega a conta do banco para evitar aplicar o saldo sobre um objeto stale
-    # durante fluxos de update/delete dentro da mesma requisição.
-    transacao.conta.refresh_from_db(fields=['saldo'])
-    valor = transacao.valor
+    delta = transacao.valor
     if transacao.tipo == 'despesa':
-        delta = valor
-        transacao.conta.saldo += delta if reverse else -delta
+        delta = delta if reverse else -delta
     elif transacao.tipo == 'receita':
-        delta = valor
-        transacao.conta.saldo += -delta if reverse else delta
+        delta = -delta if reverse else delta
+    else:
+        return
 
-    transacao.conta.save(update_fields=['saldo'])
+    ContaBancaria.objects.filter(pk=transacao.conta_id).update(saldo=F('saldo') + delta)
+    transacao.conta.refresh_from_db(fields=['saldo'])
+
+
+def _transacao_vinculada_venda(transacao: Transacao) -> bool:
+    return transacao.venda_id is not None
 
 
 def _transacao_vinculada_reembolso(transacao: Transacao) -> bool:
@@ -457,6 +459,40 @@ class TransacaoUpdateView(FluxoTransacaoMixin, LoginRequiredMixin, UpdateView):
         return self._prepare_form_for_flow(form)
 
     def form_valid(self, form: TransacaoForm) -> HttpResponse:
+        if _transacao_vinculada_venda(self.object):
+            from meigestao_app.vendas.models import Venda
+
+            with transaction.atomic():
+                venda = Venda.objects.select_for_update().select_related('cliente').get(
+                    pk=self.object.venda_id
+                )
+                transacao_anterior = Transacao.objects.select_for_update().select_related(
+                    'conta'
+                ).get(pk=self.object.pk)
+
+                form.instance.venda = venda
+                form.instance.empresa = venda.empresa
+                form.instance.tipo = 'receita'
+                form.instance.categoria = 'Vendas'
+                form.instance.descricao = f'Venda #{venda.pk} - {venda.cliente.nome}'
+                form.instance.valor = venda.valor_total
+
+                if (
+                    form.instance.conta
+                    and form.instance.conta.empresa_id != venda.empresa_id
+                ):
+                    form.add_error('conta', 'A conta selecionada não pertence à empresa da venda.')
+                    transaction.set_rollback(True)
+                    return self.form_invalid(form)
+
+                response = super().form_valid(form)
+
+            messages.success(
+                self.request,
+                'Pagamento da venda atualizado sem alterar os dados econômicos da origem.',
+            )
+            return response
+
         if _transacao_vinculada_reembolso(self.object):
             messages.error(self.request, 'Transações geradas por reembolso não podem ser editadas. Faça o estorno no reembolso.')
             return redirect(self.detail_url_name, pk=self.object.pk)
@@ -501,17 +537,24 @@ class TransacaoDeleteView(FluxoTransacaoMixin, LoginRequiredMixin, DeleteView):
     template_name = 'meigestao_app/financeiro/transacao_confirm_delete.html'
     context_object_name = 'transacao'
 
-    def delete(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        self.object = self.get_object()
+    def form_valid(self, form: forms.Form) -> HttpResponse:
+        if _transacao_vinculada_venda(self.object):
+            messages.error(
+                self.request,
+                'Transações geradas por venda não podem ser excluídas por aqui. '
+                'Estorne o pagamento e trate a venda na origem.',
+            )
+            return redirect(self.detail_url_name, pk=self.object.pk)
+
         if _transacao_vinculada_reembolso(self.object):
-            messages.error(request, 'Transações geradas por reembolso não podem ser excluídas por aqui. Use o estorno do reembolso.')
+            messages.error(self.request, 'Transações geradas por reembolso não podem ser excluídas por aqui. Use o estorno do reembolso.')
             return redirect(self.detail_url_name, pk=self.object.pk)
 
         with transaction.atomic():
             _aplicar_efeito_saldo(self.object, reverse=True)
-            response = super().delete(request, *args, **kwargs)
+            response = super().form_valid(form)
 
-        messages.success(request, f'{self.flow_singular} excluída com sucesso!')
+        messages.success(self.request, f'{self.flow_singular} excluída com sucesso!')
         return response
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:

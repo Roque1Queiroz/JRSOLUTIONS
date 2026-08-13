@@ -1,5 +1,5 @@
 from decimal import Decimal
-from django.db import models
+from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from meigestao_app.core.models import BaseModel, Empresa
@@ -35,6 +35,16 @@ class Venda(BaseModel):
     
     def __str__(self) -> str:
         return f"Venda #{self.id} - {self.cliente.nome}"
+
+    def validar_mutacao_se_nao_liquidada(self) -> None:
+        if not self.pk:
+            return
+        from meigestao_app.financeiro.models import Transacao
+
+        if Transacao.objects.filter(venda_id=self.pk, paga=True).exists():
+            raise ValidationError(
+                'A venda possui uma transação paga. Estorne a transação antes de alterá-la.'
+            )
 
     def calcular_total(self) -> Decimal:
         """Calcula o valor total da venda"""
@@ -156,13 +166,16 @@ class Venda(BaseModel):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs) -> None:
-        self.full_clean()
-        super().save(*args, **kwargs)
-        self.sincronizar_transacao_financeira()
+        with transaction.atomic():
+            self.validar_mutacao_se_nao_liquidada()
+            self.full_clean()
+            super().save(*args, **kwargs)
+            self.sincronizar_transacao_financeira()
 
     def delete(self, *args, **kwargs) -> None:
         from meigestao_app.financeiro.models import Transacao
 
+        self.validar_mutacao_se_nao_liquidada()
         try:
             transacao = self.transacao_financeira
         except Transacao.DoesNotExist:
@@ -216,14 +229,20 @@ class ItemVenda(models.Model):
 
     def save(self, *args, **kwargs) -> None:
         """Calcula o subtotal automaticamente"""
-        self.full_clean()
-        self.subtotal = self.quantidade * self.preco_unitario
-        super().save(*args, **kwargs)
-        if self.venda_id:
-            self.venda.recalcular_totais()
+        with transaction.atomic():
+            if self.venda_id:
+                self.venda.validar_mutacao_se_nao_liquidada()
+            self.full_clean()
+            self.subtotal = self.quantidade * self.preco_unitario
+            if kwargs.get('update_fields') is not None:
+                kwargs['update_fields'] = set(kwargs['update_fields']) | {'subtotal'}
+            super().save(*args, **kwargs)
+            if self.venda_id:
+                self.venda.recalcular_totais()
 
     def delete(self, *args, **kwargs) -> None:
         venda = self.venda
+        venda.validar_mutacao_se_nao_liquidada()
         super().delete(*args, **kwargs)
         if venda.pk:
             venda.recalcular_totais()

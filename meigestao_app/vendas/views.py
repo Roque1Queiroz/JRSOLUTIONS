@@ -223,9 +223,18 @@ class VendaDeleteView(LoginRequiredMixin, DeleteView):
         empresa = get_empresa_do_usuario(self.request.user)
         return Venda.objects.filter(empresa=empresa)
 
-    def delete(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        venda_id = self.get_object().id
-        response = super().delete(request, *args, **kwargs)
+    def form_valid(self, form: Any) -> HttpResponse:
+        venda_id = self.object.id
+        try:
+            response = super().form_valid(form)
+        except (DatabaseError, ValidationError) as exc:
+            logger.warning(
+                f'Exclusão da venda #{venda_id} recusada: {exc}',
+                exc_info=True,
+            )
+            messages.error(self.request, str(exc))
+            return redirect('vendas:venda_detail', pk=venda_id)
+
         logger.warning(f"Venda #{venda_id} foi excluída permanentemente.")
-        messages.success(request, 'O registro da venda foi removido.')
+        messages.success(self.request, 'O registro da venda foi removido.')
         return response

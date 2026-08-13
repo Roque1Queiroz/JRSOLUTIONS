@@ -32,7 +32,7 @@ class Transacao(BaseModel):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='transacoes')
     venda = models.OneToOneField(
         'vendas.Venda',
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         blank=True,
         related_name='transacao_financeira',

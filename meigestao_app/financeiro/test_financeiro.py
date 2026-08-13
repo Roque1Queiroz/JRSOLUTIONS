@@ -1,14 +1,16 @@
 import pytest
 from decimal import Decimal
+from django.db import IntegrityError, transaction
 from django.urls import reverse
 from django.utils import timezone
 from meigestao_app.financeiro.models import Transacao, ReciboReembolso, ContaBancaria
+from meigestao_app.financeiro.views import _aplicar_efeito_saldo
 from meigestao_app.core.models import Empresa
 from meigestao_app.core.context_processors import notifications
 from meigestao_app.usuarios.models import Perfil
 from meigestao_app.clientes.models import Cliente
 from meigestao_app.estoque.models import Categoria, Produto, Estoque
-from meigestao_app.vendas.models import Venda
+from meigestao_app.vendas.models import Venda, ItemVenda
 from django.contrib.auth.models import User
 from datetime import date
 from django.test import RequestFactory
@@ -148,6 +150,508 @@ class TestFinanceiroFlow:
         assert transacao.descricao == 'Internet atualizada'
         assert transacao.valor == Decimal('250.00')
         assert conta.saldo == Decimal('750.00')
+
+    def test_transacao_de_venda_liquidada_nao_pode_ser_editada(self, client, finance_data):
+        empresa = finance_data['empresa']
+        user = finance_data['user']
+        conta = finance_data['conta1']
+        cliente = Cliente.objects.create(
+            empresa=empresa,
+            nome='Cliente venda liquidada',
+            cpf_cnpj='321.654.987-00',
+        )
+        venda = Venda.objects.create(empresa=empresa, cliente=cliente, status='confirmada')
+        ItemVenda.objects.create(
+            venda=venda,
+            produto_nome='Produto liquidado financeiro',
+            quantidade=1,
+            preco_unitario=Decimal('100.00'),
+        )
+        transacao = venda.transacao_financeira
+        transacao.conta = conta
+        transacao.paga = True
+        transacao.save(update_fields=['conta', 'paga', 'atualizado_em'])
+        conta.saldo = Decimal('1100.00')
+        conta.save(update_fields=['saldo'])
+        client.force_login(user)
+
+        response = client.post(
+            reverse('financeiro:transacao_editar', kwargs={'pk': transacao.pk}),
+            {
+                'empresa': empresa.pk,
+                'conta': conta.pk,
+                'tipo': 'receita',
+                'categoria': 'Vendas',
+                'descricao': 'Receita adulterada',
+                'valor': '150.00',
+                'data_transacao': '2026-08-13',
+                'data_vencimento': '',
+                'paga': 'on',
+            },
+        )
+
+        assert response.status_code == 302
+        venda.refresh_from_db()
+        transacao.refresh_from_db()
+        conta.refresh_from_db()
+        assert venda.valor_total == Decimal('100.00')
+        assert transacao.valor == Decimal('100.00')
+        assert transacao.descricao != 'Receita adulterada'
+        assert conta.saldo == Decimal('1100.00')
+
+    def test_transacao_de_venda_pode_ser_estornada_sem_alterar_valor(self, client, finance_data):
+        empresa = finance_data['empresa']
+        user = finance_data['user']
+        conta = finance_data['conta1']
+        cliente = Cliente.objects.create(
+            empresa=empresa,
+            nome='Cliente estorno de venda',
+            cpf_cnpj='159.753.486-00',
+        )
+        venda = Venda.objects.create(empresa=empresa, cliente=cliente, status='confirmada')
+        ItemVenda.objects.create(
+            venda=venda,
+            produto_nome='Produto para estorno',
+            quantidade=1,
+            preco_unitario=Decimal('130.00'),
+        )
+        transacao = venda.transacao_financeira
+        transacao.conta = conta
+        transacao.paga = True
+        transacao.save(update_fields=['conta', 'paga', 'atualizado_em'])
+        conta.saldo = Decimal('1130.00')
+        conta.save(update_fields=['saldo'])
+        client.force_login(user)
+
+        response = client.post(
+            reverse('financeiro:transacao_editar', kwargs={'pk': transacao.pk}),
+            {
+                'empresa': empresa.pk,
+                'conta': conta.pk,
+                'tipo': 'receita',
+                'categoria': 'Vendas',
+                'descricao': transacao.descricao,
+                'valor': '130.00',
+                'data_transacao': transacao.data_transacao.isoformat(),
+                'data_vencimento': '',
+            },
+        )
+
+        assert response.status_code == 302
+        transacao.refresh_from_db()
+        conta.refresh_from_db()
+        assert transacao.paga is False
+        assert transacao.valor == Decimal('130.00')
+        assert conta.saldo == Decimal('1000.00')
+
+    def test_queryset_nao_adultera_valor_da_transacao_de_venda(self, finance_data):
+        empresa = finance_data['empresa']
+        cliente = Cliente.objects.create(
+            empresa=empresa,
+            nome='Cliente bulk financeiro',
+            cpf_cnpj='456.789.123-00',
+        )
+        venda = Venda.objects.create(empresa=empresa, cliente=cliente, status='confirmada')
+        ItemVenda.objects.create(
+            venda=venda,
+            produto_nome='Produto bulk financeiro',
+            quantidade=1,
+            preco_unitario=Decimal('140.00'),
+        )
+        transacao = venda.transacao_financeira
+
+        with pytest.raises(IntegrityError):
+            with transaction.atomic():
+                Transacao.objects.filter(pk=transacao.pk).update(valor=Decimal('999.00'))
+
+        transacao.refresh_from_db()
+        assert transacao.valor == Decimal('140.00')
+        assert transacao.venda_id == venda.pk
+
+    def test_create_nao_insere_transacao_divergente_vinculada_a_venda(self, finance_data):
+        empresa = finance_data['empresa']
+        cliente = Cliente.objects.create(
+            empresa=empresa,
+            nome='Cliente create divergente',
+            cpf_cnpj='753.159.456-00',
+        )
+        venda = Venda.objects.create(empresa=empresa, cliente=cliente, status='confirmada')
+        ItemVenda.objects.create(
+            venda=venda,
+            produto_nome='Produto create divergente',
+            quantidade=1,
+            preco_unitario=Decimal('170.00'),
+        )
+        venda.transacao_financeira.delete()
+
+        with pytest.raises(IntegrityError):
+            with transaction.atomic():
+                Transacao.objects.create(
+                    empresa=empresa,
+                    venda=venda,
+                    tipo='despesa',
+                    categoria='Adulterada',
+                    descricao='Transação divergente',
+                    valor=Decimal('999.00'),
+                    data_transacao=timezone.now().date(),
+                    paga=True,
+                )
+
+        assert not Transacao.objects.filter(venda=venda).exists()
+
+    def test_bulk_create_nao_insere_transacao_divergente_vinculada_a_venda(
+        self, finance_data
+    ):
+        empresa = finance_data['empresa']
+        cliente = Cliente.objects.create(
+            empresa=empresa,
+            nome='Cliente bulk divergente',
+            cpf_cnpj='357.951.654-00',
+        )
+        venda = Venda.objects.create(empresa=empresa, cliente=cliente, status='confirmada')
+        ItemVenda.objects.create(
+            venda=venda,
+            produto_nome='Produto bulk divergente',
+            quantidade=1,
+            preco_unitario=Decimal('175.00'),
+        )
+        venda.transacao_financeira.delete()
+
+        with pytest.raises(IntegrityError):
+            with transaction.atomic():
+                Transacao.objects.bulk_create([
+                    Transacao(
+                        empresa=empresa,
+                        venda=venda,
+                        tipo='despesa',
+                        categoria='Adulterada',
+                        descricao='Transação bulk divergente',
+                        valor=Decimal('999.00'),
+                        data_transacao=timezone.now().date(),
+                        paga=True,
+                    )
+                ])
+
+        assert not Transacao.objects.filter(venda=venda).exists()
+
+    def test_queryset_nao_vincula_transacao_avulsa_divergente_a_venda(
+        self, finance_data
+    ):
+        empresa = finance_data['empresa']
+        cliente = Cliente.objects.create(
+            empresa=empresa,
+            nome='Cliente vínculo posterior',
+            cpf_cnpj='258.369.147-00',
+        )
+        venda = Venda.objects.create(empresa=empresa, cliente=cliente, status='confirmada')
+        ItemVenda.objects.create(
+            venda=venda,
+            produto_nome='Produto vínculo posterior',
+            quantidade=1,
+            preco_unitario=Decimal('190.00'),
+        )
+        venda.transacao_financeira.delete()
+        transacao = Transacao.objects.create(
+            empresa=empresa,
+            tipo='despesa',
+            categoria='Adulterada',
+            descricao='Avulsa divergente',
+            valor=Decimal('999.00'),
+            data_transacao=timezone.now().date(),
+            paga=True,
+        )
+
+        with pytest.raises(IntegrityError):
+            with transaction.atomic():
+                Transacao.objects.filter(pk=transacao.pk).update(venda_id=venda.pk)
+
+        transacao.refresh_from_db()
+        assert transacao.venda_id is None
+
+    def test_queryset_liquida_e_estorna_venda_com_efeito_no_saldo(self, finance_data):
+        empresa = finance_data['empresa']
+        conta = finance_data['conta1']
+        cliente = Cliente.objects.create(
+            empresa=empresa,
+            nome='Cliente liquidação ORM',
+            cpf_cnpj='369.147.258-00',
+        )
+        venda = Venda.objects.create(empresa=empresa, cliente=cliente, status='confirmada')
+        ItemVenda.objects.create(
+            venda=venda,
+            produto_nome='Produto liquidação ORM',
+            quantidade=1,
+            preco_unitario=Decimal('195.00'),
+        )
+        transacao = venda.transacao_financeira
+        transacao.conta = conta
+        transacao.save(update_fields=['conta', 'atualizado_em'])
+        conta.saldo = Decimal('1000.00')
+        conta.save(update_fields=['saldo'])
+
+        Transacao.objects.filter(pk=transacao.pk).update(paga=True)
+
+        transacao.refresh_from_db()
+        conta.refresh_from_db()
+        assert transacao.paga is True
+        assert conta.saldo == Decimal('1195.00')
+
+        Transacao.objects.filter(pk=transacao.pk).update(paga=False)
+
+        transacao.refresh_from_db()
+        conta.refresh_from_db()
+        assert transacao.paga is False
+        assert conta.saldo == Decimal('1000.00')
+
+    def test_create_insere_transacao_pendente_coerente_vinculada_a_venda(
+        self, finance_data
+    ):
+        empresa = finance_data['empresa']
+        cliente = Cliente.objects.create(
+            empresa=empresa,
+            nome='Cliente vínculo válido',
+            cpf_cnpj='147.258.369-00',
+        )
+        venda = Venda.objects.create(empresa=empresa, cliente=cliente, status='confirmada')
+        ItemVenda.objects.create(
+            venda=venda,
+            produto_nome='Produto vínculo válido',
+            quantidade=1,
+            preco_unitario=Decimal('210.00'),
+        )
+        venda.transacao_financeira.delete()
+
+        transacao = Transacao.objects.create(
+            empresa=empresa,
+            venda=venda,
+            tipo='receita',
+            categoria='Vendas',
+            descricao=f'Venda #{venda.pk} - {cliente.nome}',
+            valor=Decimal('210.00'),
+            data_transacao=venda.data_venda.date(),
+            paga=False,
+        )
+
+        assert transacao.venda_id == venda.pk
+        assert transacao.paga is False
+
+    def test_queryset_transfere_saldo_ao_trocar_conta_de_venda_paga(self, finance_data):
+        empresa = finance_data['empresa']
+        conta_antiga = finance_data['conta1']
+        conta_nova = finance_data['conta2']
+        cliente = Cliente.objects.create(
+            empresa=empresa,
+            nome='Cliente troca de conta',
+            cpf_cnpj='741.258.963-00',
+        )
+        venda = Venda.objects.create(empresa=empresa, cliente=cliente, status='confirmada')
+        ItemVenda.objects.create(
+            venda=venda,
+            produto_nome='Produto troca de conta',
+            quantidade=1,
+            preco_unitario=Decimal('205.00'),
+        )
+        transacao = venda.transacao_financeira
+        transacao.conta = conta_antiga
+        transacao.save(update_fields=['conta', 'atualizado_em'])
+        conta_antiga.saldo = Decimal('1000.00')
+        conta_antiga.save(update_fields=['saldo'])
+        conta_nova.saldo = Decimal('500.00')
+        conta_nova.save(update_fields=['saldo'])
+        Transacao.objects.filter(pk=transacao.pk).update(paga=True)
+
+        Transacao.objects.filter(pk=transacao.pk).update(conta=conta_nova)
+
+        transacao.refresh_from_db()
+        conta_antiga.refresh_from_db()
+        conta_nova.refresh_from_db()
+        assert transacao.conta_id == conta_nova.pk
+        assert transacao.paga is True
+        assert conta_antiga.saldo == Decimal('1000.00')
+        assert conta_nova.saldo == Decimal('705.00')
+
+    def test_queryset_nao_desvincula_transacao_pendente_da_venda(self, finance_data):
+        empresa = finance_data['empresa']
+        cliente = Cliente.objects.create(
+            empresa=empresa,
+            nome='Cliente desvinculação pendente',
+            cpf_cnpj='159.357.486-00',
+        )
+        venda = Venda.objects.create(empresa=empresa, cliente=cliente, status='confirmada')
+        ItemVenda.objects.create(
+            venda=venda,
+            produto_nome='Produto desvinculação pendente',
+            quantidade=1,
+            preco_unitario=Decimal('215.00'),
+        )
+        transacao = venda.transacao_financeira
+        assert transacao.paga is False
+
+        with pytest.raises(IntegrityError):
+            with transaction.atomic():
+                Transacao.objects.filter(pk=transacao.pk).update(venda_id=None)
+
+        transacao.refresh_from_db()
+        assert transacao.venda_id == venda.pk
+        assert transacao.paga is False
+
+    def test_queryset_nao_desvincula_transacao_paga_nem_altera_saldo(
+        self, finance_data
+    ):
+        empresa = finance_data['empresa']
+        conta = finance_data['conta1']
+        cliente = Cliente.objects.create(
+            empresa=empresa,
+            nome='Cliente desvinculação paga',
+            cpf_cnpj='951.753.864-00',
+        )
+        venda = Venda.objects.create(empresa=empresa, cliente=cliente, status='confirmada')
+        ItemVenda.objects.create(
+            venda=venda,
+            produto_nome='Produto desvinculação paga',
+            quantidade=1,
+            preco_unitario=Decimal('225.00'),
+        )
+        transacao = venda.transacao_financeira
+        conta.saldo = Decimal('1000.00')
+        conta.save(update_fields=['saldo'])
+        Transacao.objects.filter(pk=transacao.pk).update(conta=conta, paga=True)
+
+        with pytest.raises(IntegrityError):
+            with transaction.atomic():
+                Transacao.objects.filter(pk=transacao.pk).update(venda_id=None)
+
+        transacao.refresh_from_db()
+        conta.refresh_from_db()
+        assert transacao.venda_id == venda.pk
+        assert transacao.paga is True
+        assert conta.saldo == Decimal('1225.00')
+        assert Venda.objects.filter(pk=venda.pk).exists()
+
+    def test_bulk_update_nao_desvincula_transacao_da_venda(self, finance_data):
+        empresa = finance_data['empresa']
+        cliente = Cliente.objects.create(
+            empresa=empresa,
+            nome='Cliente bulk desvinculação',
+            cpf_cnpj='357.159.486-00',
+        )
+        venda = Venda.objects.create(empresa=empresa, cliente=cliente, status='confirmada')
+        ItemVenda.objects.create(
+            venda=venda,
+            produto_nome='Produto bulk desvinculação',
+            quantidade=1,
+            preco_unitario=Decimal('230.00'),
+        )
+        transacao = venda.transacao_financeira
+        transacao.venda = None
+
+        with pytest.raises(IntegrityError):
+            with transaction.atomic():
+                Transacao.objects.bulk_update([transacao], ['venda'])
+
+        transacao.refresh_from_db()
+        assert transacao.venda_id == venda.pk
+
+    def test_queryset_nao_exclui_transacao_paga_de_venda(self, finance_data):
+        empresa = finance_data['empresa']
+        cliente = Cliente.objects.create(
+            empresa=empresa,
+            nome='Cliente delete financeiro',
+            cpf_cnpj='951.753.852-00',
+        )
+        venda = Venda.objects.create(empresa=empresa, cliente=cliente, status='confirmada')
+        ItemVenda.objects.create(
+            venda=venda,
+            produto_nome='Produto delete financeiro',
+            quantidade=1,
+            preco_unitario=Decimal('145.00'),
+        )
+        transacao = venda.transacao_financeira
+        transacao.paga = True
+        transacao.save(update_fields=['paga', 'atualizado_em'])
+
+        with pytest.raises(IntegrityError):
+            with transaction.atomic():
+                Transacao.objects.filter(pk=transacao.pk).delete()
+
+        assert Transacao.objects.filter(pk=transacao.pk, venda=venda, paga=True).exists()
+
+    def test_transacao_de_venda_nao_pode_ser_excluida_pelo_financeiro(self, client, finance_data):
+        empresa = finance_data['empresa']
+        user = finance_data['user']
+        conta = finance_data['conta1']
+        cliente = Cliente.objects.create(
+            empresa=empresa,
+            nome='Cliente exclusão financeira',
+            cpf_cnpj='741.852.963-00',
+        )
+        venda = Venda.objects.create(empresa=empresa, cliente=cliente, status='confirmada')
+        ItemVenda.objects.create(
+            venda=venda,
+            produto_nome='Produto exclusão financeira',
+            quantidade=1,
+            preco_unitario=Decimal('120.00'),
+        )
+        transacao = venda.transacao_financeira
+        transacao.conta = conta
+        transacao.paga = True
+        transacao.save(update_fields=['conta', 'paga', 'atualizado_em'])
+        conta.saldo = Decimal('1120.00')
+        conta.save(update_fields=['saldo'])
+        client.force_login(user)
+
+        response = client.post(
+            reverse('financeiro:transacao_excluir', kwargs={'pk': transacao.pk})
+        )
+
+        assert response.status_code == 302
+        assert Transacao.objects.filter(pk=transacao.pk, venda=venda, paga=True).exists()
+        conta.refresh_from_db()
+        assert conta.saldo == Decimal('1120.00')
+
+    def test_efeitos_de_duas_receitas_na_mesma_conta_nao_perdem_atualizacao(
+        self, finance_data, monkeypatch
+    ):
+        empresa = finance_data['empresa']
+        conta = finance_data['conta1']
+        transacao_a = Transacao.objects.create(
+            empresa=empresa,
+            conta=conta,
+            tipo='receita',
+            categoria='Teste concorrente',
+            descricao='Receita A',
+            valor=Decimal('100.00'),
+            data_transacao=timezone.now().date(),
+            paga=True,
+        )
+        transacao_b = Transacao.objects.create(
+            empresa=empresa,
+            conta=conta,
+            tipo='receita',
+            categoria='Teste concorrente',
+            descricao='Receita B',
+            valor=Decimal('200.00'),
+            data_transacao=timezone.now().date(),
+            paga=True,
+        )
+        conta.saldo = Decimal('0.00')
+        conta.save(update_fields=['saldo'])
+
+        conta_a = ContaBancaria.objects.get(pk=conta.pk)
+        conta_b = ContaBancaria.objects.get(pk=conta.pk)
+
+        def refresh_sem_recarregar(*args, **kwargs):
+            return None
+
+        monkeypatch.setattr(conta_a, 'refresh_from_db', refresh_sem_recarregar)
+        monkeypatch.setattr(conta_b, 'refresh_from_db', refresh_sem_recarregar)
+        transacao_a.conta = conta_a
+        transacao_b.conta = conta_b
+        _aplicar_efeito_saldo(transacao_a)
+        _aplicar_efeito_saldo(transacao_b)
+
+        conta.refresh_from_db()
+        assert conta.saldo == Decimal('300.00')
 
     def test_report_generation_flow(self, client, finance_data):
         client.login(username="colab", password="password")
