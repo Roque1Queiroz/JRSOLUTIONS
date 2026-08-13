@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from meigestao_app.core.models import BaseModel, Empresa
 from meigestao_app.estoque.models import Produto
 
@@ -59,6 +60,13 @@ class Cotacao(BaseModel):
         verbose_name = 'Cotação'
         verbose_name_plural = 'Cotações'
         ordering = ['valor_total', 'prazo_entrega_dias']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['pedido_compra'],
+                condition=Q(vencedor=True),
+                name='compras_um_vencedor_por_pedido',
+            ),
+        ]
 
 class ItemPedidoCompra(models.Model):
     """Itens solicitados para compra."""

@@ -4,6 +4,8 @@ from django.views.generic import TemplateView, ListView, CreateView, DetailView,
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseBadRequest
 from django.db import transaction
 from django.db.models import Min, Q
 from django.utils import timezone
@@ -95,9 +97,30 @@ class PedidoCompraDetailView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailVie
         context['produtos'] = Produto.objects.filter(empresa=empresa, ativo=True)
         return context
 
+    def _exigir_permissao(self, permitidas):
+        if self.request.user.is_superuser:
+            return
+        perfil = getattr(self.request.user, 'perfil', None)
+        if not perfil or not perfil.ativo or perfil.permissao not in permitidas:
+            raise PermissionDenied('Usuário sem permissão para executar esta ação de compra.')
+
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        
+
+        acoes = [
+            'add_item' in request.POST,
+            'add_cotacao' in request.POST,
+            'aprovar_cotacao' in request.POST,
+            'receber_mercadoria' in request.POST,
+        ]
+        if sum(acoes) != 1:
+            return HttpResponseBadRequest('Informe exatamente uma ação de compra.')
+
+        if request.POST.get('aprovar_cotacao'):
+            self._exigir_permissao({'admin', 'gerente'})
+        if 'receber_mercadoria' in request.POST:
+            self._exigir_permissao({'admin', 'gerente', 'almoxarife'})
+
         # Ação 0: Adicionar Item
         if 'add_item' in request.POST:
             produto_id = request.POST.get('produto_id')
@@ -146,14 +169,24 @@ class PedidoCompraDetailView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailVie
         # Ação 2: Aprovar Cotação
         cotacao_id = request.POST.get('aprovar_cotacao')
         if cotacao_id:
-            # Reseta outros vencedores
-            self.object.cotacoes.update(vencedor=False)
-            cotacao = get_object_or_404(Cotacao, pk=cotacao_id, pedido_compra=self.object)
-            cotacao.vencedor = True
-            cotacao.save()
-            
-            self.object.status = 'APROVADO'
-            self.object.save()
+            with transaction.atomic():
+                pedido = get_object_or_404(
+                    PedidoCompra.objects.select_for_update(),
+                    pk=self.object.pk,
+                    empresa=self.object.empresa,
+                )
+                cotacao = get_object_or_404(
+                    Cotacao,
+                    pk=cotacao_id,
+                    pedido_compra=pedido,
+                )
+                # O bloqueio do pedido serializa aprovações concorrentes.
+                pedido.cotacoes.update(vencedor=False)
+                cotacao.vencedor = True
+                cotacao.save(update_fields=['vencedor', 'atualizado_em'])
+                pedido.status = 'APROVADO'
+                pedido.save(update_fields=['status', 'atualizado_em'])
+                self.object = pedido
             messages.success(request, f"Cotação do fornecedor {cotacao.fornecedor.nome} aprovada!")
 
         # Ação 3: Receber Mercadoria
