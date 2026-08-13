@@ -128,6 +128,29 @@ class TestIsolamentoAlmoxarifadoEntreEmpresas:
         assert local_a in queryset
         assert endereco_b.local not in queryset
 
+    def test_post_nao_cria_endereco_em_local_de_outra_empresa(
+        self, client, empresas_com_usuario_e_almoxarifado
+    ):
+        usuario_a, _, endereco_b, _ = empresas_com_usuario_e_almoxarifado
+        client.force_login(usuario_a)
+
+        response = client.post(
+            reverse("almoxarifado:endereco_create"),
+            {
+                "local": endereco_b.local_id,
+                "corredor": "X",
+                "estante": "1",
+                "prateleira": "2",
+                "codigo_endereco": "CRUZADO-END-01",
+            },
+        )
+
+        assert response.status_code == 200
+        assert not EnderecoArmazenamento.objects.filter(
+            codigo_endereco="CRUZADO-END-01"
+        ).exists()
+        assert "local" in response.context["form"].errors
+
     def test_formulario_setor_nao_lista_responsavel_de_outra_empresa(
         self, client, empresas_com_usuario_e_almoxarifado
     ):
@@ -140,6 +163,28 @@ class TestIsolamentoAlmoxarifadoEntreEmpresas:
         queryset = response.context["form"].fields["responsavel"].queryset
         assert usuario_a in queryset
         assert requisicao_b.solicitante not in queryset
+
+    def test_post_nao_cria_setor_com_responsavel_de_outra_empresa(
+        self, client, empresas_com_usuario_e_almoxarifado
+    ):
+        usuario_a, _, _, requisicao_b = empresas_com_usuario_e_almoxarifado
+        client.force_login(usuario_a)
+
+        response = client.post(
+            reverse("almoxarifado:setor_create"),
+            {
+                "nome": "Setor cruzado",
+                "descricao": "Tentativa cross-tenant",
+                "responsavel": requisicao_b.solicitante_id,
+            },
+        )
+
+        assert response.status_code == 200
+        assert not Setor.objects.filter(
+            empresa=usuario_a.perfil.empresa,
+            nome="Setor cruzado",
+        ).exists()
+        assert "responsavel" in response.context["form"].errors
 
     def test_lista_nao_exibe_requisicao_de_outra_empresa(
         self, client, empresas_com_usuario_e_almoxarifado
