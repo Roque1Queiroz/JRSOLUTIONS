@@ -368,6 +368,14 @@ class TransacaoCreateView(FluxoTransacaoMixin, LoginRequiredMixin, CreateView):
     form_class = TransacaoForm
     template_name = 'meigestao_app/financeiro/transacao_form.html'
 
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        if request.user.is_authenticated and not request.user.is_staff:
+            empresa = get_empresa_do_usuario(request.user)
+            perfil_ativo = getattr(getattr(request.user, 'perfil', None), 'ativo', False)
+            if not empresa or not perfil_ativo:
+                raise PermissionDenied('Usuário sem vínculo empresarial ativo.')
+        return super().dispatch(request, *args, **kwargs)
+
     def get_form(self, form_class: Optional[type] = None) -> Any:
         form = super().get_form(form_class)
         empresa = get_empresa_do_usuario(self.request.user)
@@ -389,8 +397,14 @@ class TransacaoCreateView(FluxoTransacaoMixin, LoginRequiredMixin, CreateView):
     def form_valid(self, form: TransacaoForm) -> HttpResponse:
         self._apply_tipo_fixo(form.instance)
         
-        # Garante empresa se não vier no form (ex: staff que não selecionou ou campo oculto)
-        if not form.instance.empresa_id:
+        # Para usuários comuns, a empresa é sempre definida pelo vínculo do perfil.
+        # Nunca confiar no ID de empresa enviado pelo navegador.
+        if not self.request.user.is_staff:
+            empresa = get_empresa_do_usuario(self.request.user)
+            if not empresa:
+                raise PermissionDenied('Usuário sem vínculo empresarial ativo.')
+            form.instance.empresa = empresa
+        elif not form.instance.empresa_id:
             empresa = get_empresa_do_usuario(self.request.user)
             if not empresa:
                 messages.error(self.request, 'Não foi possível identificar a empresa para esta transação.')

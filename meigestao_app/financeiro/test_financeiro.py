@@ -453,6 +453,85 @@ class TestFinanceiroFlow:
         reembolso = ReciboReembolso.objects.get(item='Hospedagem')
         assert reembolso.empresa == empresa
 
+    def test_usuario_sem_perfil_nao_cria_transacao_em_empresa_arbitraria(self, client, db):
+        empresa = Empresa.objects.create(nome="Empresa Alvo", cnpj="44.444.444/0001-44")
+        user = User.objects.create_user(username="sem_perfil_fin", password="password")
+        client.login(username="sem_perfil_fin", password="password")
+
+        response = client.post(reverse('financeiro:transacao_criar'), {
+            'empresa': empresa.pk,
+            'conta': '',
+            'tipo': 'receita',
+            'categoria': 'Indevida',
+            'descricao': 'Tentativa sem vínculo empresarial',
+            'valor': '100.00',
+            'data_transacao': '2026-08-13',
+            'data_vencimento': '',
+            'paga': '',
+        })
+
+        assert response.status_code == 403
+        assert not Transacao.objects.filter(
+            descricao='Tentativa sem vínculo empresarial',
+        ).exists()
+
+    def test_usuario_com_perfil_so_pode_criar_transacao_na_propria_empresa(self, client, db):
+        empresa_a = Empresa.objects.create(nome="Empresa A Segura", cnpj="66.666.666/0001-66")
+        empresa_b = Empresa.objects.create(nome="Empresa B Alvo", cnpj="77.777.777/0001-77")
+        user = User.objects.create_user(username="perfil_empresa_a", password="password")
+        Perfil.objects.create(usuario=user, empresa=empresa_a, data_admissao=date.today())
+        client.login(username="perfil_empresa_a", password="password")
+
+        response = client.post(reverse('financeiro:transacao_criar'), {
+            'empresa': empresa_b.pk,
+            'conta': '',
+            'tipo': 'receita',
+            'categoria': 'Manipulada',
+            'descricao': 'Tentativa em outra empresa',
+            'valor': '100.00',
+            'data_transacao': '2026-08-13',
+            'data_vencimento': '',
+            'paga': '',
+        })
+
+        assert response.status_code == 302
+        assert Transacao.objects.filter(
+            empresa=empresa_a,
+            descricao='Tentativa em outra empresa',
+        ).exists()
+        assert not Transacao.objects.filter(
+            empresa=empresa_b,
+            descricao='Tentativa em outra empresa',
+        ).exists()
+
+    def test_perfil_inativo_nao_cria_transacao_financeira(self, client, db):
+        empresa = Empresa.objects.create(nome="Empresa Inativa", cnpj="55.555.555/0001-55")
+        user = User.objects.create_user(username="perfil_inativo_fin", password="password")
+        Perfil.objects.create(
+            usuario=user,
+            empresa=empresa,
+            data_admissao=date.today(),
+            ativo=False,
+        )
+        client.login(username="perfil_inativo_fin", password="password")
+
+        response = client.post(reverse('financeiro:transacao_criar'), {
+            'empresa': empresa.pk,
+            'conta': '',
+            'tipo': 'receita',
+            'categoria': 'Indevida',
+            'descricao': 'Tentativa com perfil inativo',
+            'valor': '100.00',
+            'data_transacao': '2026-08-13',
+            'data_vencimento': '',
+            'paga': '',
+        })
+
+        assert response.status_code == 403
+        assert not Transacao.objects.filter(
+            descricao='Tentativa com perfil inativo',
+        ).exists()
+
     def test_notifications_context_processor_returns_zero_for_user_without_profile(self, db):
         user = User.objects.create_user(username="semperfil", password="password", is_staff=False)
         request = RequestFactory().get('/')
