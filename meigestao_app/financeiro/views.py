@@ -466,9 +466,9 @@ class TransacaoUpdateView(FluxoTransacaoMixin, LoginRequiredMixin, UpdateView):
                 venda = Venda.objects.select_for_update().select_related('cliente').get(
                     pk=self.object.venda_id
                 )
-                transacao_anterior = Transacao.objects.select_for_update().select_related(
-                    'conta'
-                ).get(pk=self.object.pk)
+                transacao_anterior = Transacao.objects.select_for_update().get(
+                    pk=self.object.pk
+                )
 
                 form.instance.venda = venda
                 form.instance.empresa = venda.empresa

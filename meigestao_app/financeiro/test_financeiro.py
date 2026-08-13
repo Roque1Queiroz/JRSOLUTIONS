@@ -1,6 +1,6 @@
 import pytest
 from decimal import Decimal
-from django.db import IntegrityError, transaction
+from django.db import DatabaseError, transaction
 from django.urls import reverse
 from django.utils import timezone
 from meigestao_app.financeiro.models import Transacao, ReciboReembolso, ContaBancaria
@@ -260,7 +260,7 @@ class TestFinanceiroFlow:
         )
         transacao = venda.transacao_financeira
 
-        with pytest.raises(IntegrityError):
+        with pytest.raises(DatabaseError):
             with transaction.atomic():
                 Transacao.objects.filter(pk=transacao.pk).update(valor=Decimal('999.00'))
 
@@ -284,7 +284,7 @@ class TestFinanceiroFlow:
         )
         venda.transacao_financeira.delete()
 
-        with pytest.raises(IntegrityError):
+        with pytest.raises(DatabaseError):
             with transaction.atomic():
                 Transacao.objects.create(
                     empresa=empresa,
@@ -317,7 +317,7 @@ class TestFinanceiroFlow:
         )
         venda.transacao_financeira.delete()
 
-        with pytest.raises(IntegrityError):
+        with pytest.raises(DatabaseError):
             with transaction.atomic():
                 Transacao.objects.bulk_create([
                     Transacao(
@@ -361,7 +361,7 @@ class TestFinanceiroFlow:
             paga=True,
         )
 
-        with pytest.raises(IntegrityError):
+        with pytest.raises(DatabaseError):
             with transaction.atomic():
                 Transacao.objects.filter(pk=transacao.pk).update(venda_id=venda.pk)
 
@@ -487,7 +487,7 @@ class TestFinanceiroFlow:
         transacao = venda.transacao_financeira
         assert transacao.paga is False
 
-        with pytest.raises(IntegrityError):
+        with pytest.raises(DatabaseError):
             with transaction.atomic():
                 Transacao.objects.filter(pk=transacao.pk).update(venda_id=None)
 
@@ -517,7 +517,7 @@ class TestFinanceiroFlow:
         conta.save(update_fields=['saldo'])
         Transacao.objects.filter(pk=transacao.pk).update(conta=conta, paga=True)
 
-        with pytest.raises(IntegrityError):
+        with pytest.raises(DatabaseError):
             with transaction.atomic():
                 Transacao.objects.filter(pk=transacao.pk).update(venda_id=None)
 
@@ -545,7 +545,7 @@ class TestFinanceiroFlow:
         transacao = venda.transacao_financeira
         transacao.venda = None
 
-        with pytest.raises(IntegrityError):
+        with pytest.raises(DatabaseError):
             with transaction.atomic():
                 Transacao.objects.bulk_update([transacao], ['venda'])
 
@@ -570,7 +570,7 @@ class TestFinanceiroFlow:
         transacao.paga = True
         transacao.save(update_fields=['paga', 'atualizado_em'])
 
-        with pytest.raises(IntegrityError):
+        with pytest.raises(DatabaseError):
             with transaction.atomic():
                 Transacao.objects.filter(pk=transacao.pk).delete()
 

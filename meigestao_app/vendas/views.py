@@ -118,11 +118,18 @@ class VendaCreateView(LoginRequiredMixin, EmpresaFormMixin, CreateView):
 
             try:
                 with transaction.atomic():
+                    confirmar_apos_itens = form.cleaned_data['status'] == 'confirmada'
+                    if confirmar_apos_itens:
+                        form.instance.status = 'rascunho'
                     self.object = form.save()
                     formset.instance = self.object
                     formset.save()
                     # Recalcula totais após salvar itens
                     self.object.recalcular_totais()
+                    if confirmar_apos_itens:
+                        from .services import confirmar_venda
+
+                        self.object = confirmar_venda(self.object.pk)
                     
                 logger.info(f"Venda #{self.object.id} criada com sucesso para cliente {self.object.cliente}.")
                 messages.success(self.request, 'Venda registrada com sucesso!')
@@ -194,11 +201,28 @@ class VendaUpdateView(LoginRequiredMixin, EmpresaFormMixin, UpdateView):
         if formset.is_valid():
             try:
                 with transaction.atomic():
+                    status_anterior = (
+                        Venda.objects.select_for_update()
+                        .values_list('status', flat=True)
+                        .get(pk=self.object.pk)
+                    )
+                    status_solicitado = form.cleaned_data['status']
+                    confirmar_apos_itens = (
+                        status_anterior == 'rascunho'
+                        and status_solicitado == 'confirmada'
+                    )
+                    if confirmar_apos_itens:
+                        form.instance.status = status_anterior
+
                     self.object = form.save()
                     formset.instance = self.object
                     formset.save()
                     # Recalcula totais após salvar itens
                     self.object.recalcular_totais()
+                    if confirmar_apos_itens:
+                        from .services import confirmar_venda
+
+                        self.object = confirmar_venda(self.object.pk)
                 
                 logger.info(f"Venda #{self.object.id} atualizada.")
                 messages.success(self.request, 'Alterações salvas com sucesso!')

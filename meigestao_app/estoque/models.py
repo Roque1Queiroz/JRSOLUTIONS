@@ -119,6 +119,13 @@ class MovimentacaoEstoque(BaseModel):
         ('devolucao', 'Devolução'),
     ]
     
+    item_venda = models.OneToOneField(
+        'vendas.ItemVenda',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='movimento_saida_estoque',
+    )
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='movimentacoes_estoque', null=True)
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='movimentacoes')
     tipo_movimento = models.CharField(max_length=20, choices=TIPO_MOVIMENTO_CHOICES)
@@ -168,13 +175,44 @@ class MovimentacaoEstoque(BaseModel):
     
     def save(self, *args, **kwargs):
         from django.db import transaction
-        
+
         self.full_clean()
-        
+        criando = self._state.adding
+        if not criando and self.item_venda_id:
+            original = type(self).objects.filter(pk=self.pk).values(
+                'item_venda_id',
+                'empresa_id',
+                'produto_id',
+                'tipo_movimento',
+                'quantidade',
+            ).first()
+            campos_economicos = {
+                'item_venda_id': self.item_venda_id,
+                'empresa_id': self.empresa_id,
+                'produto_id': self.produto_id,
+                'tipo_movimento': self.tipo_movimento,
+                'quantidade': self.quantidade,
+            }
+            if original and any(
+                original[campo] != valor
+                for campo, valor in campos_economicos.items()
+            ):
+                raise ValidationError(
+                    'O efeito de estoque vinculado à venda é imutável.'
+                )
+
         with transaction.atomic():
             super().save(*args, **kwargs)
-            
-            # Atualizar estoque automaticamente
+
+            if not criando:
+                return
+
+            # Movimentos de venda são validados e aplicados por trigger de banco,
+            # incluindo bulk_create/importações, para impedir prova de baixa falsa.
+            if self.item_venda_id:
+                return
+
+            # Atualizar estoque automaticamente somente na criação.
             estoque, created = Estoque.objects.get_or_create(
                 produto=self.produto,
                 defaults={'empresa': self.empresa}

@@ -217,6 +217,15 @@ class ItemVenda(models.Model):
         if (
             self.venda_id
             and self.produto_vinculado_id
+            and self.venda.status in {'confirmada', 'entregue'}
+            and not hasattr(self, 'movimento_saida_estoque')
+        ):
+            errors['produto_vinculado'] = (
+                'Produto controlado deve ser adicionado antes da confirmação da venda.'
+            )
+        if (
+            self.venda_id
+            and self.produto_vinculado_id
             and self.produto_vinculado.empresa_id != self.venda.empresa_id
         ):
             errors['produto_vinculado'] = 'O produto deve pertencer à mesma empresa da venda.'
@@ -230,6 +239,23 @@ class ItemVenda(models.Model):
     def save(self, *args, **kwargs) -> None:
         """Calcula o subtotal automaticamente"""
         with transaction.atomic():
+            if self.pk:
+                original = type(self).objects.filter(pk=self.pk).values(
+                    'venda_id', 'produto_vinculado_id', 'quantidade'
+                ).first()
+                if original and hasattr(self, 'movimento_saida_estoque'):
+                    campos_estoque = {
+                        'venda_id': self.venda_id,
+                        'produto_vinculado_id': self.produto_vinculado_id,
+                        'quantidade': self.quantidade,
+                    }
+                    if any(
+                        original[campo] != valor
+                        for campo, valor in campos_estoque.items()
+                    ):
+                        raise ValidationError(
+                            'Item com baixa de estoque não pode mudar venda, produto ou quantidade.'
+                        )
             if self.venda_id:
                 self.venda.validar_mutacao_se_nao_liquidada()
             self.full_clean()
