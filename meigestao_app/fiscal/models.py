@@ -1,4 +1,4 @@
-﻿from django.db import models
+from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from meigestao_app.core.models import BaseModel, Empresa
@@ -81,6 +81,14 @@ class NotaFiscal(BaseModel):
         # Validar cliente
         if not self.cliente:
             errors['cliente'] = 'O cliente é obrigatório.'
+        elif self.empresa_id and self.cliente.empresa_id != self.empresa_id:
+            errors['cliente'] = 'O cliente deve pertencer à mesma empresa da nota fiscal.'
+
+        if self.venda_id:
+            if self.empresa_id and self.venda.empresa_id != self.empresa_id:
+                errors['venda'] = 'A venda deve pertencer à mesma empresa da nota fiscal.'
+            elif self.cliente_id and self.venda.cliente_id != self.cliente_id:
+                errors['venda'] = 'A venda deve pertencer ao cliente informado na nota fiscal.'
         
         if errors:
             raise ValidationError(errors)

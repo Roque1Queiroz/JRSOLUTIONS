@@ -4,6 +4,7 @@ from django.views.generic import TemplateView, ListView, CreateView, DetailView,
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Min, Q
 from django.utils import timezone
 from meigestao_app.core.mixins import EmpresaQuerysetMixin
@@ -157,10 +158,20 @@ class PedidoCompraDetailView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailVie
 
         # Ação 3: Receber Mercadoria
         if 'receber_mercadoria' in request.POST:
-            self.processar_recebimento()
-            self.object.status = 'RECEBIDO'
-            self.object.save()
-            messages.success(request, "Mercadoria recebida! Estoque e Financeiro atualizados.")
+            with transaction.atomic():
+                pedido = get_object_or_404(
+                    PedidoCompra.objects.select_for_update(),
+                    pk=self.object.pk,
+                    empresa=self.object.empresa,
+                )
+                if pedido.status != 'RECEBIDO':
+                    self.object = pedido
+                    self.processar_recebimento()
+                    self.object.status = 'RECEBIDO'
+                    self.object.save(update_fields=['status', 'atualizado_em'])
+                    messages.success(request, "Mercadoria recebida! Estoque e Financeiro atualizados.")
+                else:
+                    messages.info(request, "Este pedido já foi recebido anteriormente.")
             
         return redirect('compras:pedido_detail', pk=self.object.pk)
 

@@ -12,6 +12,7 @@ from meigestao_app.compras.models import (
 )
 from meigestao_app.core.models import Empresa
 from meigestao_app.estoque.models import Categoria, Produto
+from meigestao_app.financeiro.models import Transacao
 from meigestao_app.usuarios.models import Perfil
 
 
@@ -53,6 +54,25 @@ def empresas_com_usuario_e_pedido(db):
 
 @pytest.mark.django_db
 class TestIsolamentoComprasEntreEmpresas:
+    def test_receber_mesmo_pedido_duas_vezes_nao_duplica_despesa(
+        self, client, empresas_com_usuario_e_pedido
+    ):
+        usuario_a, pedido_a, _, _, _ = empresas_com_usuario_e_pedido
+        client.force_login(usuario_a)
+        url = reverse("compras:pedido_detail", kwargs={"pk": pedido_a.pk})
+
+        primeira_resposta = client.post(url, {"receber_mercadoria": "1"})
+        segunda_resposta = client.post(url, {"receber_mercadoria": "1"})
+
+        assert primeira_resposta.status_code == 302
+        assert segunda_resposta.status_code == 302
+        pedido_a.refresh_from_db()
+        assert pedido_a.status == "RECEBIDO"
+        assert Transacao.objects.filter(
+            empresa=pedido_a.empresa,
+            descricao__startswith=f"Compra #{pedido_a.id}",
+        ).count() == 1
+
     def test_usuario_nao_visualiza_pedido_de_outra_empresa(
         self, client, empresas_com_usuario_e_pedido
     ):
