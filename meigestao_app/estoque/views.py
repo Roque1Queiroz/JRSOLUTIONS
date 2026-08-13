@@ -4,6 +4,7 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q, Sum, F
 from django.utils import timezone
 from datetime import timedelta
@@ -11,7 +12,11 @@ from datetime import timedelta
 from .models import Categoria, Produto, Estoque, MovimentacaoEstoque
 from .forms import CategoriaForm, ProdutoForm, EstoqueForm, MovimentacaoEstoqueForm
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
-from meigestao_app.core.mixins import EmpresaFormMixin, EmpresaQuerysetMixin
+from meigestao_app.core.mixins import (
+    EmpresaFormMixin,
+    EmpresaQuerysetMixin,
+    PerfilPermissaoMixin,
+)
 
 
 class CategoriaListView(LoginRequiredMixin, ListView):
@@ -204,8 +209,13 @@ class EstoqueUpdateView(LoginRequiredMixin, EmpresaQuerysetMixin, UpdateView):
         return reverse_lazy('estoque:estoque_detail', kwargs={'pk': self.object.produto.pk})
 
 
-class MovimentacaoEstoqueCreateView(LoginRequiredMixin, CreateView):
+class MovimentacaoEstoqueCreateView(
+    LoginRequiredMixin,
+    PerfilPermissaoMixin,
+    CreateView,
+):
     """Registrar movimentação de estoque"""
+    permissoes_permitidas = ('admin', 'gerente', 'almoxarife')
     model = MovimentacaoEstoque
     form_class = MovimentacaoEstoqueForm
     template_name = 'meigestao_app/estoque/movimentacao_form.html'
@@ -236,6 +246,14 @@ class MovimentacaoEstoqueCreateView(LoginRequiredMixin, CreateView):
         return form
 
     def form_valid(self, form):
+        if (
+            form.cleaned_data.get('tipo_movimento') == 'ajuste'
+            and not self.request.user.is_superuser
+            and self.request.user.perfil.permissao not in ('admin', 'gerente')
+        ):
+            raise PermissionDenied(
+                'Somente administrador ou gerente pode fazer ajuste absoluto de saldo.'
+            )
         # Os atributos já foram vinculados no get_form
         return super().form_valid(form)
 
