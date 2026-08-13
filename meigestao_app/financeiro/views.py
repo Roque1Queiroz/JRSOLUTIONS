@@ -75,7 +75,7 @@ class RelatorioFinanceiroForm(forms.Form):
 
     def __init__(self, *args: Any, user: Optional[Any] = None, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        empresa = _get_user_empresa(user) if user else None
+        empresa = get_empresa_do_usuario(user) if user else None
 
         if user and user.is_staff:
             self.fields['empresa'].queryset = Empresa.objects.all().order_by('nome')

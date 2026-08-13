@@ -1,5 +1,8 @@
 from django import forms
 from .models import NotaFiscal
+from meigestao_app.clientes.models import Cliente
+from meigestao_app.core.models import Empresa
+from meigestao_app.vendas.models import Venda
 
 class NotaFiscalForm(forms.ModelForm):
     """Formulário para emissão e edição de Notas Fiscais."""
@@ -44,3 +47,15 @@ class NotaFiscalForm(forms.ModelForm):
             'observacoes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'empresa': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, empresa=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if empresa is None:
+            self.fields['empresa'].queryset = Empresa.objects.none()
+            self.fields['cliente'].queryset = Cliente.objects.none()
+            self.fields['venda'].queryset = Venda.objects.none()
+            return
+        self.fields['empresa'].queryset = Empresa.objects.filter(pk=empresa.pk)
+        self.fields['empresa'].initial = empresa
+        self.fields['cliente'].queryset = Cliente.objects.filter(empresa=empresa)
+        self.fields['venda'].queryset = Venda.objects.filter(empresa=empresa)

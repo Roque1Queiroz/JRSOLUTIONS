@@ -1,4 +1,5 @@
 
+from django.shortcuts import get_object_or_404
 from django.views.generic import ListView, CreateView, DetailView, UpdateView, DeleteView, TemplateView
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -11,6 +12,14 @@ from .models import NotaFiscal
 from .forms import NotaFiscalForm
 from .utils import gerar_pdf_nota_fiscal
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
+from meigestao_app.core.mixins import EmpresaQuerysetMixin
+
+
+class NotaFiscalFormEmpresaMixin:
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['empresa'] = get_empresa_do_usuario(self.request.user)
+        return kwargs
 
 
 class NotaFiscalListView(LoginRequiredMixin, ListView):
@@ -79,7 +88,7 @@ class NotaFiscalListView(LoginRequiredMixin, ListView):
         return context
 
 
-class NotaFiscalCreateView(LoginRequiredMixin, CreateView):
+class NotaFiscalCreateView(LoginRequiredMixin, NotaFiscalFormEmpresaMixin, CreateView):
     """Criar nova Nota Fiscal"""
     model = NotaFiscal
     form_class = NotaFiscalForm
@@ -92,14 +101,14 @@ class NotaFiscalCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class NotaFiscalDetailView(LoginRequiredMixin, DetailView):
+class NotaFiscalDetailView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
     """Detalhes de uma Nota Fiscal"""
     model = NotaFiscal
     template_name = 'meigestao_app/fiscal/nota_fiscal_detail.html'
     context_object_name = 'nota_fiscal'
 
 
-class NotaFiscalUpdateView(LoginRequiredMixin, UpdateView):
+class NotaFiscalUpdateView(LoginRequiredMixin, EmpresaQuerysetMixin, NotaFiscalFormEmpresaMixin, UpdateView):
     """Editar Nota Fiscal"""
     model = NotaFiscal
     form_class = NotaFiscalForm
@@ -112,7 +121,7 @@ class NotaFiscalUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class NotaFiscalDeleteView(LoginRequiredMixin, DeleteView):
+class NotaFiscalDeleteView(LoginRequiredMixin, EmpresaQuerysetMixin, DeleteView):
     """Deletar Nota Fiscal"""
     model = NotaFiscal
     template_name = 'meigestao_app/fiscal/nota_fiscal_confirm_delete.html'
@@ -181,7 +190,7 @@ class NotaFiscalRelatorioView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class NotaFiscalPDFView(LoginRequiredMixin, DetailView):
+class NotaFiscalPDFView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
     """Gera PDF da nota fiscal"""
     model = NotaFiscal
     
@@ -202,24 +211,32 @@ class NotaFiscalCreateFromVendaView(LoginRequiredMixin, CreateView):
     form_class = NotaFiscalForm
     template_name = 'meigestao_app/fiscal/nota_fiscal_form.html'
     success_url = reverse_lazy('fiscal:nota_fiscal_list')
+
+    def get_venda(self):
+        from meigestao_app.vendas.models import Venda
+
+        if not hasattr(self, '_venda'):
+            self._venda = get_object_or_404(
+                Venda,
+                pk=self.kwargs['venda_id'],
+                empresa=get_empresa_do_usuario(self.request.user),
+            )
+        return self._venda
     
     def get_initial(self):
         initial = super().get_initial()
-        venda_id = self.kwargs.get('venda_id')
-        
-        if venda_id:
-            from meigestao_app.vendas.models import Venda
-            try:
-                venda = Venda.objects.get(id=venda_id)
-                initial['cliente'] = venda.cliente
-                initial['venda'] = venda
-                initial['valor_subtotal'] = venda.valor_subtotal
-                initial['valor_desconto'] = venda.desconto
-            except Venda.DoesNotExist:
-                pass
+        venda = self.get_venda()
+        initial['cliente'] = venda.cliente
+        initial['venda'] = venda
+        initial['valor_subtotal'] = venda.valor_subtotal
+        initial['valor_desconto'] = venda.desconto
         
         return initial
     
     def form_valid(self, form):
+        venda = self.get_venda()
+        form.instance.empresa = venda.empresa
+        form.instance.cliente = venda.cliente
+        form.instance.venda = venda
         form.instance.calcular_total()
         return super().form_valid(form)

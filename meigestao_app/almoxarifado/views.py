@@ -2,6 +2,7 @@ from django.db import models
 from django.views.generic import ListView, CreateView, DetailView, UpdateView, TemplateView, DeleteView
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
+from meigestao_app.core.mixins import EmpresaFormMixin, EmpresaQuerysetMixin
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
@@ -9,7 +10,7 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.db.models import Sum
 from .models import LocalArmazenamento, Setor, SaldoAlmoxarifado, RequisicaoInterna, ItemRequisicao, EnderecoArmazenamento
-from .forms import SetorForm, RequisicaoInternaForm
+from .forms import EnderecoArmazenamentoForm, SetorForm, RequisicaoInternaForm
 
 class AlmoxarifeAccessMixin(AccessMixin):
     """
@@ -63,18 +64,19 @@ class RequisicaoListView(LoginRequiredMixin, AlmoxarifeAccessMixin, ListView):
     paginate_by = 15
 
     def get_queryset(self):
-        qs = super().get_queryset()
+        empresa = get_empresa_do_usuario(self.request.user)
+        qs = super().get_queryset().filter(empresa=empresa)
         # Se não for gestor ou almoxarife, vê apenas as suas
         permissao = getattr(self.request.user.perfil, 'permissao', None) if hasattr(self.request.user, 'perfil') else None
         if permissao not in ['almoxarife', 'gerente', 'admin'] and not self.request.user.is_superuser:
             qs = qs.filter(solicitante=self.request.user)
         return qs
 
-class RequisicaoCreateView(LoginRequiredMixin, AlmoxarifeAccessMixin, CreateView):
+class RequisicaoCreateView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaFormMixin, CreateView):
     """Criação de nova requisição interna"""
     model = RequisicaoInterna
     template_name = 'meigestao_app/almoxarifado/requisicao_form.html'
-    fields = ['setor', 'local_origem', 'justificativa']
+    form_class = RequisicaoInternaForm
     success_url = reverse_lazy('almoxarifado:requisicao_list')
 
     def form_valid(self, form):
@@ -86,7 +88,7 @@ class RequisicaoCreateView(LoginRequiredMixin, AlmoxarifeAccessMixin, CreateView
         messages.success(self.request, 'Requisição enviada com sucesso! Aguarde aprovação.')
         return super().form_valid(form)
 
-class RequisicaoDetailView(LoginRequiredMixin, AlmoxarifeAccessMixin, DetailView):
+class RequisicaoDetailView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaQuerysetMixin, DetailView):
     """Detalhes da requisição e seus itens"""
     model = RequisicaoInterna
     template_name = 'meigestao_app/almoxarifado/requisicao_detail.html'
@@ -95,7 +97,11 @@ class RequisicaoDetailView(LoginRequiredMixin, AlmoxarifeAccessMixin, DetailView
 class RequisicaoAprovarView(LoginRequiredMixin, AlmoxarifeAccessMixin, View):
     """Lógica para aprovação de requisição por gestores"""
     def post(self, request, pk, *args, **kwargs):
-        requisicao = get_object_or_404(RequisicaoInterna, pk=pk)
+        requisicao = get_object_or_404(
+            RequisicaoInterna,
+            pk=pk,
+            empresa=get_empresa_do_usuario(request.user),
+        )
         
         permissao = getattr(request.user.perfil, 'permissao', None) if hasattr(request.user, 'perfil') else None
         if permissao not in ['gerente', 'admin'] and not request.user.is_superuser:
@@ -135,11 +141,11 @@ class EnderecoListView(LoginRequiredMixin, AlmoxarifeAccessMixin, ListView):
         empresa = get_empresa_do_usuario(self.request.user)
         return EnderecoArmazenamento.objects.filter(local__empresa=empresa).select_related('local')
 
-class EnderecoCreateView(LoginRequiredMixin, AlmoxarifeAccessMixin, CreateView):
+class EnderecoCreateView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaFormMixin, CreateView):
     """Cadastro de novo endereço"""
     model = EnderecoArmazenamento
     template_name = 'meigestao_app/almoxarifado/endereco_form.html'
-    fields = ['local', 'corredor', 'estante', 'prateleira', 'codigo_endereco']
+    form_class = EnderecoArmazenamentoForm
     success_url = reverse_lazy('almoxarifado:endereco_list')
 
     def form_valid(self, form):
@@ -159,13 +165,14 @@ class CentralEtiquetasView(LoginRequiredMixin, AlmoxarifeAccessMixin, TemplateVi
         context['produtos'] = SaldoAlmoxarifado.objects.filter(local__empresa=empresa).select_related('produto', 'endereco')
         return context
 
-class PrateleiraView(LoginRequiredMixin, DetailView):
+class PrateleiraView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
     """Visão mobile da prateleira ao escanear QR Code"""
     model = EnderecoArmazenamento
     template_name = 'meigestao_app/almoxarifado/prateleira_view.html'
     context_object_name = 'endereco'
     slug_url_kwarg = 'codigo'
     slug_field = 'codigo_endereco'
+    empresa_lookup = 'local__empresa'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -182,7 +189,7 @@ class SetorListView(LoginRequiredMixin, AlmoxarifeAccessMixin, ListView):
         empresa = get_empresa_do_usuario(self.request.user)
         return Setor.objects.filter(empresa=empresa)
 
-class SetorCreateView(LoginRequiredMixin, AlmoxarifeAccessMixin, CreateView):
+class SetorCreateView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaFormMixin, CreateView):
     model = Setor
     form_class = SetorForm
     template_name = 'meigestao_app/almoxarifado/setor_form.html'
@@ -193,7 +200,7 @@ class SetorCreateView(LoginRequiredMixin, AlmoxarifeAccessMixin, CreateView):
         messages.success(self.request, "Setor cadastrado com sucesso!")
         return super().form_valid(form)
 
-class SetorUpdateView(LoginRequiredMixin, AlmoxarifeAccessMixin, UpdateView):
+class SetorUpdateView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaQuerysetMixin, EmpresaFormMixin, UpdateView):
     model = Setor
     form_class = SetorForm
     template_name = 'meigestao_app/almoxarifado/setor_form.html'
@@ -203,7 +210,7 @@ class SetorUpdateView(LoginRequiredMixin, AlmoxarifeAccessMixin, UpdateView):
         messages.success(self.request, "Setor atualizado com sucesso!")
         return super().form_valid(form)
 
-class SetorDeleteView(LoginRequiredMixin, AlmoxarifeAccessMixin, DeleteView):
+class SetorDeleteView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaQuerysetMixin, DeleteView):
     model = Setor
     template_name = 'meigestao_app/almoxarifado/setor_confirm_delete.html'
     success_url = reverse_lazy('almoxarifado:setor_list')

@@ -10,6 +10,14 @@ from django.db import transaction
 from .models import FichaTecnica, FichaTecnicaItem, OrdemProducao
 from .forms import FichaTecnicaForm, OrdemProducaoForm
 from meigestao_app.estoque.models import Produto
+from meigestao_app.core.mixins import EmpresaQuerysetMixin
+
+
+class ProducaoFormEmpresaMixin:
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['empresa'] = get_empresa_do_usuario(self.request.user)
+        return kwargs
 
 
 def get_permissao_usuario(user):
@@ -67,7 +75,7 @@ class FichaTecnicaListView(LoginRequiredMixin, PCPAccessMixin, ListView):
         return FichaTecnica.objects.filter(empresa=empresa)
 
 
-class FichaTecnicaCreateView(LoginRequiredMixin, PCPAccessMixin, CreateView):
+class FichaTecnicaCreateView(LoginRequiredMixin, PCPAccessMixin, ProducaoFormEmpresaMixin, CreateView):
     model = FichaTecnica
     template_name = 'meigestao_app/producao/ficha_tecnica_form.html'
     form_class = FichaTecnicaForm
@@ -91,7 +99,7 @@ class OrdemProducaoListView(LoginRequiredMixin, PCPAccessMixin, ListView):
         return OrdemProducao.objects.filter(empresa=empresa)
 
 
-class OrdemProducaoCreateView(LoginRequiredMixin, PCPAccessMixin, CreateView):
+class OrdemProducaoCreateView(LoginRequiredMixin, PCPAccessMixin, ProducaoFormEmpresaMixin, CreateView):
     model = OrdemProducao
     template_name = 'meigestao_app/producao/ordem_producao_form.html'
     form_class = OrdemProducaoForm
@@ -103,7 +111,7 @@ class OrdemProducaoCreateView(LoginRequiredMixin, PCPAccessMixin, CreateView):
         return super().form_valid(form)
 
 
-class OrdemProducaoDetailView(LoginRequiredMixin, PCPAccessMixin, DetailView):
+class OrdemProducaoDetailView(LoginRequiredMixin, PCPAccessMixin, EmpresaQuerysetMixin, DetailView):
     model = OrdemProducao
     template_name = 'meigestao_app/producao/ordem_producao_detail.html'
     context_object_name = 'op'

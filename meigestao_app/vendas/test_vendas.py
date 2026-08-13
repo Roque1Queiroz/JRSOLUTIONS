@@ -1,4 +1,5 @@
 import pytest
+from django.utils import timezone
 from django.urls import reverse
 from meigestao_app.vendas.models import Venda, ItemVenda
 from meigestao_app.clientes.models import Cliente
@@ -7,7 +8,12 @@ from meigestao_app.core.models import Empresa
 @pytest.fixture
 def setup_data(db):
     empresa = Empresa.objects.create(nome="Empresa Teste", cnpj="12.345.678/0001-99")
-    cliente = Cliente.objects.create(nome="Cliente Teste", email="teste@teste.com")
+    cliente = Cliente.objects.create(
+        empresa=empresa,
+        nome="Cliente Teste",
+        cpf_cnpj="123.456.789-00",
+        email="teste@teste.com",
+    )
     return empresa, cliente
 
 @pytest.mark.django_db
@@ -27,13 +33,13 @@ class TestVendaFlow:
         # Adicionar Itens
         ItemVenda.objects.create(
             venda=venda,
-            produto="Produto A",
+            produto_nome="Produto A",
             quantidade=2,
             preco_unitario=50.00
         )
         ItemVenda.objects.create(
             venda=venda,
-            produto="Produto B",
+            produto_nome="Produto B",
             quantidade=1,
             preco_unitario=150.00
         )

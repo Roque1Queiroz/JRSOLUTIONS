@@ -11,6 +11,7 @@ from datetime import timedelta
 from .models import Categoria, Produto, Estoque, MovimentacaoEstoque
 from .forms import CategoriaForm, ProdutoForm, EstoqueForm, MovimentacaoEstoqueForm
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
+from meigestao_app.core.mixins import EmpresaFormMixin, EmpresaQuerysetMixin
 
 
 class CategoriaListView(LoginRequiredMixin, ListView):
@@ -41,14 +42,14 @@ class CategoriaCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class CategoriaDetailView(LoginRequiredMixin, DetailView):
+class CategoriaDetailView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
     """Detalhes da categoria"""
     model = Categoria
     template_name = 'meigestao_app/estoque/categoria_detail.html'
     context_object_name = 'categoria'
 
 
-class CategoriaUpdateView(LoginRequiredMixin, UpdateView):
+class CategoriaUpdateView(LoginRequiredMixin, EmpresaQuerysetMixin, UpdateView):
     """Editar categoria"""
     model = Categoria
     form_class = CategoriaForm
@@ -60,7 +61,7 @@ class CategoriaUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class CategoriaDeleteView(LoginRequiredMixin, DeleteView):
+class CategoriaDeleteView(LoginRequiredMixin, EmpresaQuerysetMixin, DeleteView):
     """Deletar categoria"""
     model = Categoria
     template_name = 'meigestao_app/estoque/categoria_confirm_delete.html'
@@ -116,7 +117,7 @@ class ProdutoListView(LoginRequiredMixin, ListView):
         return context
 
 
-class ProdutoCreateView(LoginRequiredMixin, CreateView):
+class ProdutoCreateView(LoginRequiredMixin, EmpresaFormMixin, CreateView):
     """Criar novo produto"""
     model = Produto
     form_class = ProdutoForm
@@ -131,7 +132,7 @@ class ProdutoCreateView(LoginRequiredMixin, CreateView):
         return response
 
 
-class ProdutoDetailView(LoginRequiredMixin, DetailView):
+class ProdutoDetailView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
     """Detalhes do produto"""
     model = Produto
     template_name = 'meigestao_app/estoque/produto_detail.html'
@@ -145,7 +146,7 @@ class ProdutoDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class ProdutoUpdateView(LoginRequiredMixin, UpdateView):
+class ProdutoUpdateView(LoginRequiredMixin, EmpresaQuerysetMixin, EmpresaFormMixin, UpdateView):
     """Editar produto"""
     model = Produto
     form_class = ProdutoForm
@@ -157,23 +158,24 @@ class ProdutoUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class ProdutoDeleteView(LoginRequiredMixin, DeleteView):
+class ProdutoDeleteView(LoginRequiredMixin, EmpresaQuerysetMixin, DeleteView):
     """Deletar produto"""
     model = Produto
     template_name = 'meigestao_app/estoque/produto_confirm_delete.html'
     success_url = reverse_lazy('estoque:produto_list')
 
 
-class EstoqueDetailView(LoginRequiredMixin, DetailView):
+class EstoqueDetailView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
     """Detalhes do estoque de um produto (pk na URL = pk do Produto)"""
     model = Estoque
     template_name = 'meigestao_app/estoque/estoque_detail.html'
     context_object_name = 'estoque'
+    empresa_lookup = 'produto__empresa'
 
     def get_object(self, queryset=None):
         from django.shortcuts import get_object_or_404
         produto_pk = self.kwargs.get('pk')
-        return get_object_or_404(Estoque, produto__pk=produto_pk)
+        return get_object_or_404(self.get_queryset(), produto__pk=produto_pk)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -182,16 +184,17 @@ class EstoqueDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class EstoqueUpdateView(LoginRequiredMixin, UpdateView):
+class EstoqueUpdateView(LoginRequiredMixin, EmpresaQuerysetMixin, UpdateView):
     """Editar configurações de estoque (pk na URL = pk do Produto)"""
     model = Estoque
     form_class = EstoqueForm
     template_name = 'meigestao_app/estoque/estoque_form.html'
+    empresa_lookup = 'produto__empresa'
 
     def get_object(self, queryset=None):
         from django.shortcuts import get_object_or_404
         produto_pk = self.kwargs.get('pk')
-        return get_object_or_404(Estoque, produto__pk=produto_pk)
+        return get_object_or_404(self.get_queryset(), produto__pk=produto_pk)
 
     def form_valid(self, form):
         return super().form_valid(form)
@@ -208,9 +211,15 @@ class MovimentacaoEstoqueCreateView(LoginRequiredMixin, CreateView):
     template_name = 'meigestao_app/estoque/movimentacao_form.html'
 
     def get_produto(self):
+        from django.shortcuts import get_object_or_404
+
         produto_id = self.kwargs.get('produto_id')
         if produto_id:
-            return Produto.objects.filter(pk=produto_id).first()
+            return get_object_or_404(
+                Produto,
+                pk=produto_id,
+                empresa=get_empresa_do_usuario(self.request.user),
+            )
         return None
 
     def get_context_data(self, **kwargs):

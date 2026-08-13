@@ -59,6 +59,8 @@ class ReciboReembolsoForm(forms.ModelForm):
         empresa = kwargs.pop('empresa', None)
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+
+        self.fields['prioridade'].required = False
         
         if empresa:
             self.fields['colaborador'].queryset = Perfil.objects.filter(empresa=empresa, ativo=True)
@@ -79,6 +81,7 @@ class ReciboReembolsoForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        cleaned_data['prioridade'] = cleaned_data.get('prioridade') or 'media'
         colaborador = cleaned_data.get('colaborador')
         nome_solicitante = cleaned_data.get('nome_solicitante')
 

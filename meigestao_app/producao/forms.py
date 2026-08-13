@@ -1,5 +1,6 @@
 from django import forms
 from .models import FichaTecnica, OrdemProducao
+from meigestao_app.estoque.models import Produto
 
 class FichaTecnicaForm(forms.ModelForm):
     class Meta:
@@ -12,8 +13,13 @@ class FichaTecnicaForm(forms.ModelForm):
             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, empresa=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['produto_final'].queryset = (
+            Produto.objects.filter(empresa=empresa, ativo=True)
+            if empresa
+            else Produto.objects.none()
+        )
         for field_name, field in self.fields.items():
             if self.errors.get(field_name):
                 current_class = field.widget.attrs.get('class', '')
@@ -38,8 +44,13 @@ class OrdemProducaoForm(forms.ModelForm):
             }),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, empresa=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['ficha_tecnica'].queryset = (
+            FichaTecnica.objects.filter(empresa=empresa, ativo=True)
+            if empresa
+            else FichaTecnica.objects.none()
+        )
         for field_name, field in self.fields.items():
             if self.errors.get(field_name):
                 current_class = field.widget.attrs.get('class', '')

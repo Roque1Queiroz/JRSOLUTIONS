@@ -27,13 +27,13 @@ class ProdutoForm(forms.ModelForm):
             'sku': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'SKU único'}),
             'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'preco_custo': forms.NumberInput(attrs={
-                'class': 'form-control', 
+                'class': 'form-control',
                 'step': '0.01',
                 'placeholder': '0.00',
                 'onfocus': "if(this.value=='0.00' || this.value=='0') this.value='';"
             }),
             'preco_venda': forms.NumberInput(attrs={
-                'class': 'form-control', 
+                'class': 'form-control',
                 'step': '0.01',
                 'placeholder': '0.00',
                 'onfocus': "if(this.value=='0.00' || this.value=='0') this.value='';"
@@ -41,8 +41,13 @@ class ProdutoForm(forms.ModelForm):
             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, empresa=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['categoria'].queryset = (
+            Categoria.objects.filter(empresa=empresa)
+            if empresa
+            else Categoria.objects.none()
+        )
         for field_name, field in self.fields.items():
             if self.errors.get(field_name):
                 current_class = field.widget.attrs.get('class', '')
@@ -79,4 +84,4 @@ class MovimentacaoEstoqueForm(forms.ModelForm):
         for field_name, field in self.fields.items():
             if self.errors.get(field_name):
                 current_class = field.widget.attrs.get('class', '')
-                field.widget.attrs['class'] = f"{current_class} is-invalid"
+                field.widget.attrs['class'] = f"{current_class} is-invalid"

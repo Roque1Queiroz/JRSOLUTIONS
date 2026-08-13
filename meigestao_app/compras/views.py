@@ -5,6 +5,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.db.models import Min, Q
+from django.utils import timezone
+from meigestao_app.core.mixins import EmpresaQuerysetMixin
+from meigestao_app.estoque.models import Produto
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
 from .models import Fornecedor, PedidoCompra, Cotacao, ItemPedidoCompra
 
@@ -69,7 +72,7 @@ class PedidoCompraCreateView(LoginRequiredMixin, CreateView):
         messages.success(self.request, "Solicitação de compra criada!")
         return super().form_valid(form)
 
-class PedidoCompraDetailView(LoginRequiredMixin, DetailView):
+class PedidoCompraDetailView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
     model = PedidoCompra
     template_name = 'meigestao_app/compras/pedido_detail.html'
     context_object_name = 'pedido'
@@ -98,9 +101,14 @@ class PedidoCompraDetailView(LoginRequiredMixin, DetailView):
         if 'add_item' in request.POST:
             produto_id = request.POST.get('produto_id')
             quantidade = request.POST.get('quantidade')
+            produto = get_object_or_404(
+                Produto,
+                pk=produto_id,
+                empresa=self.object.empresa,
+            )
             ItemPedidoCompra.objects.create(
                 pedido_compra=self.object,
-                produto_id=produto_id,
+                produto=produto,
                 quantidade=quantidade
             )
             messages.success(request, "Item adicionado ao pedido.")
@@ -112,10 +120,15 @@ class PedidoCompraDetailView(LoginRequiredMixin, DetailView):
             prazo = request.POST.get('prazo')
             condicoes = request.POST.get('condicoes')
             anexo = request.FILES.get('anexo')
+            fornecedor = get_object_or_404(
+                Fornecedor,
+                pk=fornecedor_id,
+                empresa=self.object.empresa,
+            )
             
             Cotacao.objects.create(
                 pedido_compra=self.object,
-                fornecedor_id=fornecedor_id,
+                fornecedor=fornecedor,
                 valor_total=valor_total,
                 prazo_entrega_dias=prazo,
                 condicoes_pagamento=condicoes,
