@@ -681,7 +681,24 @@ class ReciboReembolsoCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class ReciboReembolsoUpdateView(LoginRequiredMixin, UpdateView):
+class ReciboReembolsoObjetoMixin:
+    """Restringe objetos de reembolso ao usuário comum autenticado."""
+
+    def get_queryset(self) -> QuerySet:
+        qs = super().get_queryset()
+        if self.request.user.is_staff:
+            return qs
+        return qs.filter(
+            empresa=get_empresa_do_usuario(self.request.user),
+            colaborador__usuario=self.request.user,
+        )
+
+
+class ReciboReembolsoUpdateView(
+    LoginRequiredMixin,
+    ReciboReembolsoObjetoMixin,
+    UpdateView,
+):
     """Edição de recibo de reembolso."""
     model = ReciboReembolso
     form_class = ReciboReembolsoForm
@@ -695,6 +712,8 @@ class ReciboReembolsoUpdateView(LoginRequiredMixin, UpdateView):
         return kwargs
 
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
         obj = self.get_object()
         if obj.pago and not request.user.is_staff:
             messages.error(request, 'Este reembolso já foi pago e não pode mais ser editado.')
@@ -706,13 +725,19 @@ class ReciboReembolsoUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class ReciboReembolsoDeleteView(LoginRequiredMixin, DeleteView):
+class ReciboReembolsoDeleteView(
+    LoginRequiredMixin,
+    ReciboReembolsoObjetoMixin,
+    DeleteView,
+):
     """Exclusão de recibo de reembolso."""
     model = ReciboReembolso
     template_name = 'meigestao_app/financeiro/reembolso_confirm_delete.html'
     success_url = reverse_lazy('financeiro:reembolso_lista')
 
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
         obj = self.get_object()
         if obj.pago:
             messages.error(request, 'Não é possível excluir um reembolso que já foi pago. Estorne o pagamento primeiro.')

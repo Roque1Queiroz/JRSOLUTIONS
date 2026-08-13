@@ -532,6 +532,122 @@ class TestFinanceiroFlow:
             descricao='Tentativa com perfil inativo',
         ).exists()
 
+    def test_usuario_nao_edita_reembolso_de_outra_empresa(self, client, db):
+        empresa_a = Empresa.objects.create(nome="Empresa A Reembolso", cnpj="88.888.888/0001-88")
+        empresa_b = Empresa.objects.create(nome="Empresa B Reembolso", cnpj="99.999.999/0001-99")
+        user_a = User.objects.create_user(username="reembolso_a", password="password")
+        user_b = User.objects.create_user(username="reembolso_b", password="password")
+        Perfil.objects.create(usuario=user_a, empresa=empresa_a, data_admissao=date.today())
+        perfil_b = Perfil.objects.create(usuario=user_b, empresa=empresa_b, data_admissao=date.today())
+        reembolso_b = ReciboReembolso.objects.create(
+            empresa=empresa_b,
+            colaborador=perfil_b,
+            item="Item original B",
+            valor="75.00",
+            data_compra=date(2026, 8, 13),
+        )
+        client.login(username="reembolso_a", password="password")
+
+        response = client.post(
+            reverse('financeiro:reembolso_editar', kwargs={'pk': reembolso_b.pk}),
+            {
+                'colaborador': perfil_b.pk,
+                'nome_solicitante': '',
+                'prioridade': 'alta',
+                'item': 'Item adulterado',
+                'valor': '1.00',
+                'data_compra': '13/08/2026',
+                'observacoes': '',
+            },
+        )
+
+        assert response.status_code == 404
+        reembolso_b.refresh_from_db()
+        assert reembolso_b.item == 'Item original B'
+        assert reembolso_b.valor == Decimal('75.00')
+
+    def test_usuario_nao_exclui_reembolso_de_outra_empresa(self, client, db):
+        empresa_a = Empresa.objects.create(nome="Empresa A Exclusão", cnpj="10.101.010/0001-10")
+        empresa_b = Empresa.objects.create(nome="Empresa B Exclusão", cnpj="20.202.020/0001-20")
+        user_a = User.objects.create_user(username="exclusao_a", password="password")
+        user_b = User.objects.create_user(username="exclusao_b", password="password")
+        Perfil.objects.create(usuario=user_a, empresa=empresa_a, data_admissao=date.today())
+        perfil_b = Perfil.objects.create(usuario=user_b, empresa=empresa_b, data_admissao=date.today())
+        reembolso_b = ReciboReembolso.objects.create(
+            empresa=empresa_b,
+            colaborador=perfil_b,
+            item="Não excluir",
+            valor="90.00",
+            data_compra=date(2026, 8, 13),
+        )
+        client.login(username="exclusao_a", password="password")
+
+        response = client.post(
+            reverse('financeiro:reembolso_excluir', kwargs={'pk': reembolso_b.pk}),
+        )
+
+        assert response.status_code == 404
+        assert ReciboReembolso.objects.filter(pk=reembolso_b.pk).exists()
+
+    def test_usuario_edita_o_proprio_reembolso(self, client, db):
+        empresa = Empresa.objects.create(nome="Empresa Própria", cnpj="30.303.030/0001-30")
+        user = User.objects.create_user(username="reembolso_proprio", password="password")
+        perfil = Perfil.objects.create(usuario=user, empresa=empresa, data_admissao=date.today())
+        reembolso = ReciboReembolso.objects.create(
+            empresa=empresa,
+            colaborador=perfil,
+            item="Item próprio",
+            valor="50.00",
+            data_compra=date(2026, 8, 13),
+        )
+        client.login(username="reembolso_proprio", password="password")
+
+        response = client.post(
+            reverse('financeiro:reembolso_editar', kwargs={'pk': reembolso.pk}),
+            {
+                'colaborador': perfil.pk,
+                'nome_solicitante': '',
+                'prioridade': 'alta',
+                'item': 'Item próprio atualizado',
+                'valor': '60.00',
+                'data_compra': '13/08/2026',
+                'observacoes': '',
+            },
+        )
+
+        assert response.status_code == 302
+        reembolso.refresh_from_db()
+        assert reembolso.item == 'Item próprio atualizado'
+        assert reembolso.valor == Decimal('60.00')
+
+    def test_staff_exclui_reembolso_de_outra_empresa(self, client, db):
+        empresa = Empresa.objects.create(nome="Empresa Staff Global", cnpj="40.404.040/0001-40")
+        staff = User.objects.create_user(username="staff_reembolso", password="password", is_staff=True)
+        colaborador = User.objects.create_user(username="colaborador_staff", password="password")
+        perfil = Perfil.objects.create(usuario=colaborador, empresa=empresa, data_admissao=date.today())
+        reembolso = ReciboReembolso.objects.create(
+            empresa=empresa,
+            colaborador=perfil,
+            item="Exclusão administrativa",
+            valor="70.00",
+            data_compra=date(2026, 8, 13),
+        )
+        client.login(username="staff_reembolso", password="password")
+
+        response = client.post(
+            reverse('financeiro:reembolso_excluir', kwargs={'pk': reembolso.pk}),
+        )
+
+        assert response.status_code == 302
+        assert not ReciboReembolso.objects.filter(pk=reembolso.pk).exists()
+
+    @pytest.mark.parametrize('url_name', ['reembolso_editar', 'reembolso_excluir'])
+    def test_usuario_anonimo_e_redirecionado_antes_de_buscar_reembolso(self, client, db, url_name):
+        response = client.get(reverse(f'financeiro:{url_name}', kwargs={'pk': 999999}))
+
+        assert response.status_code == 302
+        assert 'login' in response.url
+
     def test_notifications_context_processor_returns_zero_for_user_without_profile(self, db):
         user = User.objects.create_user(username="semperfil", password="password", is_staff=False)
         request = RequestFactory().get('/')
