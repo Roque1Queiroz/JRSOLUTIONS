@@ -1,5 +1,7 @@
 from django import forms
 from django.forms import inlineformset_factory
+from meigestao_app.clientes.models import Cliente
+from meigestao_app.estoque.models import Produto
 from .models import Venda, ItemVenda
 
 class VendaForm(forms.ModelForm):
@@ -22,7 +24,13 @@ class VendaForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        empresa = kwargs.pop('empresa', None)
         super().__init__(*args, **kwargs)
+        self.fields['cliente'].queryset = (
+            Cliente.objects.filter(empresa=empresa)
+            if empresa
+            else Cliente.objects.none()
+        )
         for field_name, field in self.fields.items():
             if self.errors.get(field_name):
                 current_class = field.widget.attrs.get('class', '')
@@ -46,7 +54,13 @@ class ItemVendaForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        empresa = kwargs.pop('empresa', None)
         super().__init__(*args, **kwargs)
+        self.fields['produto_vinculado'].queryset = (
+            Produto.objects.filter(empresa=empresa)
+            if empresa
+            else Produto.objects.none()
+        )
         for field_name, field in self.fields.items():
             if self.errors.get(field_name):
                 current_class = field.widget.attrs.get('class', '')

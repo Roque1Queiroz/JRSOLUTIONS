@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from meigestao_app.core.models import BaseModel, Empresa
 from meigestao_app.clientes.models import Cliente
@@ -144,7 +145,18 @@ class Venda(BaseModel):
         
         return f"{prefix}{sequencial:06d}"
 
+    def clean(self) -> None:
+        super().clean()
+        errors = {}
+        if self.empresa_id and self.cliente_id and self.cliente.empresa_id != self.empresa_id:
+            errors['cliente'] = 'O cliente deve pertencer à mesma empresa da venda.'
+        if self.desconto is not None and self.desconto < 0:
+            errors['desconto'] = 'O desconto não pode ser negativo.'
+        if errors:
+            raise ValidationError(errors)
+
     def save(self, *args, **kwargs) -> None:
+        self.full_clean()
         super().save(*args, **kwargs)
         self.sincronizar_transacao_financeira()
 
@@ -186,8 +198,25 @@ class ItemVenda(models.Model):
     def __str__(self) -> str:
         return f"{self.produto_nome} - {self.quantidade}x R$ {self.preco_unitario}"
     
+    def clean(self) -> None:
+        super().clean()
+        errors = {}
+        if (
+            self.venda_id
+            and self.produto_vinculado_id
+            and self.produto_vinculado.empresa_id != self.venda.empresa_id
+        ):
+            errors['produto_vinculado'] = 'O produto deve pertencer à mesma empresa da venda.'
+        if self.preco_unitario is not None and self.preco_unitario < 0:
+            errors['preco_unitario'] = 'O preço unitário não pode ser negativo.'
+        if self.quantidade is not None and self.quantidade <= 0:
+            errors['quantidade'] = 'A quantidade deve ser maior que zero.'
+        if errors:
+            raise ValidationError(errors)
+
     def save(self, *args, **kwargs) -> None:
         """Calcula o subtotal automaticamente"""
+        self.full_clean()
         self.subtotal = self.quantidade * self.preco_unitario
         super().save(*args, **kwargs)
         if self.venda_id:

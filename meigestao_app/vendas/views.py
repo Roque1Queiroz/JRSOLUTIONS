@@ -15,6 +15,7 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Venda
 from .forms import VendaForm, ItemVendaFormSet
+from meigestao_app.core.mixins import EmpresaFormMixin
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
 
 # Configuração de Logs Estruturados (HM-Engineer)
@@ -59,7 +60,7 @@ class VendaListView(LoginRequiredMixin, ListView):
         return context
 
 
-class VendaCreateView(LoginRequiredMixin, CreateView):
+class VendaCreateView(LoginRequiredMixin, EmpresaFormMixin, CreateView):
     """Cria uma nova venda via formulário transacional."""
     
     model = Venda
@@ -77,10 +78,11 @@ class VendaCreateView(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
+        form_kwargs = {'empresa': get_empresa_do_usuario(self.request.user)}
         if self.request.POST:
-            context['formset'] = ItemVendaFormSet(self.request.POST)
+            context['formset'] = ItemVendaFormSet(self.request.POST, form_kwargs=form_kwargs)
         else:
-            context['formset'] = ItemVendaFormSet()
+            context['formset'] = ItemVendaFormSet(form_kwargs=form_kwargs)
         return context
 
     def form_valid(self, form: VendaForm) -> HttpResponse:
@@ -155,7 +157,7 @@ class VendaDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class VendaUpdateView(LoginRequiredMixin, UpdateView):
+class VendaUpdateView(LoginRequiredMixin, EmpresaFormMixin, UpdateView):
     """Edita uma venda existente e seus itens relacionados."""
     
     model = Venda
@@ -170,10 +172,18 @@ class VendaUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
+        form_kwargs = {'empresa': get_empresa_do_usuario(self.request.user)}
         if self.request.POST:
-            context['formset'] = ItemVendaFormSet(self.request.POST, instance=self.object)
+            context['formset'] = ItemVendaFormSet(
+                self.request.POST,
+                instance=self.object,
+                form_kwargs=form_kwargs,
+            )
         else:
-            context['formset'] = ItemVendaFormSet(instance=self.object)
+            context['formset'] = ItemVendaFormSet(
+                instance=self.object,
+                form_kwargs=form_kwargs,
+            )
         return context
 
     def form_valid(self, form: VendaForm) -> HttpResponse:
