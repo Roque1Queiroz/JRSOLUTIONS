@@ -24,7 +24,11 @@ from .forms import EmpresaSetupForm
 def setup_whitelabel(request):
     empresa = _get_user_empresa(request.user)
     if not empresa:
-        empresa = Empresa.objects.first() # Tenta pegar a primeira do banco
+        messages.error(
+            request,
+            'Não foi possível identificar a empresa vinculada ao seu usuário.',
+        )
+        return redirect('core:dashboard')
 
     if request.method == 'POST':
         form = EmpresaSetupForm(request.POST, request.FILES, instance=empresa)
@@ -226,6 +230,9 @@ class LembreteToggleView(LoginRequiredMixin, UpdateView):
     fields = []
     success_url = reverse_lazy('core:dashboard')
 
+    def get_queryset(self):
+        return super().get_queryset().filter(usuario=self.request.user)
+
     def post(self, request, *args, **kwargs):
         lembrete = self.get_object()
         lembrete.concluido = not lembrete.concluido
@@ -238,6 +245,9 @@ class LembreteDeleteView(LoginRequiredMixin, DeleteView):
     model = Lembrete
     template_name = 'meigestao_app/core/lembrete_confirm_delete.html'
     success_url = reverse_lazy('core:dashboard')
+
+    def get_queryset(self):
+        return super().get_queryset().filter(usuario=self.request.user)
 
 
 class LembreteListView(LoginRequiredMixin, ListView):
