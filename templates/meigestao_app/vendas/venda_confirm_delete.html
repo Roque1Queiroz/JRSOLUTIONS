@@ -1,0 +1,23 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Deletar Venda{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="alert alert-danger">
+                <h4>Tem certeza que deseja deletar esta venda?</h4>
+                <p><strong>Cliente:</strong> {{ venda.cliente }}</p>
+                <p><strong>Valor:</strong> R$ {{ venda.valor_total|floatformat:2 }}</p>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Sim, deletar</button>
+                <a href="{% url 'vendas:venda_list' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

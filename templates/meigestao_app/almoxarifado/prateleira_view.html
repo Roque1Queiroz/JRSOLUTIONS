@@ -1,0 +1,79 @@
+{% extends "meigestao_app/almoxarifado/base_almoxarifado.html" %}
+
+{% block content %}
+<div class="row animate-init">
+    <div class="col-md-6 mx-auto">
+        <!-- Cabeçalho da Prateleira -->
+        <div class="card border-0 shadow-lg mb-4 bg-primary text-white overflow-hidden" style="border-radius: 1.5rem;">
+            <div class="card-body p-4 text-center">
+                <div class="mb-3">
+                    <span class="badge bg-white text-primary px-3 py-2 rounded-pill fw-bold">{{ endereco.local.nome }}</span>
+                </div>
+                <h2 class="fw-extrabold mb-1">{{ endereco.codigo_endereco }}</h2>
+                <div class="opacity-75 small">
+                    {% if endereco.corredor %}Corredor {{ endereco.corredor }}{% endif %}
+                    {% if endereco.estante %} | Estante {{ endereco.estante }}{% endif %}
+                    {% if endereco.prateleira %} | Prateleira {{ endereco.prateleira }}{% endif %}
+                </div>
+            </div>
+            <div class="bg-white bg-opacity-10 py-2 text-center small fw-bold">
+                CONTEÚDO DA LOCALIZAÇÃO
+            </div>
+        </div>
+
+        <!-- Lista de Materiais neste Endereço -->
+        <div class="card border-0 shadow-sm mb-5">
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for item in materiais %}
+                    <li class="list-group-item p-4 border-0 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="fw-bold mb-0 text-primary-emphasis">{{ item.produto.nome }}</h5>
+                            <span class="badge bg-light text-dark border px-3">SKU: {{ item.produto.sku }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-end">
+                            <div>
+                                <p class="small text-muted mb-0">Saldo Atual</p>
+                                <h3 class="fw-extrabold mb-0">{{ item.quantidade }} <small class="text-muted fs-6">unid</small></h3>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'almoxarifado:requisicao_create' %}" class="btn btn-primary rounded-pill px-4">
+                                    <i class="bi bi-box-arrow-up me-2"></i> Retirar
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item p-5 text-center text-muted">
+                        <i class="bi bi-box-seam fs-1 opacity-25"></i>
+                        <p class="mt-3 mb-0">Não há materiais vinculados a este endereço específico no momento.</p>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% if materiais %}
+            <div class="card-footer bg-light border-0 p-3 text-center">
+                <small class="text-muted"><i class="bi bi-info-circle me-1"></i> Use o botão <strong>Retirar</strong> para gerar uma requisição interna automática.</small>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="text-center mb-5">
+            <a href="{% url 'almoxarifado:dashboard' %}" class="btn btn-link text-muted text-decoration-none">
+                <i class="bi bi-arrow-left me-1"></i> Voltar ao Painel
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-extrabold { font-weight: 800; }
+    .list-group-item:last-child { border-bottom: 0 !important; }
+    
+    /* Otimização para Mobile */
+    @media (max-width: 768px) {
+        .main-content { padding: 1rem !important; }
+        .card { border-radius: 1rem !important; }
+    }
+</style>
+{% endblock %}

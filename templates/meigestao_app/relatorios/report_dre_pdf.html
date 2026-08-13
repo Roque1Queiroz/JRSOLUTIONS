@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>DRE - {{ empresa.nome }}</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 2cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.5;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #4f46e5;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .header h1 { margin: 0; color: #1e293b; font-size: 24px; }
+        .header p { margin: 5px 0 0; color: #64748b; font-size: 14px; }
+        
+        .section-title {
+            background-color: #f1f5f9;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 16px;
+            margin-top: 20px;
+            border-left: 4px solid #4f46e5;
+        }
+        
+        .item-row {
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .item-label { color: #475569; }
+        .item-value { font-weight: bold; text-align: right; }
+        
+        .total-row {
+            background-color: #f8fafc;
+            padding: 15px 12px;
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .positive { color: #10b981; }
+        .negative { color: #ef4444; }
+        
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 10px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
+        }
+        
+        /* Simulação de Flexbox para xhtml2pdf (que usa tabelas por baixo) */
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 10px 0; vertical-align: middle; }
+        .text-right { text-align: right; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Demonstrativo de Resultado (DRE)</h1>
+        <p>{{ empresa.nome }} | Período: {{ mes }}/{{ ano }}</p>
+    </div>
+
+    <div class="section-title">Receitas Operacionais</div>
+    <table>
+        <tr>
+            <td class="item-label">Faturamento Bruto (Vendas)</td>
+            <td class="item-value text-right">R$ {{ receita|floatformat:2 }}</td>
+        </tr>
+    </table>
+
+    <div class="section-title">Custos Variáveis</div>
+    <table>
+        <tr>
+            <td class="item-label">(-) CMV (Custo de Mercadoria Vendida)</td>
+            <td class="item-value text-right">R$ {{ cmv|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td class="item-label" style="font-weight: bold;">(=) Lucro Bruto</td>
+            <td class="item-value text-right" style="color: #4f46e5;">R$ {{ lucro_bruto|floatformat:2 }}</td>
+        </tr>
+    </table>
+
+    <div class="section-title">Despesas Operacionais</div>
+    <table>
+        <tr>
+            <td class="item-label">(-) Despesas Administrativas e Reembolsos</td>
+            <td class="item-value text-right">R$ {{ despesa_total|floatformat:2 }}</td>
+        </tr>
+    </table>
+
+    <div class="total-row">
+        <table>
+            <tr>
+                <td style="font-size: 20px;">RESULTADO LÍQUIDO</td>
+                <td class="text-right {% if lucro_liquido >= 0 %}positive{% else %}negative{% endif %}" style="font-size: 22px;">
+                    R$ {{ lucro_liquido|floatformat:2 }}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="footer">
+        Gerado automaticamente pelo Sistema Gestor em {{ data_emissao|date:"d/m/Y H:i" }}
+    </div>
+</body>
+</html>

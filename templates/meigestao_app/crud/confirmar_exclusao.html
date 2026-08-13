@@ -1,0 +1,47 @@
+﻿{% extends "meigestao_app/base.html" %}
+
+{% block title %}Confirmar Exclusão - Mei_Gestão{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-1">
+                <i class="fas fa-trash-alt" style="color: #f44336;"></i> Confirmar Exclusão
+            </h1>
+            <p class="text-muted">Tem certeza que deseja deletar este registro?</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-6 offset-lg-3">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Atenção!</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-4">
+                        <strong>Você está prestes a deletar um registro.</strong><br>
+                        Esta ação é <strong>irreversível</strong> e não pode ser desfeita.
+                    </p>
+                    
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-info-circle"></i> 
+                        Tem certeza que deseja continuar?
+                    </div>
+                    
+                    <form method="POST" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt"></i> Sim, Deletar
+                        </button>
+                        <a href="{% block cancel_url %}#{% endblock %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

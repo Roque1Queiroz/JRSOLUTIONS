@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block page_title %}{% if object %}Editar{% else %}Novo{% endif %} Fornecedor{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center animate-init">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm overflow-hidden">
+            <div class="card-header bg-primary text-white p-4 border-0">
+                <h4 class="fw-bold mb-0">{% if object %}Editar Fornecedor: {{ object.nome }}{% else %}Novo Fornecedor{% endif %}</h4>
+            </div>
+            <div class="card-body p-4 p-md-5">
+                <form method="post" class="needs-validation">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.nome.id_for_label }}" class="form-label small fw-bold text-secondary">NOME</label>
+                            {{ form.nome }}
+                            {{ form.nome.errors }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.cnpj.id_for_label }}" class="form-label small fw-bold text-secondary">CNPJ</label>
+                            {{ form.cnpj }}
+                            {{ form.cnpj.errors }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label small fw-bold text-secondary">E-MAIL</label>
+                            {{ form.email }}
+                            {{ form.email.errors }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.telefone.id_for_label }}" class="form-label small fw-bold text-secondary">TELEFONE</label>
+                            {{ form.telefone }}
+                            {{ form.telefone.errors }}
+                        </div>
+                        <div class="col-md-6 mb-3 mt-4">
+                            <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between">
+                                <label class="form-check-label fw-bold text-secondary mb-0 p-0" for="{{ form.ativo.id_for_label }}">Fornecedor Ativo</label>
+                                {{ form.ativo }}
+                            </div>
+                        </div>
+                        <div class="col-md-12 mb-4">
+                            <label for="{{ form.endereco.id_for_label }}" class="form-label small fw-bold text-secondary">ENDEREÇO</label>
+                            {{ form.endereco }}
+                            {{ form.endereco.errors }}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between pt-4 border-top">
+                        <a href="{% url 'compras:fornecedor_list' %}" class="btn btn-light px-4 border">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-5 shadow-sm">
+                            <i class="bi bi-save me-1"></i> Salvar Fornecedor
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

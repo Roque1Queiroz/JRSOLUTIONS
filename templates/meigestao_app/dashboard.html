@@ -1,0 +1,107 @@
+﻿{% extends "meigestao_app/base.html" %}
+
+{% block title %}Dashboard - Mei_Gestão{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-1">
+                <i class="fas fa-chart-line" style="color: #10528a;"></i> Dashboard
+            </h1>
+            <p class="text-muted">Bem-vindo ao Mei_Gestão - Sistema de Gerenciamento de Vendas</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">
+                        <i class="fas fa-shopping-cart"></i> Total de Vendas
+                    </h5>
+                    <h2 class="card-text" style="color: #10528a;">0</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">
+                        <i class="fas fa-dollar-sign"></i> Valor Total
+                    </h5>
+                    <h2 class="card-text" style="color: #28a745;">R$ 0,00</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">
+                        <i class="fas fa-users"></i> Total de Clientes
+                    </h5>
+                    <h2 class="card-text" style="color: #007bff;">0</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">
+                        <i class="fas fa-box"></i> Produtos
+                    </h5>
+                    <h2 class="card-text" style="color: #ffc107;">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Atalhos Rápidos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <a href="/vendas/" class="btn btn-outline-primary btn-block" style="width: 100%;">
+                                <i class="fas fa-shopping-cart"></i> Gerenciar Vendas
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="/core/" class="btn btn-outline-success btn-block" style="width: 100%;">
+                                <i class="fas fa-building"></i> Gerenciar Empresas
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="/admin/" class="btn btn-outline-danger btn-block" style="width: 100%;">
+                                <i class="fas fa-cog"></i> Admin Django
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border: none;
+        border-radius: 8px;
+    }
+    .card-header {
+        border-radius: 8px 8px 0 0;
+    }
+    .btn-block {
+        display: block;
+        width: 100%;
+    }
+</style>
+{% endblock %}
+

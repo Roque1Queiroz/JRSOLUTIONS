@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}{% if form.instance.pk %}Editar{% else %}Nova{% endif %} Venda - Sistema Gestor{% endblock %}
+{% block page_title %}Comercial{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="mb-1 fw-bold">
+                    {% if form.instance.pk %}
+                        <i class="bi bi-pencil-square text-warning me-2"></i>Editar Venda #{{ form.instance.pk }}
+                    {% else %}
+                        <i class="bi bi-bag-plus text-primary me-2"></i>Registrar Nova Venda
+                    {% endif %}
+                </h4>
+                <p class="text-secondary small mb-0">Preencha os dados e adicione os itens para consolidar a transação.</p>
+            </div>
+            <a href="{% url 'vendas:venda_list' %}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            <div class="row g-4">
+                <!-- Dados Principais -->
+                <div class="col-md-4">
+                    <div class="premium-form-card h-100">
+                        <h6 class="fw-bold mb-4 border-bottom pb-2"><i class="bi bi-info-circle me-2"></i>Informações Gerais</h6>
+                        
+                        <div class="mb-3">
+                            <label for="id_cliente" class="form-label-premium">Cliente <span class="text-danger">*</span></label>
+                            {{ form.cliente }}
+                            {% if form.cliente.errors %}<div class="text-danger small">{{ form.cliente.errors }}</div>{% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_data_venda" class="form-label-premium">Data e Hora <span class="text-danger">*</span></label>
+                            {{ form.data_venda }}
+                            {% if form.data_venda.errors %}<div class="text-danger small">{{ form.data_venda.errors }}</div>{% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_status" class="form-label-premium">Status da Venda <span class="text-danger">*</span></label>
+                            {{ form.status }}
+                            {% if form.status.errors %}<div class="text-danger small">{{ form.status.errors }}</div>{% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_desconto" class="form-label-premium">Desconto Global (R$)</label>
+                            {{ form.desconto }}
+                        </div>
+                        
+                        <div class="mb-0">
+                            <label for="id_descricao" class="form-label-premium">Descrição / Resumo</label>
+                            {{ form.descricao }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Itens da Venda -->
+                <div class="col-md-8">
+                    <div class="premium-form-card">
+                        <h6 class="fw-bold mb-4 border-bottom pb-2 d-flex justify-content-between">
+                            <span><i class="bi bi-list-ul me-2"></i>Itens da Venda</span>
+                            <span class="badge bg-primary bg-opacity-10 text-primary small">Dica: Preencha pelo menos um item</span>
+                        </h6>
+                        
+                        {{ formset.management_form }}
+                        
+                        <div id="items-container">
+                            {% for item_form in formset %}
+                                <div class="item-row border rounded-3 p-3 mb-3 bg-light bg-opacity-10" data-form-index="{{ forloop.counter0 }}">
+                                    {% for hidden in item_form.hidden_fields %}
+                                        {{ hidden }}
+                                    {% endfor %}
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-md-5">
+                                            <label class="form-label-premium">Produto / Serviço</label>
+                                            <div class="product-select-wrapper">
+                                                {{ item_form.produto_vinculado }}
+                                            </div>
+                                            <div class="mt-2">
+                                                <label class="form-label-premium small opacity-75">Nome p/ Impressão</label>
+                                                {{ item_form.produto_nome }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label-premium">Qtd</label>
+                                            {{ item_form.quantidade }}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label-premium">Preço Unit. (R$)</label>
+                                            {{ item_form.preco_unitario }}
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-end justify-content-center">
+                                            <button type="button" class="btn btn-outline-danger btn-sm mb-2 remove-item-btn" title="Remover Item">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                            <div class="d-none">
+                                                {{ item_form.DELETE }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% if item_form.errors %}
+                                        <div class="alert alert-danger mt-2 mb-0 small py-1">
+                                            {{ item_form.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mt-3">
+                            <button type="button" id="add-item-btn" class="btn btn-outline-primary btn-sm fw-bold">
+                                <i class="bi bi-plus-circle me-1"></i> Adicionar Outro Item
+                            </button>
+                        </div>
+
+                        <div class="alert alert-info border-0 rounded-3 small mt-4">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            O <strong>Valor Total</strong> será calculado automaticamente com base nos itens e descontos após salvar.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end gap-3 mt-4 mb-5">
+                <a href="{% url 'vendas:venda_list' %}" class="btn btn-light text-secondary fw-semibold px-4 border">Cancelar</a>
+                <button type="submit" id="submit-venda" class="btn btn-primary fw-bold px-5 shadow-sm py-2">
+                    <i class="bi bi-check2-circle me-1"></i> {% if form.instance.pk %}Salvar Alterações{% else %}Registrar Venda{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Template para novos itens (escondido) -->
+<template id="item-template">
+    <div class="item-row border rounded-3 p-3 mb-3 bg-light bg-opacity-10" data-form-index="__prefix__">
+        <div class="row g-3">
+            <div class="col-md-5">
+                <label class="form-label-premium">Produto / Serviço</label>
+                <select name="itens-__prefix__-produto_vinculado" class="form-select product-select" id="id_itens-__prefix__-produto_vinculado">
+                    {{ formset.empty_form.produto_vinculado.field.choices|safe }}
+                </select>
+                <div class="mt-2">
+                    <label class="form-label-premium small opacity-75">Nome p/ Impressão</label>
+                    <input type="text" name="itens-__prefix__-produto_nome" class="form-control" id="id_itens-__prefix__-produto_nome">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label-premium">Qtd</label>
+                <input type="number" name="itens-__prefix__-quantidade" value="1" min="1" class="form-control" id="id_itens-__prefix__-quantidade">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label-premium">Preço Unit. (R$)</label>
+                <input type="number" name="itens-__prefix__-preco_unitario" step="0.01" class="form-control" id="id_itens-__prefix__-preco_unitario">
+            </div>
+            <div class="col-md-2 d-flex align-items-end justify-content-center">
+                <button type="button" class="btn btn-outline-danger btn-sm mb-2 remove-item-btn">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('items-container');
+        const addButton = document.getElementById('add-item-btn');
+        const totalForms = document.getElementById('id_itens-TOTAL_FORMS');
+        const template = document.getElementById('item-template').innerHTML;
+
+        // Adicionar novo item
+        addButton.addEventListener('click', function() {
+            const index = parseInt(totalForms.value);
+            const newHtml = template.replace(/__prefix__/g, index);
+            container.insertAdjacentHTML('beforeend', newHtml);
+            totalForms.value = index + 1;
+        });
+
+        // Remover item (lógica para itens novos vs existentes)
+        container.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-item-btn')) {
+                const row = e.target.closest('.item-row');
+                const deleteInput = row.querySelector('input[name$="-DELETE"]');
+                
+                if (deleteInput) {
+                    // Item existente: marcar para deletar e esconder
+                    deleteInput.checked = true;
+                    row.style.display = 'none';
+                } else {
+                    // Item novo: remover do DOM e atualizar contador (opcionalmente)
+                    row.remove();
+                    // Nota: TOTAL_FORMS deve considerar o maior índice enviado
+                }
+            }
+        });
+
+        // Prevenção de duplo clique no envio
+        document.querySelector('form').addEventListener('submit', function() {
+            const btn = document.getElementById('submit-venda');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processando...';
+        });
+    });
+</script>
+
+<style>
+    .premium-form-card {
+        padding: 1.5rem !important;
+        margin-bottom: 0 !important;
+    }
+    .item-row {
+        transition: all 0.2s ease;
+    }
+    .item-row:hover {
+        border-color: var(--color-primary) !important;
+        background-color: rgba(79, 70, 229, 0.02) !important;
+    }
+    .form-label-premium {
+        font-size: 0.7rem !important;
+    }
+</style>
+{% endblock %}

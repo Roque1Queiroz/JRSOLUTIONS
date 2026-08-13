@@ -1,0 +1,103 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Relatórios - Sistema Gestor{% endblock %}
+{% block page_title %}Módulo Analítico{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h4 class="mb-1 fw-bold">Seus Relatórios Financeiros</h4>
+            <p class="text-secondary mb-0 small">Acompanhamento de DRE, fluxo de caixa e exportações.</p>
+        </div>
+        <div>
+            <a href="{% url 'financeiro:relatorio_criar' %}" class="btn btn-primary d-flex align-items-center gap-2">
+                <i class="bi bi-file-earmark-plus"></i> Gerar Novo Relatório
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-0">
+        {% if relatorios %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="ps-4" width="70">#</th>
+                            <th scope="col">Título</th>
+                            <th scope="col">Visualização</th>
+                            <th scope="col">Período Gerado</th>
+                            <th scope="col" class="text-end">Faturamento</th>
+                            <th scope="col" class="text-end">Saídas</th>
+                            <th scope="col" class="text-end">Rendimento</th>
+                            <th scope="col" class="text-center pe-4" width="100">Abrir</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rel in relatorios %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-secondary text-opacity-50 fs-6">{{ rel.pk }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-file-earmark-bar-graph fs-4 text-primary opacity-75"></i>
+                                    <span class="fw-bold text-dark">{{ rel.titulo }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge-soft-info"><i class="bi bi-calendar-range me-1"></i> {{ rel.periodo_display }}</span>
+                            </td>
+                            <td>
+                                <span class="small text-secondary">{{ rel.data_inicio|date:"d/m/y" }} a {{ rel.data_fim|date:"d/m/y" }}</span>
+                            </td>
+                            <td class="text-end text-success fw-semibold">R$ {{ rel.total_receitas|floatformat:2 }}</td>
+                            <td class="text-end text-danger fw-semibold">R$ {{ rel.total_despesas|floatformat:2 }}</td>
+                            <td class="text-end fw-bold {% if rel.saldo_liquido < 0 %}text-danger{% else %}text-success{% endif %}">
+                                R$ {{ rel.saldo_liquido|floatformat:2 }}
+                            </td>
+                            <td class="text-center pe-4">
+                                <a href="{% url 'financeiro:relatorio_list' %}?{{ rel.querystring }}" class="btn btn-sm btn-light text-primary shadow-sm" title="Abrir">
+                                    <i class="bi bi-eye-fill"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if is_paginated %}
+            <div class="p-3 border-top bg-light text-center rounded-bottom">
+                <nav aria-label="Navegação">
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item"><a class="page-link shadow-none" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                        {% endif %}
+                        <li class="page-item active text-muted"><span class="page-link bg-transparent text-secondary border-0">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                        {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link shadow-none" href="?page={{ page_obj.next_page_number }}">Próxima</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+
+        {% else %}
+            <!-- Premium Empty State -->
+            <div class="empty-state">
+                <div class="mb-3">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-info bg-opacity-10 rounded-circle" style="width: 100px; height: 100px;">
+                        <i class="bi bi-file-earmark-bar-graph fs-1 text-info m-0"></i>
+                    </div>
+                </div>
+                <h4>Você não tem relatórios</h4>
+                <p>Nenhuma auditoria contábil foi gerada. Comece solicitando um balanço simples.</p>
+                <a href="{% url 'financeiro:relatorio_criar' %}" class="btn btn-primary mt-2">
+                    <i class="bi bi-plus-lg me-2"></i> Criar Relatório Base
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

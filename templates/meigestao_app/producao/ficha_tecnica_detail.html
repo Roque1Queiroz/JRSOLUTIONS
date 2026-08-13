@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load producao_tags %}
+
+{% block content %}
+<div class="row mb-4 animate-init">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'producao:dashboard' %}">PCP</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'producao:ficha_tecnica_list' %}">Fichas Técnicas</a></li>
+                <li class="breadcrumb-item active">{{ ficha.produto_final.nome }}</li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="fw-bold mb-0">Engenharia de Produto</h2>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#modalAddItem">
+                    <i class="bi bi-plus-lg me-2"></i> ADICIONAR INSUMO
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Cabeçalho do Produto -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-box-seam text-primary" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h4 class="fw-bold mb-1">{{ ficha.produto_final.nome }}</h4>
+                    <span class="badge bg-light text-muted border">SKU: {{ ficha.produto_final.sku }}</span>
+                </div>
+                
+                <div class="border-top pt-3">
+                    <h6 class="fw-bold text-muted small text-uppercase">Descrição / Notas</h6>
+                    <p class="small text-muted">{{ ficha.descricao|default:"Sem observações técnicas." }}</p>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-6">
+                        <div class="small text-muted">Tempo Médio</div>
+                        <div class="fw-bold">{{ ficha.tempo_estimado_minutos }} min</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="small text-muted">Status</div>
+                        <span class="badge {% if ficha.ativo %}bg-success{% else %}bg-danger{% endif %} rounded-pill">
+                            {% if ficha.ativo %}Ativo{% else %}Inativo{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-light p-3 text-center border-top">
+                <div class="small text-muted">Custo Total de Materiais (Estimado)</div>
+                <h3 class="fw-extrabold text-primary mb-0">R$ {{ ficha.custo_total_materiais|floatformat:2 }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Insumos -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0">Composição de Materiais (BOM)</h5>
+            </div>
+            <div class="card-body p-4 pt-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="bg-light">
+                            <tr class="small text-uppercase fw-bold text-muted">
+                                <th>Insumo</th>
+                                <th class="text-center">Quantidade</th>
+                                <th class="text-end">Custo Unit.</th>
+                                <th class="text-end">Custo Parcial</th>
+                                <th class="text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in ficha.itens.all %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">{{ item.produto_insumo.nome }}</div>
+                                    <div class="small text-muted text-uppercase">{{ item.produto_insumo.sku }}</div>
+                                </td>
+                                <td class="text-center fw-bold">{{ item.quantidade }}</td>
+                                <td class="text-end text-muted">R$ {{ item.produto_insumo.preco_custo|floatformat:2 }}</td>
+                                <td class="text-end fw-bold">R$ {{ item.produto_insumo.preco_custo|multiply:item.quantidade|floatformat:2 }}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-light text-danger border">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <i class="bi bi-plus-circle fs-1 text-muted opacity-25"></i>
+                                    <p class="text-muted mt-2">Esta ficha técnica ainda não possui insumos.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Adicionar Item (Simplificado para o MVP) -->
+<div class="modal fade" id="modalAddItem" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow-lg">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="modal-header border-0 pt-4 px-4">
+                    <h5 class="fw-bold">Adicionar Material à Receita</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Selecionar Insumo</label>
+                        <select name="produto_insumo" class="form-select" required>
+                            <!-- Insumos seriam listados aqui -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Quantidade Unitária</label>
+                        <input type="number" step="0.001" name="quantidade" class="form-control form-control-lg" required>
+                        <div class="form-text">Quanto deste insumo é gasto para fazer 1 unidade do produto final?</div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2">ADICIONAR COMPONENTE</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-extrabold { font-weight: 800; }
+</style>
+{% endblock %}

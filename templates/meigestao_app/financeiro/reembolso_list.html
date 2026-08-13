@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+
+{% block page_title %}Reembolsos de Colaboradores{% endblock %}
+
+{% block content %}
+{% include "meigestao_app/financeiro/_finance_header.html" with flow_page_title="Reembolsos de Colaboradores" flow_subtitle="Gerencie solicitações de pagamento e anexos de recibos." flow_create_button_label="Nova Solicitação" flow_create_url="/financeiro/reembolsos/criar/" show_print=True %}
+
+<div class="row g-4 mb-4 animate-init">
+    <div class="col-md-4">
+        <div class="card card-accent card-accent-danger border-0 p-4 d-flex flex-row align-items-center gap-3">
+            <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div>
+                <p class="text-uppercase small fw-bold text-muted mb-0 letter-spacing-1">Total Pendente</p>
+                <h3 class="fw-extrabold mb-0 text-danger">R$ {{ total_pendente|floatformat:2 }}</h3>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card card-accent card-accent-primary border-0 p-4">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group-premium">
+                        <span class="prefix"><i class="bi bi-search"></i></span>
+                        <input type="text" name="q" placeholder="Buscar por colaborador ou item..." value="{{ request.GET.q }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select" style="padding: 0.875rem; border-radius: 0.75rem; border-color: var(--color-border);" onchange="this.form.submit()">
+                        <option value="">Todos Status</option>
+                        <option value="pendente" {% if request.GET.status == 'pendente' %}selected{% endif %}>🕰️ Pendentes</option>
+                        <option value="pago" {% if request.GET.status == 'pago' %}selected{% endif %}>✅ Pagos</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">Filtrar</button>
+                    <a href="{% url 'financeiro:reembolso_criar' %}" class="btn btn-success d-flex align-items-center justify-content-center" style="width: 48px;">
+                        <i class="bi bi-plus-lg"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .priority-bar {
+        width: 4px;
+        height: 32px;
+        border-radius: 4px;
+    }
+</style>
+
+<div class="premium-form-card p-0 overflow-hidden shadow-sm animate-init card-reembolso-empty" style="animation-delay: 0.1s;">
+    <div class="p-4 border-bottom d-flex justify-content-between align-items-center bg-surface-raised">
+        <h5 class="fw-extrabold mb-0 underline-heading">Solicitações de Reembolso</h5>
+        <span class="badge bg-light text-muted border px-3 fw-normal">{{ reembolsos|length }} registros</span>
+    </div>
+
+    {% if reembolsos %}
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle mb-0">
+            <thead class="bg-light bg-opacity-50">
+                <tr>
+                    <th class="ps-4 text-uppercase small fw-bold text-muted py-3">Colaborador</th>
+                    <th class="text-uppercase small fw-bold text-muted py-3">Item / Descrição</th>
+                    <th class="text-uppercase small fw-bold text-muted py-3">Data</th>
+                    <th class="text-uppercase small fw-bold text-muted py-3">Valor</th>
+                    <th class="text-center text-uppercase small fw-bold text-muted py-3">Recibo</th>
+                    <th class="text-uppercase small fw-bold text-muted py-3">Prioridade</th>
+                    <th class="text-center text-uppercase small fw-bold text-muted py-3">Status</th>
+                    <th class="text-center pe-4 text-uppercase small fw-bold text-muted py-3">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reembolso in reembolsos %}
+                <tr class="align-middle">
+                    <td class="ps-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="priority-bar bg-{% if reembolso.prioridade == 'alta' %}danger{% elif reembolso.prioridade == 'media' %}warning{% else %}success{% endif %}"></div>
+                            <div class="avatar-circle">
+                                {% if reembolso.colaborador %}
+                                    {{ reembolso.colaborador.usuario.first_name|first|default:reembolso.colaborador.usuario.username|first|upper }}
+                                {% else %}
+                                    {{ reembolso.nome_solicitante|first|default:"?"|upper }}
+                                {% endif %}
+                            </div>
+                            <div>
+                                <span class="fw-bold text-primary-emphasis d-block">
+                                    {% if reembolso.colaborador %}
+                                        {{ reembolso.colaborador.usuario.get_full_name|default:reembolso.colaborador.usuario.username }}
+                                    {% else %}
+                                        {{ reembolso.nome_solicitante|default:"Solicitante não identificado" }}
+                                    {% endif %}
+                                </span>
+                                <span class="text-muted small">Ref: #{{ reembolso.id|stringformat:"04d" }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="fw-medium">{{ reembolso.item }}</span></td>
+                    <td class="text-muted">{{ reembolso.data_compra|date:"d/m/Y" }}</td>
+                    <td class="fw-extrabold text-dark">R$ {{ reembolso.valor|floatformat:2 }}</td>
+                    <td class="text-center">
+                        {% if reembolso.foto_recibo %}
+                            <a href="{{ reembolso.foto_recibo.url }}" target="_blank" class="btn btn-sm btn-icon-only btn-light border" title="Ver Anexo">
+                                <i class="bi bi-paperclip fs-5 text-primary"></i>
+                            </a>
+                        {% else %}
+                            <i class="bi bi-slash-circle text-muted opacity-50" title="Sem comprovante"></i>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if reembolso.prioridade == 'alta' %}
+                            <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3">ALTA</span>
+                        {% elif reembolso.prioridade == 'media' %}
+                            <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3">MÉDIA</span>
+                        {% else %}
+                            <span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3">BAIXA</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if reembolso.pago %}
+                            <span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3">PAGO</span>
+                        {% else %}
+                            <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3">PENDENTE</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center pe-4">
+                        <div class="d-flex justify-content-center gap-2">
+                            {% if not reembolso.pago or user.is_staff %}
+                                <a href="{% url 'financeiro:reembolso_editar' reembolso.id %}" class="btn btn-sm btn-icon-only btn-light border" title="Editar">
+                                    <i class="bi bi-pencil-square text-primary"></i>
+                                </a>
+                                <a href="{% url 'financeiro:reembolso_excluir' reembolso.id %}" class="btn btn-sm btn-icon-only btn-light border" title="Excluir">
+                                    <i class="bi bi-trash text-danger"></i>
+                                </a>
+                            {% endif %}
+
+                            {% if user.is_staff %}
+                                {% if not reembolso.pago %}
+                                    <button type="button" 
+                                            class="btn btn-sm btn-success px-3 rounded-pill fw-bold btn-pay-modal" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#paymentModal"
+                                            data-reembolso-id="{{ reembolso.id }}"
+                                            data-reembolso-valor="{{ reembolso.valor|floatformat:2 }}"
+                                            data-reembolso-item="{{ reembolso.item }}">
+                                        PAGAR
+                                    </button>
+                                {% else %}
+                                    <form method="post" action="{% url 'financeiro:reembolso_pago' reembolso.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary px-3 rounded-pill">Estornar</button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <!-- Empty State Premium -->
+        <div class="empty-state-reembolso empty-state-reembolso-style p-5 text-center d-flex flex-column align-items-center justify-content-center" style="min-height: 320px;">
+            <div class="empty-icon-ring mb-4">
+                <div class="empty-icon-inner">
+                    <i class="bi bi-receipt"></i>
+                </div>
+            </div>
+            <h5 class="fw-bold mb-2">Nenhum reembolso pendente</h5>
+            <p class="text-secondary small mb-4" style="max-width: 320px;">
+                Novas solicitações de reembolso feitas por colaboradores aparecerão aqui.
+            </p>
+            <a href="{% url 'financeiro:reembolso_criar' %}" class="btn btn-primary px-4 py-2 shadow-sm fw-semibold">
+                <i class="bi bi-plus-lg me-2"></i> Nova Solicitação
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal de Pagamento (Escolha de Conta) -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content premium-form-card p-0 border-0 shadow-lg">
+            <div class="modal-header border-bottom p-4">
+                <h5 class="modal-title fw-extrabold mb-0">Confirmar Pagamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="paymentForm" method="post" action="">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <label class="section-title mb-2">Resumo da Solicitação</label>
+                        <div class="bg-light rounded-3 p-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted small">Item:</span>
+                                <span class="fw-bold small" id="modal-item-name">-</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted small">Valor a Reembolsar:</span>
+                                <span class="fw-extrabold text-success" id="modal-item-value">R$ 0,00</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label-premium">Selecione a Conta Origem</label>
+                        {% if contas_bancarias %}
+                            <select name="conta_id" class="form-select border-primary-subtle">
+                                {% for conta in contas_bancarias %}
+                                    <option value="{{ conta.id }}">{{ conta.banco }} (Saldo: R$ {{ conta.saldo|floatformat:2 }})</option>
+                                {% endfor %}
+                            </select>
+                            <p class="small text-muted mt-2">O valor será debitado desta conta e uma transação de despesa será gerada.</p>
+                        {% else %}
+                            <div class="alert alert-warning py-2 mb-3 border-0 d-flex align-items-center">
+                                <i class="bi bi-exclamation-triangle-fill fs-5 text-warning me-2"></i>
+                                <span class="small text-dark">Nenhuma conta bancária cadastrada. O pagamento será registrado como "Caixa Local".</span>
+                            </div>
+                            <input type="hidden" name="conta_id" value="">
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer border-top p-4 d-flex justify-content-end gap-2 bg-surface-raised">
+                    <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold">EFETUAR PAGAMENTO</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-circle {
+        width: 38px;
+        height: 38px;
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .btn-icon-only {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border-radius: 0.5rem;
+    }
+    .fw-extrabold { font-weight: 800; }
+    .letter-spacing-1 { letter-spacing: 0.05em; }
+    
+    [data-bs-theme="dark"] .bg-light { background-color: rgba(255,255,255,0.05) !important; }
+
+    /* ── Empty State Premium — Reembolso ── */
+    .card-reembolso-empty {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border) !important;
+    }
+    .empty-state-reembolso-style {
+        background: linear-gradient(135deg,
+            rgba(239, 68, 68, 0.10) 0%,
+            rgba(244, 63, 94, 0.04) 55%,
+            rgba(245, 158, 11, 0.06) 100%) !important;
+        border-left: 4px solid #ef4444 !important;
+        border-radius: 1rem;
+    }
+    [data-bs-theme="dark"] .card-reembolso-empty {
+        background: linear-gradient(135deg,
+            rgba(239, 68, 68, 0.08) 0%,
+            rgba(244, 63, 94, 0.03) 55%,
+            rgba(245, 158, 11, 0.05) 100%) !important;
+        border-color: rgba(239, 68, 68, 0.25) !important;
+    }
+
+    /* Ícone com anel de brilho */
+    .empty-icon-ring {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .empty-icon-ring::before {
+        content: '';
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: rgba(239, 68, 68, 0.12);
+        animation: pulse-ring 2.5s ease-in-out infinite;
+    }
+    .empty-icon-inner {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(239,68,68,0.25), rgba(245,158,11,0.15));
+        border: 2px solid rgba(239, 68, 68, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+    }
+    .empty-icon-inner i {
+        font-size: 2rem;
+        background: linear-gradient(135deg, #ef4444, #f59e0b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    @keyframes pulse-ring {
+        0%   { transform: scale(0.92); opacity: 0.6; }
+        50%  { transform: scale(1.08); opacity: 0.2; }
+        100% { transform: scale(0.92); opacity: 0.6; }
+    }
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const paymentModal = document.getElementById('paymentModal');
+        const paymentForm = document.getElementById('paymentForm');
+        
+        const modalItemName = document.getElementById('modal-item-name');
+        const modalItemValue = document.getElementById('modal-item-value');
+
+        // Capturar botões de pagamento e configurar modal
+        document.querySelectorAll('.btn-pay-modal').forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.getAttribute('data-reembolso-id');
+                const valor = this.getAttribute('data-reembolso-valor');
+                const item = this.getAttribute('data-reembolso-item');
+
+                // Atualizar Action do Form (assumindo padrão Django URL por ID)
+                paymentForm.action = `/financeiro/reembolsos/${id}/pago/`;
+                
+                modalItemName.textContent = item;
+                modalItemValue.textContent = `R$ ${valor}`;
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,140 @@
+﻿{% extends "meigestao_app/base.html" %}
+
+{% block title %}Lista - Mei_Gestão{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Título e Botão Criar -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-1">
+                <i class="fas fa-list" style="color: #10528a;"></i> 
+                {% block module_title %}Registros{% endblock %}
+            </h1>
+            <p class="text-muted">Gerenciar registros do sistema</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% block create_url %}#{% endblock %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Novo Registro
+            </a>
+        </div>
+    </div>
+    
+    <!-- Filtros e Busca -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-6">
+                            <input type="text" name="search" class="form-control" placeholder="Buscar..." value="{{ request.GET.search }}">
+                        </div>
+                        <div class="col-md-3">
+                            <select name="status" class="form-select">
+                                <option value="">Todos os Status</option>
+                                <option value="ativo" {% if request.GET.status == 'ativo' %}selected{% endif %}>Ativo</option>
+                                <option value="inativo" {% if request.GET.status == 'inativo' %}selected{% endif %}>Inativo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> Filtrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tabela de Registros -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table"></i> 
+                        {% block table_title %}Registros{% endblock %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead style="background-color: #f8f9fa;">
+                                <tr>
+                                    {% block table_headers %}
+                                    <th>#ID</th>
+                                    <th>Nome</th>
+                                    <th>Status</th>
+                                    <th>Data Criação</th>
+                                    <th>Ações</th>
+                                    {% endblock %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% block table_rows %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox fa-2x mb-2"></i><br>
+                                        Nenhum registro encontrado
+                                    </td>
+                                </tr>
+                                {% endblock %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Paginação -->
+    <div class="row mt-4">
+        <div class="col-12">
+            {% block pagination %}
+            <nav aria-label="Paginação">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#">Anterior</a>
+                    </li>
+                    <li class="page-item active">
+                        <a class="page-link" href="#">1</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Próxima</a>
+                    </li>
+                </ul>
+            </nav>
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: rgba(16, 82, 138, 0.05);
+    }
+    
+    .btn-edit {
+        background-color: #2196F3;
+        border-color: #2196F3;
+        color: white;
+    }
+    
+    .btn-edit:hover {
+        background-color: #0b7dda;
+        border-color: #0b7dda;
+    }
+    
+    .btn-delete {
+        background-color: #f44336;
+        border-color: #f44336;
+        color: white;
+    }
+    
+    .btn-delete:hover {
+        background-color: #da190b;
+        border-color: #da190b;
+    }
+</style>
+{% endblock %}

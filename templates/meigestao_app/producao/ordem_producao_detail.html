@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% load producao_tags %}
+
+{% block content %}
+<div class="row mb-4 animate-init">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'producao:dashboard' %}">PCP</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'producao:ordem_producao_list' %}">Ordens de Produção</a></li>
+                <li class="breadcrumb-item active">OP #{{ op.id }}</li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="fw-bold mb-0">Ordem de Produção #{{ op.id }}</h2>
+            <div class="d-flex gap-2">
+                {% if op.status == 'ABERTA' %}
+                <form method="POST" action="{% url 'producao:ordem_producao_action' op.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="acao" value="iniciar">
+                    <button type="submit" class="btn btn-primary px-4 fw-bold">INICIAR PRODUÇÃO</button>
+                </form>
+                {% endif %}
+
+                {% if op.status == 'PRODUCAO' %}
+                <button type="button" class="btn btn-success px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#modalFinalizar">
+                    FINALIZAR E DAR ENTRADA
+                </button>
+                {% endif %}
+
+                {% if op.status != 'FINALIZADA' and op.status != 'CANCELADA' %}
+                <form method="POST" action="{% url 'producao:ordem_producao_action' op.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="acao" value="cancelar">
+                    <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Deseja cancelar esta OP?')">
+                        Cancelar OP
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Informações Gerais da OP -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">Status da Ordem</h5>
+                <div class="d-flex flex-column gap-3">
+                    <div class="p-3 rounded-4 {% if op.status == 'FINALIZADA' %}bg-success{% elif op.status == 'PRODUCAO' %}bg-primary{% else %}bg-secondary{% endif %} text-white text-center">
+                        <div class="small opacity-75">Status Atual</div>
+                        <h4 class="fw-bold mb-0">{{ op.get_status_display }}</h4>
+                    </div>
+                    
+                    <div class="border-top pt-3">
+                        <div class="small text-muted">Produto Final</div>
+                        <div class="fw-bold h5 text-primary">{{ op.ficha_tecnica.produto_final.nome }}</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="small text-muted">Qtd. Planejada</div>
+                            <div class="fw-bold h4 mb-0">{{ op.quantidade_planejada }} un</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="small text-muted">Tempo Est.</div>
+                            <div class="fw-bold h4 mb-0">{{ op.ficha_tecnica.tempo_estimado_minutos }} min</div>
+                        </div>
+                    </div>
+
+                    <div class="border-top pt-3">
+                        <div class="small text-muted mb-2">Linha do Tempo</div>
+                        <ul class="list-unstyled small">
+                            <li class="mb-1">📅 Aberta em: {{ op.criado_em|date:"d/m/Y H:i" }}</li>
+                            {% if op.data_inicio %}
+                            <li class="mb-1">🔨 Iniciada em: {{ op.data_inicio|date:"d/m/Y H:i" }}</li>
+                            {% endif %}
+                            {% if op.data_fim %}
+                            <li class="text-success fw-bold">✅ Finalizada em: {{ op.data_fim|date:"d/m/Y H:i" }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Insumos (Materiais) -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0">Explosão de Materiais (BOM)</h5>
+                <p class="text-muted small">Insumos que serão retirados do Almoxarifado.</p>
+            </div>
+            <div class="card-body p-4 pt-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="bg-light">
+                            <tr class="small text-uppercase fw-bold text-muted">
+                                <th>Insumo</th>
+                                <th>Qtd. P/ Unid</th>
+                                <th>Total Necessário</th>
+                                <th class="text-end">Custo Est.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in op.ficha_tecnica.itens.all %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">{{ item.produto_insumo.nome }}</div>
+                                    <div class="small text-muted">SKU: {{ item.produto_insumo.sku }}</div>
+                                </td>
+                                <td>{{ item.quantidade }}</td>
+                                <td class="fw-bold text-primary">
+                                    {{ item.quantidade|multiply:op.quantidade_planejada }} un
+                                </td>
+                                <td class="text-end">R$ {{ item.produto_insumo.preco_custo|multiply:item.quantidade|multiply:op.quantidade_planejada|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="bg-light bg-opacity-50">
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold py-3">Custo Total de Materiais (Est.):</td>
+                                <td class="text-end fw-extrabold h5 text-primary py-3">R$ {{ op.custo_materiais_total|default:0.00|floatformat:2 }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                {% if op.status == 'ABERTA' or op.status == 'PRODUCAO' %}
+                <div class="alert alert-info border-0 shadow-sm mt-3" style="border-radius: 1rem;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                        <div>
+                            <strong>Verificação de Estoque:</strong> 
+                            O sistema bloqueará a finalização se houver falta de qualquer insumo acima no **Almoxarifado**.
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação de Finalização -->
+<div class="modal fade" id="modalFinalizar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+            <div class="modal-body p-5 text-center">
+                <div class="mb-4">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px;">
+                        <i class="bi bi-check2-circle text-success" style="font-size: 3rem;"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-3">Finalizar Produção?</h3>
+                <p class="text-muted mb-4">Ao confirmar, o sistema irá automaticamente:</p>
+                <ul class="text-start small text-muted mb-4 ps-3">
+                    <li>Dar baixa em todos os insumos no **Almoxarifado**.</li>
+                    <li>Dar entrada de **{{ op.quantidade_planejada }}** unidades de **{{ op.ficha_tecnica.produto_final.nome }}** no Estoque Principal.</li>
+                    <li>Calcular o custo final incluindo R$ {{ op.custo_mao_obra_estimado|default:0.00 }} de mão de obra.</li>
+                </ul>
+                <div class="d-grid gap-2">
+                    <form method="POST" action="{% url 'producao:ordem_producao_action' op.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="acao" value="finalizar">
+                        <button type="submit" class="btn btn-success btn-lg w-100 fw-bold rounded-pill">CONFIRMAR E FINALIZAR</button>
+                    </form>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Ainda não, cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-extrabold { font-weight: 800; }
+    .breadcrumb-item + .breadcrumb-item::before { content: "›"; font-size: 1.2rem; line-height: 1; }
+</style>
+{% endblock %}

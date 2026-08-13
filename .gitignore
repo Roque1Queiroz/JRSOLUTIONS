@@ -1,0 +1,49 @@
+# Segredos e configurações locais
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Bancos e backups locais
+*.sqlite3
+*.sqlite3-*
+*.db
+*.bak
+*.backup
+backup_*/
+
+# Dados enviados por usuários
+media/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Django
+staticfiles/
+*.log
+
+# IDE e sistema operacional
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Arquivos que não pertencem ao produto
+Arquivo_Morto/
+*.exe
+*.msi
+*.rar
+
+# Git/Hermes local
+.hermes/

@@ -1,0 +1,23 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Deletar Cliente{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="alert alert-danger">
+                <h4>Tem certeza que deseja deletar este cliente?</h4>
+                <p><strong>Nome:</strong> {{ cliente.nome }}</p>
+                <p><strong>Email:</strong> {{ cliente.email }}</p>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Sim, deletar</button>
+                <a href="{% url 'clientes:cliente_list' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

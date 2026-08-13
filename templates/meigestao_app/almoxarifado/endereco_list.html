@@ -1,0 +1,82 @@
+{% extends "meigestao_app/almoxarifado/base_almoxarifado.html" %}
+
+{% block content %}
+<div class="row mb-4 animate-init">
+    <div class="col-md-12">
+        <div class="card border-0 shadow-sm p-4 bg-light d-flex flex-row justify-content-between align-items-center">
+            <div>
+                <h4 class="fw-bold mb-0">Endereçamento do Almoxarifado</h4>
+                <p class="text-muted mb-0">Gestão de corredores, estantes e prateleiras para organização física.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'almoxarifado:dashboard' %}" class="btn btn-outline-secondary px-4 py-2">
+                    <i class="bi bi-arrow-left me-2"></i> Dashboard
+                </a>
+                <a href="{% url 'almoxarifado:endereco_create' %}" class="btn btn-primary px-4 py-2">
+                    <i class="bi bi-plus-lg me-2"></i> Adicionar Endereço
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm animate-init" style="animation-delay: 0.1s;">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light bg-opacity-50">
+                    <tr class="text-muted small text-uppercase fw-bold">
+                        <th class="ps-4 py-3">Local de Origem</th>
+                        <th>Endereço Físico (Estrutura)</th>
+                        <th>Código QR / Slug</th>
+                        <th class="text-center pe-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for end in enderecos %}
+                    <tr>
+                        <td class="ps-4">
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2">{{ end.local.nome }}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                {% if end.corredor %}
+                                <div class="bg-primary bg-opacity-10 text-primary px-2 py-1 rounded small">
+                                    <span class="opacity-75">Corredor:</span> <strong>{{ end.corredor }}</strong>
+                                </div>
+                                {% endif %}
+                                {% if end.estante %}
+                                <div class="bg-primary bg-opacity-10 text-primary px-2 py-1 rounded small">
+                                    <span class="opacity-75">Estante:</span> <strong>{{ end.estante }}</strong>
+                                </div>
+                                {% endif %}
+                                {% if end.prateleira %}
+                                <div class="bg-primary bg-opacity-10 text-primary px-2 py-1 rounded small">
+                                    <span class="opacity-75">Prateleira:</span> <strong>{{ end.prateleira }}</strong>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <code class="fw-bold text-dark">{{ end.codigo_endereco }}</code>
+                        </td>
+                        <td class="text-center pe-4">
+                            <a href="{% url 'almoxarifado:prateleira_view' end.codigo_endereco %}" class="btn btn-sm btn-light border" title="Ver Prateleira">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5">
+                            <i class="bi bi-geo-alt fs-1 text-muted opacity-25"></i>
+                            <p class="text-muted mt-2">Nenhum endereço cadastrado para esta empresa.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

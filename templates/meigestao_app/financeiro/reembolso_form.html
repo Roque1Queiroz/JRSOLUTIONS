@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block page_title %}{% if object %}Editar Reembolso{% else %}Solicitar Reembolso{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center animate-init">
+    <div class="col-lg-8">
+        <div class="premium-form-card p-5 shadow-lg">
+            <div class="text-center mb-5">
+                <div class="form-icon-circle bg-success bg-opacity-10 text-success mx-auto mb-3">
+                    <i class="bi bi-receipt"></i>
+                </div>
+                <h2 class="fw-extrabold mb-1 underline-heading">{% if object %}Editar Solicitação{% else %}Nova Solicitação de Reembolso{% endif %}</h2>
+                <p class="text-muted small">Anexe o comprovante e detalhe o gasto para processamento financeiro.</p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" novalidate id="reembolso-form">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger border-0 shadow-sm mb-4 rounded-4" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                            <div><strong>Ops!</strong> Por favor, verifique os campos abaixo.</div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label-premium"><i class="bi bi-person-badge me-2"></i>Colaborador (da lista)</label>
+                        {{ form.colaborador }}
+                        {% if form.colaborador.errors %}<div class="text-danger small mt-1">{{ form.colaborador.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-premium"><i class="bi bi-person-plus me-2"></i>Ou informe o nome</label>
+                        {{ form.nome_solicitante }}
+                        {% if form.nome_solicitante.errors %}<div class="text-danger small mt-1">{{ form.nome_solicitante.errors }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-8">
+                        <label class="form-label-premium"><i class="bi bi-card-text me-2"></i>Item / Descrição da Compra</label>
+                        {{ form.item }}
+                        {% if form.item.errors %}<div class="text-danger small mt-1">{{ form.item.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label-premium"><i class="bi bi-flag me-2"></i>Prioridade</label>
+                        {{ form.prioridade }}
+                        {% if form.prioridade.errors %}<div class="text-danger small mt-1">{{ form.prioridade.errors }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label-premium"><i class="bi bi-currency-dollar me-2"></i>Valor (R$)</label>
+                        {{ form.valor }}
+                        {% if form.valor.errors %}<div class="text-danger small mt-1">{{ form.valor.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-premium"><i class="bi bi-calendar-event me-2"></i>Data da Compra</label>
+                        {{ form.data_compra }}
+                        {% if form.data_compra.errors %}<div class="text-danger small mt-1">{{ form.data_compra.errors }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="p-4 rounded-4 border-dashed bg-surface-raised text-center upload-area">
+                        <label class="form-label-premium mb-2 d-block"><i class="bi bi-camera me-2"></i>Comprovante (Imagem ou PDF)</label>
+                        <div class="mb-3">
+                            <i class="bi bi-cloud-upload fs-1 text-primary opacity-50"></i>
+                        </div>
+                        {{ form.foto_recibo }}
+                        <p class="small text-muted mt-3 mb-0">Tire uma foto legível para acelerar o processo de aprovação.</p>
+                        {% if form.foto_recibo.errors %}<div class="text-danger small mt-2">{{ form.foto_recibo.errors }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label-premium"><i class="bi bi-chat-left-dots me-2"></i>Observações</label>
+                    {{ form.observacoes }}
+                </div>
+
+                <div class="d-flex gap-3 pt-4 border-top">
+                    <button type="submit" class="btn btn-primary px-5 py-3 fw-bold flex-grow-1 shadow-sm">
+                        <i class="bi bi-send-fill me-2"></i> ENVIAR SOLICITAÇÃO
+                    </button>
+                    <a href="{% url 'financeiro:reembolso_lista' %}" class="btn btn-light border px-4 py-3">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-icon-circle {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+    }
+    .fw-extrabold { font-weight: 800; }
+    .border-dashed {
+        border: 2px dashed var(--color-border);
+        transition: all 0.3s ease;
+    }
+    .upload-area:hover {
+        border-color: var(--color-primary);
+        background-color: var(--color-primary-soft);
+    }
+</style>
+{% endblock %}

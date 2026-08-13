@@ -1,0 +1,89 @@
+# MANUAL DO USUÁRIO — SISTEMA GESTOR
+
+## Capítulo 0 — Introdução
+
+### Como nasceu o Sistema Gestor
+
+Olá! Meu nome é **José Roque** e este guia nasceu de uma observação simples que fiz ao longo de mais de uma década trabalhando no setor de elevadores.
+
+Passei por grandes empresas multinacionais — **Kone, Otis, ThyssenKrupp** — e também por empresas nacionais menores. Em cada uma delas, vi de perto a realidade do dia a dia: planilhas que não se falavam, controles manuais que consumiam tempo, processos que poderiam ser simples mas eram complicados. Faltava algo.
+
+Faltava uma ferramenta de gestão que falasse a língua de quem está na operação. Algo direto, útil de verdade, que não exigisse um curso de informática pra usar.
+
+Foi assim que comecei a pesquisar. Analisei várias plataformas e tecnologias até encontrar a combinação ideal: **Python**. Uma linguagem extremamente versátil, com uma vasta biblioteca de recursos, perfeita para criar automações que resolvem problemas reais.
+
+E foi assim que nasceu o **Sistema Gestor**.
+
+---
+
+### Para quem é este guia
+
+Este manual foi feito para:
+
+- **MEI** — o microempreendedor individual que precisa organizar as contas sem complicação
+- **PME** — o pequeno e médio empresário que quer controle total sobre finanças, estoque e produção
+- **Qualquer pessoa** que deseje ter domínio sobre a gestão do próprio negócio, independente da área de atuação
+
+Se você já sentiu que a papelada e os controles tomam mais tempo que o trabalho que realmente importa, este guia é para você.
+
+---
+
+### O que você vai aprender
+
+Ao longo dos próximos capítulos, você vai aprender na prática:
+
+- **Capítulo 1** — A acessar o sistema e navegar pelo painel principal
+- **Capítulo 2** — A cadastrar e gerenciar seus clientes sem erros
+- **Capítulo 3** — A registrar vendas e entender a automação do sistema
+- **Capítulo 4** — A controlar produtos, estoque e margem de lucro
+- **Capítulo 5** — A gerenciar finanças, caixa e reembolsos
+- **Capítulo 6** — A emitir notas fiscais sem dor de cabeça
+- **Capítulo 7** — A organizar o almoxarifado com endereçamento físico
+- **Capítulo 8** — A planejar produção com fichas técnicas e ordens de produção
+- **Capítulo 9** — A gerenciar ordens de serviço, compras e cotações
+
+No final de cada capítulo, você encontra um resumo com os pontos principais e pode seguir para o próximo no seu ritmo.
+
+---
+
+### 🤖 E tem mais: o Assistente Inteligente
+
+Uma das melhores coisas do Sistema Gestor é que **você não precisa ler este manual inteiro pra tirar uma dúvida**. Isso mesmo.
+
+O sistema conta com um **assistente virtual integrado** que responde suas perguntas sobre qualquer módulo na hora — rápido e preciso. Seja sobre como emitir uma nota fiscal, cadastrar um cliente ou entender um relatório, é só perguntar.
+
+> 💡 **Na prática:** você pode estar usando o sistema, bater uma dúvida sobre o **módulo que estiver trabalhando**, perguntar direto pro assistente e receber a resposta em segundos — sem precisar abrir o manual, sem pular de página em página.
+
+Funciona como ter um especialista do lado, 24 horas por dia, 7 dias por semana.
+
+---
+
+### Por que você vai gostar deste sistema
+
+O **Sistema Gestor** foi construído com três princípios:
+
+🔹 **Intuitivo** — você aprende navegando, não decorando manuais
+🔹 **Prático** — cada função resolve um problema real do dia a dia
+🔹 **Simples** — a linguagem é direta, sem jargão técnico desnecessário
+
+E com o **assistente inteligente**, você nunca fica travado. Se esquecer como fazer algo, é só perguntar e pronto.
+
+---
+
+### Como usar este guia
+
+Você pode ler do início ao fim para um aprendizado completo, ou pular direto para o capítulo que resolve o problema do momento. Cada capítulo é independente.
+
+E lembre-se: se bater uma dúvida enquanto estiver usando o sistema, o assistente está lá pra te ajudar na hora.
+
+Quando encontrar **caixas como estas**, preste atenção:
+
+> 💡 **Dica:** Atalhos e truques pra usar o sistema mais rápido
+
+> ⚠️ **Atenção:** Pontos críticos que evitam erros
+
+> 📌 **Importante:** Informações que fazem diferença no resultado
+
+---
+
+*Documento gerado em 20 de maio de 2026.*

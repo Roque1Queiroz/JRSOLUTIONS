@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Estoque — {{ object.produto.nome }} - Sistema Gestor{% endblock %}
+{% block page_title %}Estoque e Inventário{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-10 col-lg-7">
+
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1 fw-bold">
+          <i class="bi bi-boxes text-warning me-2"></i>Editar Configurações de Estoque
+        </h4>
+        <p class="text-secondary small mb-0">
+          Produto: <strong>{{ object.produto.nome }}</strong>
+          {% if object.produto.sku %}&nbsp;·&nbsp;SKU: <code>{{ object.produto.sku }}</code>{% endif %}
+        </p>
+      </div>
+      <a href="{% url 'estoque:produto_list' %}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2">
+        <i class="bi bi-arrow-left"></i> Voltar
+      </a>
+    </div>
+
+    <!-- Card de estoque atual (somente leitura) -->
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 1rem; border-left: 4px solid #4f46e5 !important; border: 1px solid var(--color-border);">
+      <div class="card-body p-4">
+        <p class="text-secondary small fw-bold text-uppercase mb-3" style="letter-spacing: 0.06em;">
+          <i class="bi bi-info-circle me-1"></i> Situação Atual
+        </p>
+        <div class="row g-3 text-center">
+          <div class="col-4">
+            <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+              <div class="fs-4 fw-bold text-primary">{{ object.quantidade }}</div>
+              <div class="small text-secondary mt-1">Qtd. em Estoque</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="bg-warning bg-opacity-10 rounded-3 p-3">
+              <div class="fs-4 fw-bold text-warning">{{ object.quantidade_minima }}</div>
+              <div class="small text-secondary mt-1">Qtd. Mínima</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="{% if object.quantidade <= object.quantidade_minima %}bg-danger bg-opacity-10{% else %}bg-success bg-opacity-10{% endif %} rounded-3 p-3">
+              <div class="fs-4 fw-bold {% if object.quantidade <= object.quantidade_minima %}text-danger{% else %}text-success{% endif %}">
+                {% if object.quantidade <= object.quantidade_minima %}
+                  <i class="bi bi-exclamation-triangle-fill"></i>
+                {% else %}
+                  <i class="bi bi-check-circle-fill"></i>
+                {% endif %}
+              </div>
+              <div class="small text-secondary mt-1">
+                {% if object.quantidade <= object.quantidade_minima %}Estoque Baixo{% else %}Nível OK{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulário de edição -->
+    <form method="post" class="needs-validation" novalidate>
+      {% csrf_token %}
+
+      <div class="card border-0 shadow-sm mb-4" style="border-radius: 1rem; border: 1px solid var(--color-border);">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+          <h5 class="fw-bold mb-0 text-primary small text-uppercase" style="letter-spacing: 0.06em;">
+            Parâmetros de Controle
+          </h5>
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-4">
+
+            <!-- Quantidade Mínima -->
+            <div class="col-md-6">
+              <label for="{{ form.quantidade_minima.id_for_label }}" class="form-label small fw-bold text-secondary text-uppercase mb-2">
+                <i class="bi bi-exclamation-triangle me-1 text-warning"></i>Quantidade Mínima
+              </label>
+              {{ form.quantidade_minima }}
+              {% if form.quantidade_minima.errors %}
+                <div class="text-danger small mt-1">{{ form.quantidade_minima.errors }}</div>
+              {% endif %}
+              <p class="text-muted small mt-1 mb-0">
+                Abaixo deste valor o sistema emite alerta de reposição.
+              </p>
+            </div>
+
+            <!-- Localização -->
+            <div class="col-md-6">
+              <label for="{{ form.localizacao.id_for_label }}" class="form-label small fw-bold text-secondary text-uppercase mb-2">
+                <i class="bi bi-geo-alt me-1 text-info"></i>Localização Física
+              </label>
+              {{ form.localizacao }}
+              {% if form.localizacao.errors %}
+                <div class="text-danger small mt-1">{{ form.localizacao.errors }}</div>
+              {% endif %}
+              <p class="text-muted small mt-1 mb-0">
+                Ex: Prateleira A1, Galpão 2, Armário 03…
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Ações -->
+      <div class="d-flex justify-content-end gap-3 mt-2">
+        <a href="{% url 'estoque:produto_list' %}" class="btn btn-outline-secondary fw-semibold px-4">
+          Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm">
+          <i class="bi bi-check2-circle me-1"></i> Salvar Alterações
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

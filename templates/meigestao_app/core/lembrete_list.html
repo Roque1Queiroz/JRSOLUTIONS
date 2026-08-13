@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block page_title %}Histórico de Lembretes e Notas{% endblock %}
+
+{% block content %}
+<style>
+    .note-prioridade { background-color: #fee2e2 !important; border-left: 5px solid #ef4444 !important; }
+    .note-manutencao { background-color: #fff8e1 !important; border-left: 5px solid #ffc107 !important; }
+    .note-orcamento { background-color: #ecfdf5 !important; border-left: 5px solid #10b981 !important; }
+</style>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 h-100 text-center bg-primary bg-opacity-10 text-primary">
+            <h1 class="fw-bold mb-0">{{ lembretes.count }}</h1>
+            <h6 class="fw-bold small text-uppercase opacity-75">Notas Totais</h6>
+        </div>
+    </div>
+    <div class="col-md-9 text-end d-flex align-items-center justify-content-end">
+        <button class="btn btn-primary px-4 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalLembrete">
+            <i class="bi bi-plus-lg me-1"></i> Criar Novo Lembrete
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-transparent border-0 pt-4 px-4">
+        <h5 class="fw-bold mb-1">Anotações do Sistema</h5>
+        <p class="small text-muted mb-0">Controle de serviços, metas e manutenções passadas e futuras.</p>
+    </div>
+    <div class="card-body px-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr class="text-muted small text-uppercase">
+                        <th>Status</th>
+                        <th>Título / Data Prevista</th>
+                        <th>Tipo / Categoria</th>
+                        <th>Conteúdo</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lembrete in lembretes %}
+                    <tr>
+                        <td style="width: 80px;">
+                            {% if lembrete.concluido %}
+                                <span class="badge bg-success bg-opacity-20 text-success rounded-pill px-3">OK</span>
+                            {% else %}
+                                <span class="badge bg-warning bg-opacity-20 text-warning text-dark rounded-pill px-3">🕰️</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ lembrete.titulo }}</div>
+                            <div class="small text-muted"><i class="bi bi-calendar-event me-1"></i>{{ lembrete.data_servico|date:"d/m/Y"|default:"Sem data" }}</div>
+                        </td>
+                        <td>
+                            <span class="badge note-{{ lembrete.categoria }} text-dark border-0 px-3 py-2 fw-normal" style="border-radius: 0.5rem;">
+                                {{ lembrete.get_categoria_display }}
+                            </span>
+                        </td>
+                        <td class="text-muted small" style="max-width: 300px;">
+                            {{ lembrete.conteudo|truncatechars:100 }}
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-2">
+                                <form method="post" action="{% url 'core:lembrete_concluir' lembrete.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm {% if lembrete.concluido %}btn-outline-secondary opacity-50{% else %}btn-outline-success shadow-sm{% endif %} rounded-3 p-2" title="Alternar Status">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    </button>
+                                </form>
+                                <form method="post" action="{% url 'core:lembrete_excluir' lembrete.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-3 p-2" onclick="return confirm('Excluir esta nota permanentemente?')">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="bi bi-journal-x fs-1 text-muted opacity-25"></i>
+                            <p class="text-muted mt-2">Nenhuma nota registrada até o momento.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Novo Lembrete (Reutilizado no Dash) -->
+<div class="modal fade" id="modalLembrete" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+            <div class="modal-header border-0 pt-4 px-4 bg-light" style="border-top-left-radius: 1.5rem; border-top-right-radius: 1.5rem;">
+                <h5 class="fw-bold px-1 mb-0"><i class="bi bi-pencil-square me-2"></i>Nova Anotação</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'core:lembrete_criar' %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Título da Nota</label>
+                        <input type="text" name="titulo" class="form-control bg-light border-0 py-2" placeholder="Ex: Manutenção Maquina X" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Prioridade / Tipo</label>
+                            <select name="categoria" class="form-select bg-light border-0 py-2">
+                                <option value="prioridade">🔴 Prioritário</option>
+                                <option value="manutencao" selected>🔵 Manutenção</option>
+                                <option value="orcamento">🟢 Orçamento</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Data Prevista</label>
+                            <input type="date" name="data_servico" class="form-control bg-light border-0 py-2">
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Conteúdo</label>
+                        <textarea name="conteudo" class="form-control bg-light border-0 py-2" rows="4" placeholder="Detalhes importantes..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-5 shadow">Salvar Lembrete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

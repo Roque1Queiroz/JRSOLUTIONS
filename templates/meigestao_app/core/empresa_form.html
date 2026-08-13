@@ -1,0 +1,119 @@
+﻿{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar{% else %}Criar{% endif %} Empresa
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1>
+                {% if form.instance.pk %}
+                    âœï¸ Editar Empresa
+                {% else %}
+                    âž• Nova Empresa
+                {% endif %}
+            </h1>
+            <hr>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.nome.id_for_label }}" class="form-label">
+                            {{ form.nome.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.nome }}
+                        {% if form.nome.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.nome.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.cnpj.id_for_label }}" class="form-label">
+                            {{ form.cnpj.label }}
+                        </label>
+                        {{ form.cnpj }}
+                        {% if form.cnpj.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.cnpj.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">
+                            {{ form.email.label }}
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.email.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.telefone.id_for_label }}" class="form-label">
+                            {{ form.telefone.label }}
+                        </label>
+                        {{ form.telefone }}
+                        {% if form.telefone.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.telefone.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.endereco.id_for_label }}" class="form-label">
+                        {{ form.endereco.label }}
+                    </label>
+                    {{ form.endereco }}
+                    {% if form.endereco.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.endereco.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        {{ form.ativa }}
+                        <label class="form-check-label" for="{{ form.ativa.id_for_label }}">
+                            Empresa ativa no sistema
+                        </label>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="/" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control, .form-select, .form-check-input {
+        border-radius: 0.375rem;
+    }
+    .form-control:focus, .form-select:focus, .form-check-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+</style>
+{% endblock %}

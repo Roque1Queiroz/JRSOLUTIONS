@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}BI de Resultados / DRE{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4 animate-init">
+    <div class="col-md-12">
+        <div class="card border-0 shadow-sm p-4 bg-dark text-white mb-4" style="border-radius: 1.5rem; background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h3 class="fw-bold mb-1">Resultados Estratégicos</h3>
+                    <p class="mb-0 opacity-75">Indicadores consolidados de saúde financeira e performance operacional.</p>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Filtros de Período -->
+                    <form method="GET" action="." class="d-flex align-items-center gap-2 bg-white bg-opacity-10 p-2 rounded-4">
+                        <select name="mes" class="form-select form-select-sm bg-transparent text-white border-0" style="width: auto;">
+                            {% for m, nome in meses_disponiveis %}
+                            <option value="{{ m }}" {% if m == mes_selecionado %}selected{% endif %} class="text-dark">{{ nome }}</option>
+                            {% endfor %}
+                        </select>
+                        <select name="ano" class="form-select form-select-sm bg-transparent text-white border-0" style="width: auto;">
+                            {% for a in anos_disponiveis %}
+                            <option value="{{ a }}" {% if a == ano_selecionado %}selected{% endif %} class="text-dark">{{ a }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm rounded-3">
+                            <i class="bi bi-filter"></i>
+                        </button>
+                    </form>
+
+                    <!-- Botão Exportar PDF -->
+                    <a href="{% url 'relatorios:dre_pdf' %}?mes={{ mes_selecionado }}&ano={{ ano_selecionado }}" class="btn btn-danger btn-sm py-2 px-3 rounded-3 d-flex align-items-center fw-bold">
+                        <i class="bi bi-file-earmark-pdf me-2"></i> PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h6 class="text-muted fw-bold small text-uppercase mb-2">Faturamento Bruto</h6>
+            <h2 class="fw-extrabold text-primary mb-1">R$ {{ dre.receita_bruta|floatformat:2 }}</h2>
+            <div class="small text-success fw-bold"><i class="bi bi-graph-up me-1"></i> Receita Total</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h6 class="text-muted fw-bold small text-uppercase mb-2">CMV (Custo Mercadoria)</h6>
+            <h2 class="fw-extrabold text-danger mb-1">R$ {{ dre.cmv|floatformat:2 }}</h2>
+            <div class="small text-muted">Baseado na Produção</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h6 class="text-muted fw-bold small text-uppercase mb-2">Lucro Líquido</h6>
+            <h2 class="fw-extrabold {% if dre.lucro_liquido >= 0 %}text-success{% else %}text-danger{% endif %} mb-1">
+                R$ {{ dre.lucro_liquido|floatformat:2 }}
+            </h2>
+            <div class="small text-muted">Resultado Final</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 h-100 bg-primary bg-opacity-10">
+            <h6 class="text-primary fw-bold small text-uppercase mb-2">Margem Líquida</h6>
+            <h2 class="fw-extrabold text-primary mb-1">{{ dre.margem_liquida|floatformat:1 }}%</h2>
+            <div class="progress" style="height: 6px;">
+                <div class="progress-bar bg-primary" style="width: {{ dre.margem_liquida }}%"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Gráfico de Performance -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Evolução Financeira (6 meses)</h5>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="chartResults" style="max-height: 400px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- DRE Estruturado -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0">DRE Simplificado</h5>
+            </div>
+            <div class="card-body p-4 pt-2">
+                <div class="list-group list-group-flush small">
+                    <div class="list-group-item d-flex justify-content-between px-0 py-3 border-0">
+                        <span class="fw-bold text-dark">(+) Receita Bruta</span>
+                        <span class="fw-bold">R$ {{ dre.receita_bruta|floatformat:2 }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between px-0 py-2 border-0 text-muted">
+                        <span>(-) CMV (Insumos)</span>
+                        <span>R$ {{ dre.cmv|floatformat:2 }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between px-0 py-3 border-top mt-2">
+                        <span class="fw-bold text-primary">(=) Lucro Bruto</span>
+                        <span class="fw-bold text-primary">R$ {{ dre.lucro_bruto|floatformat:2 }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between px-0 py-2 border-0 text-muted">
+                        <span>(-) Despesas Op.</span>
+                        <span>R$ {{ dre.despesas|floatformat:2 }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between px-0 py-3 border-top mt-3 bg-light p-2 rounded">
+                        <span class="fw-extrabold h6 mb-0 text-dark">(=) Lucro Líquido</span>
+                        <span class="fw-extrabold h6 mb-0 {% if dre.lucro_liquido >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            R$ {{ dre.lucro_liquido|floatformat:2 }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('chartResults').getContext('2d');
+    
+    // Gradientes
+    const gradientReceiver = ctx.createLinearGradient(0, 0, 0, 400);
+    gradientReceiver.addColorStop(0, 'rgba(79, 70, 229, 0.4)');
+    gradientReceiver.addColorStop(1, 'rgba(79, 70, 229, 0)');
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ grafico_data.labels|safe }},
+            datasets: [
+                {
+                    label: 'Receita',
+                    data: {{ grafico_data.receitas|safe }},
+                    borderColor: '#4f46e5',
+                    backgroundColor: gradientReceiver,
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#4f46e5'
+                },
+                {
+                    label: 'Despesa',
+                    data: {{ grafico_data.despesas|safe }},
+                    borderColor: '#ef4444',
+                    backgroundColor: 'transparent',
+                    borderDash: [5, 5],
+                    tension: 0,
+                    borderWidth: 2,
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', align: 'end' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': R$ ' + context.raw.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { display: true, color: '#f1f5f9' },
+                    ticks: { callback: value => 'R$ ' + value }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+});
+</script>
+
+<style>
+    .fw-extrabold { font-weight: 800; }
+</style>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "meigestao_app/almoxarifado/base_almoxarifado.html" %}
+
+{% block content %}
+<div class="row animate-init">
+    <div class="col-md-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h4 class="fw-bold mb-1">Cadastrar Endereço Físico</h4>
+                <p class="text-muted small mb-0">Defina os identificadores de corredor e prateleira para este local.</p>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger border-0 shadow-sm mb-4" style="border-radius: 0.75rem;">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-circle-fill fs-4 me-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Erro no Endereçamento</h6>
+                                <ul class="mb-0 small ps-3">
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label-premium">Local Base</label>
+                        {{ form.local }}
+                        <div class="form-text">Ex: Almoxarifado Central, Depósito 02.</div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label-premium">Corredor</label>
+                            <input type="text" name="corredor" class="form-control" placeholder="Ex: A, 01, Norte">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label-premium">Estante / Bloco</label>
+                            <input type="text" name="estante" class="form-control" placeholder="Ex: 05, Metal">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label-premium">Prateleira / Nível</label>
+                            <input type="text" name="prateleira" class="form-control" placeholder="Ex: 03, Superior">
+                        </div>
+                    </div>
+
+                    <div class="mb-4 p-3 bg-light rounded-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase mb-2">Código do Endereço (Slug)</label>
+                        <input type="text" name="codigo_endereco" id="id_codigo_endereco" class="form-control font-monospace" 
+                               placeholder="ex: ALM-C1-E5-P3" required>
+                        <div class="form-text">Este código será usado para gerar o QR Code único. Não use espaços.</div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end mt-5">
+                        <a href="{% url 'almoxarifado:endereco_list' %}" class="btn btn-light border px-4">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold">SALVAR ENDEREÇO</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Gerador de Slug básico para ajudar o usuário
+    const inputs = document.querySelectorAll('input[name="corredor"], input[name="estante"], input[name="prateleira"]');
+    const slugInput = document.getElementById('id_codigo_endereco');
+    const localSelect = document.querySelector('select[name="local"]');
+
+    function updateSlug() {
+        if (slugInput.value && !slugInput.dataset.manual) return;
+        
+        const local = localSelect.options[localSelect.selectedIndex].text.substring(0,3).toUpperCase();
+        const c = document.querySelector('input[name="corredor"]').value.toUpperCase();
+        const e = document.querySelector('input[name="estante"]').value.toUpperCase();
+        const p = document.querySelector('input[name="prateleira"]').value.toUpperCase();
+        
+        let parts = [local];
+        if (c) parts.push('C'+c);
+        if (e) parts.push('E'+e);
+        if (p) parts.push('P'+p);
+        
+        slugInput.value = parts.join('-');
+    }
+
+    inputs.forEach(i => i.addEventListener('input', updateSlug));
+    localSelect.addEventListener('change', updateSlug);
+    slugInput.addEventListener('input', () => slugInput.dataset.manual = true);
+</script>
+{% endblock %}

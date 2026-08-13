@@ -1,0 +1,333 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Módulo Almoxarifado - SISTEMA GESTOR{% endblock %}</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        /* Reutilizando as variáveis e estilos do base.html para manter a identidade visual */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            --sidebar-bg: #0f172a;
+            --sidebar-width: 260px;
+            --topbar-height: 70px;
+            --bg-body: #f8fafc;
+            --color-text-primary: #1e293b;
+            --color-text-secondary: #64748b;
+            --color-surface: #ffffff;
+            --color-border: #e2e8f0;
+        }
+
+        [data-bs-theme="dark"] {
+            --bg-body: #0a0a0b;
+            --sidebar-bg: #111113;
+            --color-text-primary: #f1f5f9;
+            --color-text-secondary: #94a3b8;
+            --color-surface: #18181b;
+            --color-border: #27272a;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--color-text-primary);
+            overflow-x: hidden;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background-color: var(--sidebar-bg);
+            color: #fff;
+            padding: 1.5rem;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        /* Scrollbar Sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar-brand {
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 2px;
+            margin-bottom: 2.5rem;
+            width: 100%;
+        }
+
+        .brand-main {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.02em;
+            margin-top: 0.5rem;
+        }
+
+        .brand-sub {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #94a3b8;
+            letter-spacing: 0.02em;
+        }
+
+        .sidebar-logo {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .sidebar-section {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            font-weight: 700;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            font-weight: 500;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-link.active {
+            color: #fff;
+            background: var(--primary-gradient);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            height: var(--topbar-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0;
+        }
+
+        /* Estilos de Cards e Utilitários do Almoxarifado */
+        .card { border-radius: 1rem; border: 1px solid var(--color-border); }
+        .badge-soft-danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 0.75rem; }
+        
+        .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .hover-lift:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+        /* Responsividade Mobile */
+        @media (max-width: 991px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body data-bs-theme="light">
+
+    <!-- SIDEBAR ALMOXARIFADO -->
+    <nav class="sidebar" id="sidebar">
+        <a href="{% url 'almoxarifado:dashboard' %}" class="sidebar-brand">
+            {% if empresa_logo_url %}
+                <img src="{{ empresa_logo_url }}" alt="Logo Cliente" class="sidebar-logo">
+            {% else %}
+                <i class="bi bi-box-seam-fill text-info fs-3"></i>
+            {% endif %}
+            <span class="brand-main">SISTEMA GESTOR</span>
+            <span class="brand-sub">{% if empresa_nome and empresa_nome != 'SISTEMA GESTOR' %}{{ empresa_nome }}{% else %}Almoxarifado{% endif %}</span>
+        </a>
+
+        <span class="sidebar-section">Operacional</span>
+        <ul class="nav flex-column mb-3">
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'almoxarifado:dashboard' %}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'requisicao' in request.path %}active{% endif %}" href="{% url 'almoxarifado:requisicao_list' %}">
+                    <i class="bi bi-clipboard-check"></i> Requisições
+                </a>
+            </li>
+        </ul>
+
+        <span class="sidebar-section">Cadastro e Controle</span>
+        <ul class="nav flex-column mb-3">
+            <li class="nav-item">
+                <a class="nav-link {% if 'enderecos' in request.path %}active{% endif %}" href="{% url 'almoxarifado:endereco_list' %}">
+                    <i class="bi bi-geo-alt"></i> Endereçamento
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'etiquetas' in request.path %}active{% endif %}" href="{% url 'almoxarifado:central_etiquetas' %}">
+                    <i class="bi bi-qr-code-scan"></i> Etiquetas (QR/Bar)
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'setores' in request.path %}active{% endif %}" href="{% url 'almoxarifado:setor_list' %}">
+                    <i class="bi bi-diagram-3"></i> Setores / CC
+                </a>
+            </li>
+        </ul>
+
+        <div class="mt-auto pt-5">
+            {% if user.perfil.permissao in 'admin gerente' or user.is_superuser %}
+            <a class="nav-link text-primary mb-2" href="{% url 'core:dashboard' %}">
+                <i class="bi bi-arrow-left-circle"></i> Voltar ao Sistema
+            </a>
+            {% endif %}
+            <hr class="border-secondary opacity-25">
+            <a class="nav-link text-danger" href="/admin/logout/">
+                <i class="bi bi-box-arrow-right"></i> Sair
+            </a>
+        </div>
+    </nav>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div class="main-content">
+
+        <!-- TOPBAR SIMPLIFICADA -->
+        <div class="topbar">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-primary d-lg-none" id="sidebar-toggle">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h1 class="page-title">{% block page_title %}Visão Geral{% endblock %}</h1>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2" id="theme-toggle-btn"
+                    title="Alternar Tema">
+                    <i class="bi bi-moon-stars"></i> <span class="d-none d-md-inline" id="theme-text">Escuro</span>
+                </button>
+                <div class="dropdown">
+                    <a class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i>
+                        <span class="fw-semibold">{{ user.username }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg">
+                        <li><a class="dropdown-item text-danger" href="/admin/logout/"><i class="bi bi-box-arrow-right me-2"></i> Sair</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="messages-container mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Theme Toggle com persistência via localStorage
+        const themeBtn = document.getElementById('theme-toggle-btn');
+        const themeText = document.getElementById('theme-text');
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            document.body.setAttribute('data-bs-theme', theme);
+            if (themeText) themeText.innerText = theme === 'light' ? 'Escuro' : 'Claro';
+            if (themeBtn) {
+                themeBtn.querySelector('i').className = theme === 'light' ? 'bi bi-moon-stars' : 'bi bi-sun';
+            }
+            localStorage.setItem('mei-theme', theme);
+        }
+
+        // Inicializa o estado visual do botão com o tema salvo
+        applyTheme(localStorage.getItem('mei-theme') || 'light');
+
+            if (themeBtn) {
+                themeBtn.addEventListener('click', () => {
+                    const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
+                    applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+                });
+            }
+
+            // Sidebar Toggle Mobile
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('show');
+                });
+            }
+        </script>
+
+</body>
+</html>

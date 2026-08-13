@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block page_title %}{{ flow_detail_page_title|default:"Detalhes da Transação" }}{% endblock %}
+
+{% block content %}
+{% include "meigestao_app/financeiro/_finance_header.html" with flow_detail_page_title=flow_detail_page_title flow_list_url=flow_list_url %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4 finance-detail-card">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-info-circle text-primary me-2"></i>Informações Gerais
+                </h5>
+                <span class="badge {% if transacao.tipo == 'receita' %}bg-success{% else %}bg-danger{% endif %} bg-opacity-10 text-{% if transacao.tipo == 'receita' %}success{% else %}danger{% endif %} fs-6 px-3">
+                    {{ transacao.get_tipo_display }}
+                </span>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="text-secondary small fw-bold text-uppercase mb-1">Descrição</label>
+                        <p class="fs-5 fw-bold text-dark">{{ transacao.descricao }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-secondary small fw-bold text-uppercase mb-1">Valor</label>
+                        <p class="fs-5 fw-bold text-{% if transacao.tipo == 'receita' %}success{% else %}danger{% endif %}">
+                            {% if transacao.tipo == 'receita' %}+{% else %}-{% endif %} R$ {{ transacao.valor|floatformat:2 }}
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-secondary small fw-bold text-uppercase mb-1">Categoria</label>
+                        <p class="text-dark"><i class="bi bi-tag me-2 text-primary"></i>{{ transacao.categoria }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-secondary small fw-bold text-uppercase mb-1">Data da Transação</label>
+                        <p class="text-dark"><i class="bi bi-calendar-event me-2 text-primary"></i>{{ transacao.data_transacao|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-secondary small fw-bold text-uppercase mb-1">Status</label>
+                        <p>
+                            {% if transacao.paga %}
+                                <span class="badge bg-success bg-opacity-10 text-success"><i class="bi bi-check2-all me-1"></i>{{ flow_paid_status_label|default:"Liquidada" }}</span>
+                            {% else %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning text-dark"><i class="bi bi-clock me-1"></i>{{ flow_pending_status_label|default:"Pendente" }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-5 finance-detail-card">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-bank text-primary me-2"></i>Conta Vinculada
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <p class="mb-0 text-dark">
+                    <i class="bi bi-credit-card me-2"></i>{{ transacao.conta|default:"Nenhuma conta selecionada" }}
+                </p>
+            </div>
+        </div>
+
+        {% if transacao.venda %}
+        <div class="card border-0 shadow-sm mb-5 finance-detail-card">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-bag-check text-primary me-2"></i>Origem da Receita
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <p class="mb-1 text-dark fw-semibold">Venda #{{ transacao.venda.id }} para {{ transacao.venda.cliente.nome }}</p>
+                        <p class="mb-0 text-muted small">Status {{ transacao.venda.get_status_display }} â€¢ realizada em {{ transacao.venda.data_venda|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    <a href="{% url 'vendas:venda_detail' transacao.venda.pk %}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-up-right-square me-1"></i> Abrir Venda
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <a href="{{ flow_list_url|default:'#' }}" class="btn btn-outline-secondary px-4">
+                <i class="bi bi-arrow-left me-1"></i> Voltar Ã  Lista
+            </a>
+            <div class="d-flex gap-2">
+                <a href="{% url flow_delete_url_name transacao.pk %}" class="btn btn-light text-danger border">
+                    <i class="bi bi-trash me-1"></i> Excluir
+                </a>
+                <a href="{% url flow_edit_url_name transacao.pk %}" class="btn btn-primary px-5 shadow-sm">
+                    <i class="bi bi-pencil me-1"></i> Editar Informações
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .finance-detail-card {
+        background:
+            linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98));
+    }
+    [data-bs-theme="dark"] .finance-detail-card {
+        background:
+            linear-gradient(180deg, rgba(24,24,27,0.98), rgba(30,31,35,0.98));
+    }
+</style>
+{% endblock %}

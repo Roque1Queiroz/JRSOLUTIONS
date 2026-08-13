@@ -1,0 +1,101 @@
+﻿{% extends "base.html" %}
+
+{% block page_title %}Detalhes da Nota Fiscal{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center border-bottom pb-3">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-file-earmark-text text-primary me-2"></i>Informações da NF
+                </h5>
+                <span class="badge {% if nota_fiscal.status == 'emitida' %}bg-success{% elif nota_fiscal.status == 'rascunho' %}bg-warning{% else %}bg-danger{% endif %} bg-opacity-10 text-{% if nota_fiscal.status == 'emitida' %}success{% elif nota_fiscal.status == 'rascunho' %}warning text-dark{% else %}danger{% endif %} fs-6 px-4 py-2">
+                    {{ nota_fiscal.get_status_display }}
+                </span>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="text-secondary small fw-bold text-uppercase mb-1">Número / Série</label>
+                        <p class="fs-5 fw-bold text-dark">{{ nota_fiscal.numero }} / {{ nota_fiscal.serie }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-secondary small fw-bold text-uppercase mb-1">Data de Emissão</label>
+                        <p class="fs-5 fw-bold text-dark">{{ nota_fiscal.data_emissao|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="col-md-12">
+                        <hr class="opacity-25">
+                        <label class="text-secondary small fw-bold text-uppercase mb-1">Descrição</label>
+                        <p class="text-dark">{{ nota_fiscal.descricao|default:"Sem descrição adicional." }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0 text-dark">Valores e Impostos</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <label class="text-secondary small fw-bold text-uppercase mb-1">Subtotal</label>
+                        <p class="fs-5 fw-semibold text-dark">R$ {{ nota_fiscal.valor_subtotal|floatformat:2 }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-secondary small fw-bold text-uppercase mb-1">Descontos</label>
+                        <p class="fs-5 fw-semibold text-danger">R$ {{ nota_fiscal.valor_desconto|floatformat:2 }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-secondary small fw-bold text-uppercase mb-1 text-primary">Valor Líquido</label>
+                        <p class="fs-4 fw-bold text-primary">R$ {{ nota_fiscal.valor_total|floatformat:2 }}</p>
+                    </div>
+                    <div class="col-12"><hr class="opacity-10"></div>
+                    <div class="col-md-6 border-end">
+                        <label class="text-secondary small fw-bold text-uppercase mb-1">ICMS</label>
+                        <p class="text-dark">R$ {{ nota_fiscal.valor_icms|floatformat:2 }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-secondary small fw-bold text-uppercase mb-1">IPI</label>
+                        <p class="text-dark">R$ {{ nota_fiscal.valor_ipi|floatformat:2 }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm bg-light mb-4">
+            <div class="card-body p-4">
+                <label class="text-secondary small fw-bold text-uppercase mb-1">Cliente</label>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle me-3">
+                        <i class="bi bi-person fs-4"></i>
+                    </div>
+                    <div>
+                        <p class="fw-bold mb-0 text-dark">{{ nota_fiscal.cliente.nome }}</p>
+                        <p class="extra-small text-muted mb-0">{{ nota_fiscal.cliente.cpf_cnpj }}</p>
+                    </div>
+                </div>
+                <a href="{% url 'clientes:cliente_detail' nota_fiscal.cliente.pk %}" class="btn btn-sm btn-outline-primary w-100">Ver Cadastro</a>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <label class="text-secondary small fw-bold text-uppercase mb-1">Ações do Documento</label>
+                <div class="d-grid gap-2 mt-3">
+                    <button class="btn btn-primary py-2 shadow-sm"><i class="bi bi-download me-2"></i>Baixar PDF</button>
+                    <button class="btn btn-outline-secondary py-2"><i class="bi bi-envelope me-2"></i>Enviar por E-mail</button>
+                    <hr class="opacity-10">
+                    <a href="{% url 'fiscal:nota_fiscal_update' nota_fiscal.pk %}" class="btn btn-light border py-2"><i class="bi bi-pencil me-2"></i>Editar NF</a>
+                    {% if nota_fiscal.status == 'rascunho' %}
+                        <a href="{% url 'fiscal:nota_fiscal_delete' nota_fiscal.pk %}" class="btn btn-light text-danger border py-2"><i class="bi bi-trash me-2"></i>Excluir Rascunho</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,248 @@
+﻿/* 
+   CUSTOM CSS - Mei_Gestão
+   Cores: Azul #10528a, Verde #4CAF50, Branco #FFFFFF
+    */
+
+:root {
+    --primary-color: #10528a;
+    --secondary-color: #4CAF50;
+    --white-color: #FFFFFF;
+    --light-gray: #f8f9fa;
+    --dark-gray: #343a40;
+    --danger-color: #f44336;
+    --warning-color: #ff9800;
+    --info-color: #2196F3;
+}
+
+/* 
+   GLOBAL STYLES
+    */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--light-gray);
+    color: var(--dark-gray);
+}
+
+/* 
+   NAVBAR STYLES
+    */
+
+.navbar {
+    background-color: var(--primary-color) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: var(--white-color) !important;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--white-color) !important;
+}
+
+/* 
+   SIDEBAR STYLES
+    */
+
+.sidebar {
+    background-color: var(--primary-color);
+    min-height: 100vh;
+    padding-top: 20px;
+    position: fixed;
+    left: 0;
+    top: 56px;
+    width: 250px;
+    overflow-y: auto;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-item {
+    padding: 12px 20px;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.sidebar-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--white-color);
+    border-left-color: var(--secondary-color);
+}
+
+.sidebar-item.active {
+    background-color: var(--secondary-color);
+    color: var(--white-color);
+    border-left-color: var(--white-color);
+}
+
+/* 
+   MAIN CONTENT STYLES
+    */
+
+.main-content {
+    margin-left: 250px;
+    margin-top: 56px;
+    padding: 30px;
+    min-height: calc(100vh - 56px);
+}
+
+/* 
+   CARD STYLES
+    */
+
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background-color: var(--primary-color);
+    color: var(--white-color);
+    border-radius: 8px 8px 0 0;
+    border: none;
+}
+
+/* 
+   BUTTON STYLES
+    */
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #0a3860;
+    border-color: #0a3860;
+}
+
+.btn-success {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-success:hover {
+    background-color: #45a049;
+    border-color: #45a049;
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
+.btn-danger:hover {
+    background-color: #da190b;
+    border-color: #da190b;
+}
+
+/* 
+   FORM STYLES
+    */
+
+.form-control, .form-select {
+    border-color: #ddd;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(16, 82, 138, 0.25);
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--dark-gray);
+}
+
+/* 
+   TABLE STYLES
+    */
+
+.table-hover tbody tr:hover {
+    background-color: rgba(16, 82, 138, 0.05);
+}
+
+.table thead {
+    background-color: var(--light-gray);
+}
+
+/* 
+   BADGE STYLES
+    */
+
+.badge-primary {
+    background-color: var(--primary-color);
+}
+
+.badge-success {
+    background-color: var(--secondary-color);
+}
+
+/* 
+   BORDER STYLES
+    */
+
+.border-left-primary {
+    border-left: 4px solid var(--primary-color);
+}
+
+.border-left-success {
+    border-left: 4px solid var(--secondary-color);
+}
+
+.border-left-warning {
+    border-left: 4px solid var(--warning-color);
+}
+
+.border-left-info {
+    border-left: 4px solid var(--info-color);
+}
+
+.border-left-danger {
+    border-left: 4px solid var(--danger-color);
+}
+
+/* 
+   RESPONSIVE STYLES
+    */
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        position: relative;
+        top: 0;
+        min-height: auto;
+    }
+    
+    .main-content {
+        margin-left: 0;
+        margin-top: 0;
+        padding: 15px;
+    }
+}

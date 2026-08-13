@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório de Estoque - Sistema Gestor{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col-md-12">
+    <h1>📊 Relatório de Estoque</h1>
+  </div>
+</div>
+
+<!-- KPIs -->
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Total de Produtos</h6>
+        <h2 class="card-text">{{ total_produtos }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Produtos Ativos</h6>
+        <h2 class="card-text text-success">{{ produtos_ativos }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Produtos Inativos</h6>
+        <h2 class="card-text text-danger">{{ produtos_inativos }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Valor Total Estoque</h6>
+        <h2 class="card-text">R$ {{ valor_total_estoque|floatformat:2 }}</h2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Produtos em Falta -->
+{% if produtos_em_falta %}
+  <div class="card mb-4">
+    <div class="card-header bg-danger text-white">
+      <h5 class="mb-0">⚠️ Produtos com Estoque Baixo</h5>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped mb-0">
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>SKU</th>
+            <th>Quantidade</th>
+            <th>Mínimo</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for est in produtos_em_falta %}
+            <tr>
+              <td>{{ est.produto.nome }}</td>
+              <td>{{ est.produto.sku }}</td>
+              <td><span class="badge bg-danger">{{ est.quantidade }}</span></td>
+              <td>{{ est.quantidade_minima }}</td>
+              <td>
+                <a href="{% url 'estoque:movimentacao_create' est.produto.id %}" class="btn btn-sm btn-primary">
+                  <i class="bi bi-plus"></i> Entrada
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Top Produtos por Quantidade -->
+{% if top_produtos %}
+  <div class="card mb-4">
+    <div class="card-header bg-light">
+      <h5 class="mb-0">📈 Top 10 Produtos por Quantidade</h5>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped mb-0">
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Quantidade</th>
+            <th>Valor Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for est in top_produtos %}
+            <tr>
+              <td>
+                <a href="{% url 'estoque:produto_detail' est.produto.id %}">
+                  {{ est.produto.nome }}
+                </a>
+              </td>
+              <td>{{ est.quantidade }}</td>
+              <td>R$ {{ est.valor_total|floatformat:2 }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Movimentações Recentes -->
+{% if movimentacoes_recentes %}
+  <div class="card">
+    <div class="card-header bg-light">
+      <h5 class="mb-0">📜 Últimas 10 Movimentações</h5>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped mb-0">
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Tipo</th>
+            <th>Quantidade</th>
+            <th>Data</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for mov in movimentacoes_recentes %}
+            <tr>
+              <td>{{ mov.produto.nome }}</td>
+              <td>
+                {% if mov.tipo_movimento == 'entrada' %}
+                  <span class="badge bg-success">Entrada</span>
+                {% elif mov.tipo_movimento == 'saida' %}
+                  <span class="badge bg-danger">Saída</span>
+                {% elif mov.tipo_movimento == 'ajuste' %}
+                  <span class="badge bg-warning">Ajuste</span>
+                {% elif mov.tipo_movimento == 'devolucao' %}
+                  <span class="badge bg-info">Devolução</span>
+                {% endif %}
+              </td>
+              <td>{{ mov.quantidade }}</td>
+              <td>{{ mov.data_movimento|date:"d/m/Y H:i" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

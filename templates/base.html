@@ -1,0 +1,1183 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SISTEMA GESTOR{% endblock %}</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="preload" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Script Crítico: Prevenção de FOUC e Aplicação de Tema -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('mei-theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+            // Aplica também ao body via atributo quando disponível
+            window.addEventListener('DOMContentLoaded', () => document.body.setAttribute('data-bs-theme', savedTheme));
+        })();
+    </script>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            --sidebar-bg: #1e293b;
+            --sidebar-width: 260px;
+            --sidebar-width-lg: 232px;
+            --sidebar-width-md: 214px;
+            --topbar-height: 70px;
+            --bg-body: #f8fafc;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+            /* Variáveis semÃ¢nticas â€” usadas nos templates de formulário e componentes */
+            --color-text-primary: #1e293b;
+            --color-text-secondary: #64748b;
+            --color-surface: #ffffff;
+            --color-surface-raised: #f8fafc;
+            --color-border: #e2e8f0;
+
+            /* Aliases para compatibilidade com cliente_form.html e outros */
+            --bg-card-solid: #ffffff;
+            --border-color: #e2e8f0;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+        }
+
+        [data-bs-theme="dark"] {
+            --bg-body: #0a0a0b;
+            --sidebar-bg: #111113;
+
+            /* Texto e superfícies no dark mode */
+            --color-text-primary: #f1f5f9;
+            --color-text-secondary: #94a3b8;
+            --color-surface: #18181b;
+            --color-surface-raised: #1e1f23;
+            --color-border: #27272a;
+
+            /* Aliases */
+            --bg-card-solid: #18181b;
+            --border-color: #27272a;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.35), 0 2px 4px -2px rgba(0, 0, 0, 0.25);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--color-text-primary);
+            overflow-x: hidden;
+            min-width: 0;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background-color: var(--sidebar-bg);
+            color: #fff;
+            padding: 1.5rem;
+            z-index: 1000;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.1) transparent;
+            overscroll-behavior: contain;
+            box-shadow: 12px 0 40px -28px rgba(15, 23, 42, 0.65);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .sidebar-brand {
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 2px;
+            margin-bottom: 2.5rem;
+            width: 100%;
+        }
+
+        .brand-main {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.02em;
+            margin-top: 0.5rem;
+        }
+
+        .brand-sub {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #94a3b8;
+            letter-spacing: 0.02em;
+        }
+
+        .sidebar-logo {
+            height: 48px;
+            width: auto;
+            object-fit: contain;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-brand:hover .sidebar-logo {
+            transform: scale(1.1);
+        }
+
+        .sidebar-section {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            font-weight: 700;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            font-weight: 500;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-link.active {
+            color: #fff;
+            background: var(--primary-gradient);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .nav-link i {
+            font-size: 1.25rem;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            min-width: 0;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        /* TOPBAR */
+        .topbar {
+            height: var(--topbar-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            margin-bottom: 0;
+        }
+
+        /* CARDS */
+        .card {
+            border-radius: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .card-stats {
+            background: #fff;
+            border: none;
+            box-shadow: var(--card-shadow);
+        }
+
+        /* KPI cards com acabamento lateral colorido + fundo suave sincronizado com Accent */
+        .card-accent {
+            background-color: rgba(var(--card-accent-rgb), 0.04) !important;
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(10px) saturate(130%);
+            border: 1px solid rgba(var(--card-accent-rgb), 0.1) !important;
+            border-left: 4px solid rgba(var(--card-accent-rgb), 0.85) !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        .card-accent-primary { --card-accent-rgb: 35, 79, 147; }
+        .card-accent-success { --card-accent-rgb: 16, 185, 129; }
+        .card-accent-warning { --card-accent-rgb: 245, 158, 11; }
+        .card-accent-danger  { --card-accent-rgb: 239, 68, 68; }
+        .card-accent-info    { --card-accent-rgb: 14, 165, 233; }
+
+        /* Cores Personalizadas Dashboard */
+        .card-accent-palegreen { --card-accent-rgb: 152, 251, 152; }
+        .card-accent-indigo    { --card-accent-rgb: 75, 0, 130; }
+        .card-accent-skyblue   { --card-accent-rgb: 135, 206, 250; }
+        .card-accent-turquoise { --card-accent-rgb: 64, 224, 208; }
+        .card-accent-orangered { --card-accent-rgb: 255, 69, 0; }
+        
+        /* Almoxarifado Accents */
+        .card-accent-local     { --card-accent-rgb: 14, 165, 233; --card-accent-color: #0ea5e9; } /* Sky Blue */
+        .card-accent-custo     { --card-accent-rgb: 79, 70, 229; --card-accent-color: #4f46e5; } /* Indigo */
+
+        [data-bs-theme="dark"] .card-accent { 
+            background-color: rgba(var(--card-accent-rgb), 0.1) !important; 
+            border: 1px solid rgba(var(--card-accent-rgb), 0.3) !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .card-stats:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        /* BUTTONS */
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+        }
+
+        .sidebar-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.46);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+            z-index: 999;
+        }
+
+        .sidebar-backdrop.show {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        @media (max-width: 1399.98px) {
+            :root {
+                --sidebar-width: var(--sidebar-width-lg);
+            }
+
+            .sidebar {
+                padding: 1.25rem 1rem;
+            }
+
+            .main-content {
+                padding: 1.5rem;
+            }
+
+            .nav-link {
+                gap: 10px;
+                padding: 0.7rem 0.9rem;
+            }
+        }
+
+        @media (max-width: 1199.98px) {
+            :root {
+                --sidebar-width: var(--sidebar-width-md);
+            }
+
+            .sidebar-brand {
+                font-size: 1.3rem;
+            }
+
+            .main-content {
+                padding: 1.25rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* MOBILE RESPONSIVENESS */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: min(84vw, 320px);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 1rem;
+            }
+
+            .topbar {
+                height: auto;
+                align-items: flex-start;
+            }
+
+            .topbar>div:last-child {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+        }
+
+        /* TIPOGRAFIA EDITORIAL */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5 {
+            letter-spacing: -0.02em;
+        }
+
+        h6 {
+            letter-spacing: -0.01em;
+        }
+
+        .text-uppercase,
+        .sidebar-section {
+            letter-spacing: 0.06em;
+        }
+
+        /* BADGE SOFT â€” status de vendas e transações */
+        .badge-soft-success {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.12);
+            color: #059669;
+        }
+
+        .badge-soft-warning {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            background: rgba(245, 158, 11, 0.12);
+            color: #d97706;
+        }
+
+        .badge-soft-danger {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            background: rgba(239, 68, 68, 0.12);
+            color: #dc2626;
+        }
+
+        /* DARK MODE â€” ajustes Bootstrap que precisam de override */
+        [data-bs-theme="dark"] .card-stats {
+            background: var(--color-surface);
+        }
+
+        [data-bs-theme="dark"] .badge-soft-success {
+            background: rgba(16, 185, 129, 0.18);
+            color: #34d399;
+        }
+
+        [data-bs-theme="dark"] .badge-soft-warning {
+            background: rgba(245, 158, 11, 0.18);
+            color: #fbbf24;
+        }
+
+        [data-bs-theme="dark"] .badge-soft-danger {
+            background: rgba(239, 68, 68, 0.18);
+            color: #f87171;
+        }
+
+        [data-bs-theme="dark"] .premium-form-card {
+            background: var(--bg-card-solid) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        [data-bs-theme="dark"] .bg-white {
+            background-color: var(--color-surface) !important;
+        }
+
+        /* Global Premium Utilities */
+        .premium-form-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 1.25rem !important;
+            box-shadow: var(--shadow-sm);
+            padding: 2.5rem;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .premium-form-card:focus-within {
+            box-shadow: var(--shadow-md);
+            border-color: var(--color-primary);
+        }
+
+        .premium-form-card input:not([type="checkbox"]):not([type="radio"]),
+        .premium-form-card select,
+        .premium-form-card textarea {
+            width: 100%;
+            padding: 0.875rem 1.25rem;
+            border: 1px solid var(--color-border) !important;
+            border-radius: 0.75rem !important;
+            font-size: 0.95rem;
+            background: var(--color-background);
+            color: var(--color-text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .premium-form-card input:focus,
+        .premium-form-card select:focus,
+        .premium-form-card textarea:focus {
+            outline: none;
+            border-color: var(--color-primary) !important;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+            background: var(--color-surface);
+        }
+
+        .premium-form-card label,
+        .form-label-premium {
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* GLOBAL PREMIUM HERO STYLES */
+        .premium-hero {
+            border-radius: 1.5rem;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: 
+                radial-gradient(circle at top right, rgba(14, 165, 233, 0.15), transparent 35%),
+                radial-gradient(circle at left bottom, rgba(79, 70, 229, 0.12), transparent 38%),
+                linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
+        }
+
+        [data-bs-theme="dark"] .premium-hero {
+            background: 
+                radial-gradient(circle at top right, rgba(14, 165, 233, 0.18), transparent 35%),
+                radial-gradient(circle at left bottom, rgba(79, 70, 229, 0.16), transparent 38%),
+                linear-gradient(145deg, rgba(24, 24, 27, 0.96), rgba(30, 31, 35, 0.94));
+            border-color: rgba(63, 63, 70, 0.8);
+        }
+
+        .hero-glow {
+            position: absolute;
+            border-radius: 999px;
+            filter: blur(50px);
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .hero-glow--1 { width: 250px; height: 250px; top: -100px; right: -50px; background: rgba(14, 165, 233, 0.25); }
+        .hero-glow--2 { width: 200px; height: 200px; bottom: -80px; left: -40px; background: rgba(79, 70, 229, 0.2); }
+
+        .hero-content { position: relative; z-index: 1; }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            padding: 0.4rem 0.8rem;
+            border-radius: 2rem;
+            background: rgba(79, 70, 229, 0.08);
+            color: #4338ca;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+        }
+
+        [data-bs-theme="dark"] .hero-eyebrow {
+            background: rgba(129, 140, 248, 0.15);
+            color: #c7d2fe;
+        }
+
+        .hero-title {
+            font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--color-text-primary), #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+            color: var(--color-text-secondary);
+            max-width: 65ch;
+        }
+
+        .section-title {
+            color: var(--color-primary);
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1.5rem;
+            display: block;
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 0.5rem;
+        }
+
+        .underline-heading {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 8px;
+        }
+
+        .underline-heading::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--color-primary);
+            border-radius: 2px;
+        }
+
+        /* Input Groups Premium (Fiscal Mode) */
+        .input-group-premium {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            background: var(--color-background);
+            border: 1px solid var(--color-border);
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+
+        .input-group-premium .prefix {
+            padding: 0.75rem 0.75rem 0.75rem 1rem;
+            background: rgba(0, 0, 0, 0.02);
+            color: var(--color-text-secondary);
+            font-weight: bold;
+            font-size: 0.85rem;
+            border-right: 1px solid var(--color-border);
+        }
+
+        .input-group-premium input {
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+        }
+
+        [data-bs-theme="dark"] .input-group-premium .prefix {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Zebra Striping Premium */
+        .table-striped > tbody > tr:nth-of-type(odd) > * {
+            background-color: #f8fafc !important;
+            box-shadow: inset 0 0 0 9999px var(--bs-table-accent-bg);
+        }
+        [data-bs-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * {
+            background-color: rgba(255, 255, 255, 0.02) !important;
+        }
+        .table-hover tbody tr:hover > * {
+            background-color: rgba(79, 70, 229, 0.05) !important;
+        }
+
+        /* ── PRINT STYLES ── */
+        @media print {
+            .sidebar, .topbar, .btn, .no-print, .dropdown, #sidebar-toggle, .stat-icon, .badge-pill, .btn-glass {
+                display: none !important;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+
+            body {
+                background-color: #fff !important;
+                font-size: 10pt !important;
+            }
+
+            .premium-form-card {
+                padding: 1rem !important;
+                border: 1px solid #eee !important;
+                box-shadow: none !important;
+                margin-bottom: 1rem !important;
+            }
+
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #eee !important;
+            }
+
+            h1, .page-title {
+                font-size: 16pt !important;
+                margin-bottom: 10px !important;
+            }
+
+            h2 { font-size: 14pt !important; }
+            h3 { font-size: 12pt !important; }
+
+            table {
+                font-size: 8pt !important;
+                width: 100% !important;
+            }
+
+            .table td, .table th {
+                padding: 4px !important;
+            }
+
+            /* Forçar quebra de página se necessário ou evitar */
+            .premium-form-card, .card {
+                page-break-inside: avoid;
+            }
+
+            /* Ajuste para caber em uma página */
+            @page {
+                size: A4;
+                margin: 1cm;
+            }
+        }
+    </style>
+</head>
+
+<body data-bs-theme="light">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+        <a href="/" class="sidebar-brand">
+            {% if empresa_logo_url %}
+                <img src="{{ empresa_logo_url }}" alt="Logo Cliente" class="sidebar-logo">
+            {% endif %}
+            <span class="brand-main">SISTEMA GESTOR</span>
+            <span class="brand-sub">{% if empresa_nome and empresa_nome != 'SISTEMA GESTOR' %}{{ empresa_nome }}{% else %}JR Solutions Tecnologia{% endif %}</span>
+        </a>
+
+        <span class="sidebar-section">Menu Principal</span>
+        <ul class="nav flex-column mb-3">
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'core:dashboard' %}">
+                    <i class="bi bi-grid-1x2-fill"></i> Visão Geral
+                </a>
+            </li>
+            {% if empresa_obj.plano != 'basico' %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'relatorios/bi' in request.path %}active{% endif %}" href="{% url 'relatorios:dashboard_bi' %}">
+                    <i class="bi bi-graph-up-arrow"></i> BI de Resultados
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+
+        <span class="sidebar-section">Gestão Comercial</span>
+        <ul class="nav flex-column mb-3">
+            <li class="nav-item">
+                <a class="nav-link {% if 'clientes' in request.path %}active{% endif %}"
+                    href="{% url 'clientes:cliente_list' %}">
+                    <i class="bi bi-people"></i> Gestão de Clientes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'vendas' in request.path %}active{% endif %}"
+                    href="{% url 'vendas:venda_list' %}">
+                    <i class="bi bi-bag-check"></i> Gestão de Vendas
+                </a>
+            </li>
+        </ul>
+
+        <span class="sidebar-section">Gestão de Estoque</span>
+        <ul class="nav flex-column mb-3">
+            <li class="nav-item">
+                <a class="nav-link {% if 'estoque' in request.path %}active{% endif %}"
+                    href="{% url 'estoque:produto_list' %}">
+                    <i class="bi bi-box-seam"></i> Gestão de Produtos
+                </a>
+            </li>
+            {% if empresa_obj.plano != 'basico' %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'almoxarifado' in request.path %}active{% endif %}"
+                    href="{% url 'almoxarifado:dashboard' %}">
+                    <i class="bi bi-box-seam-fill"></i> Gestão de Almoxarifado
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+
+        {% if empresa_obj.plano != 'basico' %}
+        <span class="sidebar-section">Gestão Operacional</span>
+        <ul class="nav flex-column mb-3">
+            <li class="nav-item">
+                <a class="nav-link {% if 'producao' in request.path %}active{% endif %}"
+                    href="{% url 'producao:dashboard' %}">
+                    <i class="bi bi-gear-wide-connected"></i> Gestão de Produção (PCP)
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'servicos' in request.path %}active{% endif %}"
+                    href="{% url 'servicos:dashboard' %}">
+                    <i class="bi bi-wrench-adjustable"></i> Ordens de Serviço (O.S.)
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'compras' in request.path %}active{% endif %}"
+                    href="{% url 'compras:dashboard' %}">
+                    <i class="bi bi-cart-check"></i> Gestão de Compras
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+
+        <span class="sidebar-section">Gestão Financeira</span>
+        <ul class="nav flex-column mb-3">
+            <li class="nav-item">
+                <a class="nav-link {% if 'financeiro' in request.path and 'reembolso' not in request.path and 'receitas' not in request.path %}active{% endif %}"
+                    href="{% url 'financeiro:transacao_lista' %}">
+                    <i class="bi bi-wallet2"></i> Gestão de Caixa
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'receitas' in request.path %}active{% endif %}"
+                    href="{% url 'financeiro:receita_lista' %}">
+                    <i class="bi bi-graph-up-arrow"></i> Gestão de Receitas
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'reembolso' in request.path %}active{% endif %}"
+                    href="{% url 'financeiro:reembolso_lista' %}">
+                    <i class="bi bi-clipboard2-check"></i> Gestão de Reembolsos
+                </a>
+            </li>
+        </ul>
+
+        {% if empresa_obj.plano != 'basico' %}
+        <span class="sidebar-section">Gestão Fiscal</span>
+        <ul class="nav flex-column mb-3">
+            <li class="nav-item">
+                <a class="nav-link {% if 'fiscal' in request.path %}active{% endif %}"
+                    href="{% url 'fiscal:nota_fiscal_list' %}">
+                    <i class="bi bi-receipt"></i> Gestão de Notas
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+
+        <span class="sidebar-section">Gestão de Configurações</span>
+        <ul class="nav flex-column mb-3">
+            <li class="nav-item">
+                <a class="nav-link {% if 'plano' in request.path %}active{% endif %}" href="{% url 'core:plano_detail' %}">
+                    <i class="bi bi-credit-card-2-front"></i> Meu Plano / Assinatura
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/admin/">
+                    <i class="bi bi-gear"></i> Gestão de Sistema
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div class="main-content">
+
+        <!-- TOPBAR -->
+        <div class="topbar">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-link link-dark d-lg-none me-2" id="sidebar-toggle">
+                    <i class="bi bi-list fs-2"></i>
+                </button>
+                <h1 class="page-title">{% block page_title %}Visão Geral{% endblock %}</h1>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+
+                <!-- Notificações de Reembolso -->
+                {% if reembolsos_pendentes_count > 0 %}
+                <div class="dropdown me-2">
+                    <a class="btn btn-light btn-sm d-flex align-items-center gap-2 position-relative border" href="#"
+                        role="button" id="notifDropdown" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell-fill text-danger animate-pulse"></i>
+                        <span
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">
+                            {{ reembolsos_pendentes_count }}
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-3" aria-labelledby="notifDropdown"
+                        style="min-width: 280px; border-radius: 1rem;">
+                        <li class="dropdown-header px-0 text-dark fw-bold fs-6">Alertas Financeiros</li>
+                        <li>
+                            <p class="small text-muted mb-3">Existem {{ reembolsos_pendentes_count }} reembolsos
+                                aguardando sua aprovação ou pagamento.</p>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider mb-3">
+                        </li>
+                        <li><a class="btn btn-primary btn-sm w-100 py-2"
+                                href="{% url 'financeiro:reembolso_lista' %}">Gerenciar Reembolsos</a></li>
+                    </ul>
+                </div>
+                {% endif %}
+
+                <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2" id="theme-toggle-btn"
+                    title="Alternar Tema">
+                    <i class="bi bi-moon-stars"></i> <span class="d-none d-md-inline" id="theme-text">Escuro</span>
+                </button>
+                <div class="dropdown">
+                    <a class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-2" href="#"
+                        role="button" id="userDropdown" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i>
+                        <span class="fw-semibold">{% if user.is_authenticated %}{{ user.username }}{% else %}Convidado{% endif %}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg" aria-labelledby="userDropdown">
+                        {% if empresa_obj.plano != 'basico' %}
+                        <li><a class="dropdown-item" href="{% url 'core:setup_whitelabel' %}"><i class="bi bi-palette me-2"></i> Personalizar Marca</a></li>
+                        {% endif %}
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> Ajustes</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item text-danger" href="/admin/logout/"><i
+                                    class="bi bi-box-arrow-right me-2"></i> Sair do Sistema</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="messages-container mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm border-0"
+                role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Sidebar Toggle Mobile
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+
+        function toggleSidebar(show) {
+            if (!sidebar) return;
+            const shouldShow = typeof show === 'boolean' ? show : !sidebar.classList.contains('show');
+            sidebar.classList.toggle('show', shouldShow);
+            if (sidebarBackdrop) {
+                sidebarBackdrop.classList.toggle('show', shouldShow);
+            }
+            if (window.innerWidth <= 991.98) {
+                document.body.style.overflow = shouldShow ? 'hidden' : '';
+            }
+        }
+
+        function resetSidebarForDesktop() {
+            if (window.innerWidth > 991.98) {
+                if (sidebar) sidebar.classList.remove('show');
+                if (sidebarBackdrop) sidebarBackdrop.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        }
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                toggleSidebar();
+            });
+        }
+
+        if (sidebarBackdrop) {
+            sidebarBackdrop.addEventListener('click', () => toggleSidebar(false));
+        }
+
+        if (sidebar) {
+            sidebar.querySelectorAll('a').forEach((link) => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 991.98) {
+                        toggleSidebar(false);
+                    }
+                });
+            });
+        }
+
+        window.addEventListener('resize', resetSidebarForDesktop);
+        resetSidebarForDesktop();
+
+        // Theme Toggle com persistência via localStorage
+        const themeBtn = document.getElementById('theme-toggle-btn');
+        const themeText = document.getElementById('theme-text');
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            document.body.setAttribute('data-bs-theme', theme);
+            if (themeText) themeText.innerText = theme === 'light' ? 'Escuro' : 'Claro';
+            if (themeBtn) {
+                themeBtn.querySelector('i').className = theme === 'light' ? 'bi bi-moon-stars' : 'bi bi-sun';
+            }
+            localStorage.setItem('mei-theme', theme);
+        }
+
+        // Inicializa o estado visual do botão com o tema salvo
+        applyTheme(localStorage.getItem('mei-theme') || 'light');
+
+        if (themeBtn) {
+            themeBtn.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
+                applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+            });
+        }
+    </script>
+
+    {% block extra_js %}{% endblock %}
+
+    <!-- Chatbot Widget Integration -->
+    {% if empresa_obj.plano != 'basico' %}
+    <!-- CSS do Chat -->
+    <style>
+        #chatbot-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            font-family: 'Inter', sans-serif;
+        }
+        #chatbot-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+        #chatbot-button:hover {
+            transform: scale(1.1);
+        }
+        #chatbot-window {
+            display: none;
+            width: 350px;
+            height: 500px;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #chatbot-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #chatbot-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: var(--bg-body);
+        }
+        .chat-msg {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .chat-msg.user {
+            background-color: #4f46e5;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+        .chat-msg.bot {
+            background-color: var(--color-surface);
+            color: var(--color-text-primary);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+            border: 1px solid var(--color-border);
+        }
+        #chatbot-input-area {
+            display: flex;
+            padding: 12px;
+            background: var(--color-surface);
+            border-top: 1px solid var(--color-border);
+        }
+        #chatbot-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: var(--bg-body);
+            color: var(--color-text-primary);
+        }
+        #chatbot-send {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 0 15px;
+            margin-left: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+
+    <!-- HTML do Chat -->
+    <div id="chatbot-widget">
+        <div id="chatbot-window">
+            <div id="chatbot-header">
+                <span class="fw-bold">Assistente Gestor 🤖</span>
+                <button class="btn-close btn-close-white" onclick="toggleChat()" aria-label="Fechar"></button>
+            </div>
+            <div id="chatbot-messages">
+                <div class="chat-msg bot">Olá! Eu sou o assistente do Sistema Gestor. Como posso ajudar você hoje?</div>
+            </div>
+            <div id="chatbot-input-area">
+                <input type="text" id="chatbot-input" placeholder="Digite sua pergunta...">
+                <button id="chatbot-send" onclick="sendMessage()">Enviar</button>
+            </div>
+        </div>
+        <button id="chatbot-button" onclick="toggleChat()">
+            <i class="bi bi-chat-dots-fill"></i>
+        </button>
+    </div>
+
+    <!-- Script do Chat -->
+    <script>
+        const sessionId = 'session_' + Math.floor(Math.random() * 1000000);
+        // Usamos a porta 8001 para o Chatbot para não conflitar com o Django (8000)
+        const API_URL = 'http://localhost:8001';
+
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatbot-window');
+            chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
+            if(chatWindow.style.display === 'flex') {
+                document.getElementById('chatbot-input').focus();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatbot-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addMessage(message, 'user');
+            input.value = '';
+
+            // Mostrar um indicador de "digitando" opcional aqui
+            
+            try {
+                const response = await fetch(`${API_URL}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId, message: message })
+                });
+
+                if (!response.ok) throw new Error("Erro na comunicação com o servidor.");
+
+                const data = await response.json();
+                addMessage(data.answer, 'bot');
+            } catch (error) {
+                console.error(error);
+                addMessage("Desculpe, ocorreu um erro ao conectar com o assistente. Verifique se o servidor do chatbot está rodando na porta 8001.", 'bot');
+            }
+        }
+
+        function addMessage(text, sender) {
+            const messagesDiv = document.getElementById('chatbot-messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-msg ${sender}`;
+            msgDiv.textContent = text;
+            messagesDiv.appendChild(msgDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        document.getElementById('chatbot-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+    {% endif %}
+
+</body>
+
+</html>
+

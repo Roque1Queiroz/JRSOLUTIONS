@@ -1,0 +1,66 @@
+<div class="premium-hero p-4 p-md-5 mb-4 position-relative overflow-hidden">
+    <!-- Glow Effects -->
+    <div class="hero-glow hero-glow--1" style="background: rgba({{ glow_color_1|default:'14, 165, 233' }}, 0.18);"></div>
+    <div class="hero-glow hero-glow--2" style="background: rgba({{ glow_color_2|default:'79, 70, 229' }}, 0.16);"></div>
+
+    <div class="hero-content">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+            <div>
+                {% if eyebrow %}
+                <span class="hero-eyebrow">{{ eyebrow }}</span>
+                {% endif %}
+                <h1 class="hero-title mb-2">{{ title }}</h1>
+                <p class="hero-subtitle mb-0">{{ subtitle }}</p>
+            </div>
+            
+            <div class="d-flex flex-wrap gap-2">
+                {% if primary_button_url %}
+                <a href="{{ primary_button_url }}" class="btn btn-primary d-flex align-items-center gap-2 px-4 shadow-sm">
+                    <i class="bi {{ primary_button_icon|default:'bi-plus-lg' }}"></i>
+                    <span>{{ primary_button_text }}</span>
+                </a>
+                {% endif %}
+                
+                {% if secondary_button_url %}
+                <a href="{{ secondary_button_url }}" class="btn btn-light border d-flex align-items-center gap-2 px-4">
+                    <i class="bi {{ secondary_button_icon|default:'bi-arrow-left' }}"></i>
+                    <span>{{ secondary_button_text|default:'Voltar' }}</span>
+                </a>
+                {% endif %}
+
+                {% if tertiary_button_url %}
+                <a href="{{ tertiary_button_url }}" class="btn btn-light border d-flex align-items-center gap-2 px-4">
+                    <i class="bi {{ tertiary_button_icon|default:'bi-printer' }}"></i>
+                    <span>{{ tertiary_button_text|default:'Imprimir' }}</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if tabs %}
+        <div class="d-flex flex-wrap gap-2 mt-4 pt-2">
+            {% for tab in tabs %}
+            <a href="{{ tab.url }}" class="btn {% if tab.active %}btn-primary{% else %}btn-light border{% endif %} rounded-pill px-4 py-2 small fw-bold shadow-sm">
+                <i class="bi {{ tab.icon }} me-2"></i> {{ tab.label }}
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    /* Estilo Adicional para botões em Hero */
+    .premium-hero .btn {
+        border-radius: 0.85rem;
+        font-weight: 700;
+        transition: all 0.3s ease;
+    }
+    .premium-hero .btn-primary {
+        box-shadow: 0 10px 20px -10px rgba(79, 70, 229, 0.5);
+    }
+    .premium-hero .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 25px -10px rgba(79, 70, 229, 0.6);
+    }
+</style>

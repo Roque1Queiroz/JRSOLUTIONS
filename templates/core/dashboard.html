@@ -1,0 +1,286 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema Gestor{% endblock %}</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        /* â”€â”€â”€ Layout Geral â”€â”€â”€ */
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* â”€â”€â”€ Sidebar â”€â”€â”€ */
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            padding-top: 10px;
+            overflow-y: auto;
+        }
+
+        .sidebar-brand {
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: bold;
+            padding: 15px 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 10px;
+        }
+
+        .sidebar-brand:hover {
+            color: #ffffff;
+        }
+
+        .sidebar-brand i {
+            font-size: 1.4rem;
+            color: #4fc3f7;
+        }
+
+        .sidebar-section {
+            color: #6c757d;
+            font-size: 0.70rem;
+            text-transform: uppercase;
+            padding: 12px 20px 4px;
+            letter-spacing: 1.5px;
+        }
+
+        .sidebar .nav-link {
+            color: #adb5bd;
+            padding: 9px 20px;
+            border-radius: 8px;
+            margin: 2px 8px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: rgba(255,255,255,0.08);
+            color: #ffffff;
+        }
+
+        .sidebar .nav-link.active {
+            background-color: #0f3460;
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .sidebar .nav-link i {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* â”€â”€â”€ Conteúdo Principal â”€â”€â”€ */
+        .main-content {
+            margin-left: 250px;
+            padding: 25px 30px;
+            min-height: 100vh;
+        }
+
+        /* â”€â”€â”€ Cards â”€â”€â”€ */
+        .card {
+            border: none;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            border-radius: 12px;
+        }
+
+        .card-header {
+            border-radius: 12px 12px 0 0 !important;
+            padding: 14px 20px;
+        }
+
+        /* â”€â”€â”€ Botões â”€â”€â”€ */
+        .btn-primary {
+            background-color: #0f3460;
+            border-color: #0f3460;
+        }
+
+        .btn-primary:hover {
+            background-color: #1a4a8a;
+            border-color: #1a4a8a;
+        }
+
+        /* â”€â”€â”€ Tabelas â”€â”€â”€ */
+        .table thead th {
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        /* â”€â”€â”€ Alerts â”€â”€â”€ */
+        .alert {
+            border-radius: 10px;
+        }
+
+        /* â”€â”€â”€ Topbar â”€â”€â”€ */
+        .topbar {
+            background: #ffffff;
+            padding: 12px 25px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topbar .page-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin: 0;
+        }
+
+        /* â”€â”€â”€ Forms â”€â”€â”€ */
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #0f3460;
+            box-shadow: 0 0 0 0.2rem rgba(15, 52, 96, 0.15);
+        }
+
+        /* â”€â”€â”€ Badge â”€â”€â”€ */
+        .badge {
+            font-weight: 500;
+        }
+
+        /* â”€â”€â”€ Responsive â”€â”€â”€ */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                min-height: auto;
+                position: relative;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- â”€â”€â”€ SIDEBAR â”€â”€â”€ -->
+<nav class="sidebar">
+
+    <!-- Logo / Brand -->
+    <a class="sidebar-brand" href="/">
+        <i class="bi bi-building"></i>
+        <span>Sistema Gestor</span>
+    </a>
+
+    <!-- Principal -->
+    <span class="sidebar-section">Principal</span>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+               href="/">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'empresa_detail' %}active{% endif %}"
+               href="/">
+                <i class="bi bi-building"></i> Empresa
+            </a>
+        </li>
+    </ul>
+
+    <!-- Comercial -->
+    <span class="sidebar-section">Comercial</span>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.app_name == 'clientes' %}active{% endif %}"
+               href="{% url 'clientes:cliente_list' %}">
+                <i class="bi bi-people"></i> Clientes
+            </a>
+        </li>
+    </ul>
+
+    <!-- Estoque -->
+    <span class="sidebar-section">Estoque</span>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link {% if 'produto' in request.resolver_match.url_name %}active{% endif %}"
+               href="{% url 'estoque:produto_list' %}">
+                <i class="bi bi-box-seam"></i> Produtos
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'categoria' in request.resolver_match.url_name and request.resolver_match.app_name == 'estoque' %}active{% endif %}"
+               href="{% url 'estoque:categoria_list' %}">
+                <i class="bi bi-tags"></i> Categorias
+            </a>
+        </li>
+    </ul>
+
+    <!-- Financeiro -->
+    <span class="sidebar-section">Financeiro</span>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.app_name == 'financeiro' %}active{% endif %}"
+               href="{% url 'financeiro:categoria_list' %}">
+                <i class="bi bi-cash-stack"></i> Categorias
+            </a>
+        </li>
+    </ul>
+
+    <!-- Fiscal -->
+    <span class="sidebar-section">Fiscal</span>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.app_name == 'fiscal' %}active{% endif %}"
+               href="{% url 'fiscal:configuracao_detail' %}">
+                <i class="bi bi-file-earmark-text"></i> Configurações
+            </a>
+        </li>
+    </ul>
+
+</nav>
+
+<!-- â”€â”€â”€ CONTEÚDO PRINCIPAL â”€â”€â”€ -->
+<div class="main-content">
+
+    <!-- Mensagens do Django -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Conteúdo da Página -->
+    {% block content %}{% endblock %}
+
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row animate-init">
+    <div class="col-md-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h4 class="fw-bold mb-1">Abrir Ordem de Produção</h4>
+                <p class="text-muted small mb-0">Selecione a engenharia e a quantidade desejada para iniciar a fábrica.</p>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger border-0 shadow-sm mb-4" style="border-radius: 0.75rem;">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-circle-fill fs-4 me-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Erro na Ordem de Produção</h6>
+                                <ul class="mb-0 small ps-3">
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-muted small text-uppercase">Selecionar Ficha Técnica</label>
+                        {{ form.ficha_tecnica }}
+                        {% if form.ficha_tecnica.errors %}
+                            <div class="invalid-feedback d-block">{{ form.ficha_tecnica.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">Escolha a receita do produto que será fabricado.</div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted small text-uppercase">Quantidade a Produzir</label>
+                            {{ form.quantidade_planejada }}
+                            {% if form.quantidade_planejada.errors %}
+                                <div class="invalid-feedback d-block">{{ form.quantidade_planejada.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted small text-uppercase">Custo Est. Mão de Obra (R$)</label>
+                            {{ form.custo_mao_obra_estimado }}
+                            {% if form.custo_mao_obra_estimado.errors %}
+                                <div class="invalid-feedback d-block">{{ form.custo_mao_obra_estimado.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning border-0 shadow-sm p-4" style="border-radius: 1rem;">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-shield-lock-fill fs-2 me-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Trava de Segurança Ativa</h6>
+                                <p class="small mb-0">O sistema só permitirá finalizar esta ordem se houver saldo suficiente de todos os insumos no **Almoxarifado**.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end mt-5">
+                        <a href="{% url 'producao:ordem_producao_list' %}" class="btn btn-light border px-4">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold text-uppercase">GERAR ORDEM DE PRODUÇÃO</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control, .form-select { border-radius: 0.75rem; padding: 0.75rem 1rem; border-color: #e2e8f0; }
+</style>
+{% endblock %}

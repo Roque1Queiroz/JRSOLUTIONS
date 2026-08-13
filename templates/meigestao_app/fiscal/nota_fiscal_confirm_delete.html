@@ -1,0 +1,34 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Deletar Nota Fiscal - SISTEMA GESTOR{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>?? Deletar Nota Fiscal</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="alert alert-danger">
+            <h5>Tem certeza que deseja deletar esta nota fiscal?</h5>
+            <p class="mb-0">
+                <strong>Número:</strong> {{ object.numero }}/{{ object.serie }}<br>
+                <strong>Cliente:</strong> {{ object.cliente.nome }}<br>
+                <strong>Valor:</strong> R$ {{ object.valor_total|floatformat:2 }}
+            </p>
+        </div>
+
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Confirmar Deleção
+            </button>
+            <a href="{% url 'fiscal:nota_fiscal_list' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Cancelar
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

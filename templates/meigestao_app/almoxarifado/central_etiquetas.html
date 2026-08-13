@@ -1,0 +1,147 @@
+{% extends "meigestao_app/almoxarifado/base_almoxarifado.html" %}
+
+{% block content %}
+<div class="row mb-4 animate-init">
+    <div class="col-md-12">
+        <div class="card border-0 shadow-sm p-4 bg-primary text-white" style="border-radius: 1.25rem;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="fw-bold mb-1">Central de Etiquetas e QR Codes</h3>
+                    <p class="mb-0 opacity-75">Gere identificações físicas para prateleiras e produtos.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-glass" onclick="window.print()">
+                        <i class="bi bi-printer me-2"></i> Imprimir Tudo
+                    </button>
+                    <a href="{% url 'almoxarifado:endereco_create' %}" class="btn btn-glass">
+                        <i class="bi bi-geo-alt me-2"></i> Novo Endereço
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Etiquetas de Endereçamento (QR) -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between">
+                <h5 class="fw-bold">📍 Etiquetas de Prateleira (QR)</h5>
+                <span class="badge bg-light text-muted border">{{ enderecos|length }} endereços</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3" id="qr-container">
+                    {% for endereco in enderecos %}
+                    <div class="col-md-6 label-print-surface">
+                        <div class="label-card p-3 border rounded-3 text-center bg-white shadow-sm h-100">
+                            <div class="small fw-bold text-uppercase text-muted border-bottom pb-2 mb-3">
+                                {{ endereco.local.nome }}
+                            </div>
+                            <!-- QR Code rendered via JS -->
+                            <div id="qrcode-{{ endereco.id }}" class="qrcode-wrapper mb-3 d-flex justify-content-center"></div>
+                            <div class="fw-extrabold h6 mb-1">{{ endereco.codigo_endereco }}</div>
+                            <div class="small text-muted">{{ endereco }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-4">
+                        <p class="text-muted small">Nenhum endereço cadastrado.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Etiquetas de Produtos (Barcode/SKU) -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between">
+                <h5 class="fw-bold">📦 Etiquetas de Produto (SKU)</h5>
+                <span class="badge bg-light text-muted border">{{ produtos|length }} produtos</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3" id="barcode-container">
+                    {% for item in produtos %}
+                    <div class="col-md-12 label-print-surface">
+                        <div class="label-card p-3 border rounded-3 bg-white shadow-sm d-flex align-items-center gap-3">
+                            <div class="flex-grow-1">
+                                <div class="fw-extrabold text-primary mb-1">{{ item.produto.nome }}</div>
+                                <div class="small fw-bold bg-light p-1 rounded d-inline-block mb-2">
+                                    <i class="bi bi-geo-alt me-1"></i>{{ item.endereco|default:"Localização não definida" }}
+                                </div>
+                                <div class="barcode-text font-monospace fw-bold">{{ item.produto.sku }}</div>
+                            </div>
+                            <!-- Simple Barcode Simulation or actual library -->
+                            <div class="barcode-visual p-2 bg-light rounded text-center" style="width: 140px;">
+                                <svg id="barcode-{{ item.produto.id }}"></svg>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-4">
+                        <p class="text-muted small">Nenhum produto com saldo no almoxarifado.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .label-card {
+        transition: transform 0.2s;
+        page-break-inside: avoid;
+    }
+    .qrcode-wrapper img { margin: 0 auto; }
+    .label-print-surface:hover .label-card {
+        transform: translateY(-5px);
+        border-color: var(--color-primary) !important;
+    }
+    .barcode-visual svg {
+        max-width: 100%;
+        height: 60px;
+    }
+    
+    @media print {
+        header, .sidebar, .btn-glass, .navbar, .breadcrumb, h3, .card-header .badge { display: none !important; }
+        .main-content { margin: 0 !important; width: 100% !important; padding: 0 !important; }
+        .row { display: flex !important; flex-wrap: wrap !important; }
+        .col-lg-6 { width: 48% !important; margin: 1% !important; }
+        .label-card { border: 1px solid #ddd !important; box-shadow: none !important; }
+    }
+</style>
+
+<!-- Bibliotecas para Gerar QR e Barcode -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Renderizar QR Codes para Prateleiras
+        {% for endereco in enderecos %}
+        new QRCode(document.getElementById("qrcode-{{ endereco.id }}"), {
+            text: "{{ request.scheme }}://{{ request.get_host }}/almoxarifado/p/{{ endereco.codigo_endereco }}/",
+            width: 120,
+            height: 120,
+            colorDark : "#2b3035",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+        {% endfor %}
+
+        // Renderizar Barcodes para Produtos
+        {% for item in produtos %}
+        JsBarcode("#barcode-{{ item.produto.id }}", "{{ item.produto.sku }}", {
+            format: "CODE128",
+            width: 2,
+            height: 50,
+            displayValue: false,
+            margin: 0
+        });
+        {% endfor %}
+    });
+</script>
+{% endblock %}

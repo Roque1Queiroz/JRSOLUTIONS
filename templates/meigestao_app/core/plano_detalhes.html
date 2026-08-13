@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Meu Plano e Assinatura - SISTEMA GESTOR{% endblock %}
+{% block page_title %}Plano & Assinatura{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Bloco de Status Atual (Premium Hero Card) -->
+    <div class="position-relative overflow-hidden premium-hero p-5 mb-5 shadow-lg border border-opacity-10">
+        <div class="hero-glow hero-glow--1"></div>
+        <div class="hero-glow hero-glow--2"></div>
+        <div class="hero-content">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <span class="hero-eyebrow">Status da Assinatura</span>
+                    <h2 class="hero-title">Sua empresa está no 
+                        <span class="text-primary fw-bold text-decoration-underline" style="text-underline-offset: 8px;">
+                            {{ empresa.get_plano_display }}
+                        </span>
+                    </h2>
+                    <p class="hero-subtitle mt-3">
+                        Aproveite as ferramentas contratadas para alavancar a produtividade do seu negócio. 
+                        Abaixo você pode acompanhar os limites de utilização e explorar outros planos de lançamento.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                    <div class="badge-soft-success py-3 px-4 fs-6 shadow-sm border border-success border-opacity-10 d-inline-flex align-items-center gap-2">
+                        <i class="bi bi-shield-check-fill fs-5"></i>
+                        <span>Assinatura Ativa (Em nuvem)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divisor sutil -->
+            <hr class="my-4" style="opacity: 0.15;">
+
+            <!-- Estatísticas de Utilização -->
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card bg-white border border-opacity-10 shadow-sm p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-uppercase font-weight-bold text-secondary" style="font-size: 0.75rem; letter-spacing: 0.05em;">Uso de Usuários</span>
+                            <span class="badge bg-primary rounded-pill">{{ total_usuarios }} / {{ limite_usuarios }}</span>
+                        </div>
+                        <div class="progress" style="height: 10px; border-radius: 5px; background: rgba(0,0,0,0.05);">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-gradient" 
+                                 role="progressbar" 
+                                 style="width: {{ porcentagem_usuarios }}%; background: var(--primary-gradient); border-radius: 5px;" 
+                                 aria-valuenow="{{ total_usuarios }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="{{ limite_usuarios }}">
+                            </div>
+                        </div>
+                        <p class="small text-muted mt-2 mb-0">
+                            {{ total_usuarios }} de {{ limite_usuarios }} usuários cadastrados ({{ porcentagem_usuarios }}% utilizado).
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card bg-white border border-opacity-10 shadow-sm p-4 h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <span class="text-uppercase font-weight-bold text-secondary" style="font-size: 0.75rem; letter-spacing: 0.05em; display:block; margin-bottom: 8px;">Suporte Contratado</span>
+                            <h5 class="fw-bold mb-0">
+                                {% if empresa.plano == 'basico' %}
+                                    <i class="bi bi-envelope-at me-2 text-primary"></i>Suporte via E-mail
+                                {% else %}
+                                    <i class="bi bi-chat-left-dots-fill me-2 text-success"></i>E-mail & Chat em Tempo Real
+                                {% endif %}
+                            </h5>
+                        </div>
+                        <p class="small text-muted mt-2 mb-0">Tempo médio de resposta de até 24h úteis.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card bg-white border border-opacity-10 shadow-sm p-4 h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <span class="text-uppercase font-weight-bold text-secondary" style="font-size: 0.75rem; letter-spacing: 0.05em; display:block; margin-bottom: 8px;">Atualizações do Sistema</span>
+                            <h5 class="fw-bold mb-0">
+                                {% if empresa.plano == 'enterprise' %}
+                                    <i class="bi bi-cloud-arrow-down-fill me-2 text-warning"></i>Sob Demanda
+                                {% else %}
+                                    <i class="bi bi-arrow-repeat me-2 text-info"></i>Automáticas
+                                {% endif %}
+                            </h5>
+                        </div>
+                        <p class="small text-muted mt-2 mb-0">Mantenha seu software sempre seguro e atualizado.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparação de Planos (Preços de Lançamento) -->
+    <h3 class="fw-bold text-center mb-2">Tabela de Preços e Recursos</h3>
+    <p class="text-muted text-center mb-5">Conheça nossos planos SaaS de lançamento e faça o upgrade ideal para sua empresa.</p>
+
+    <div class="row g-4 justify-content-center">
+        <!-- PLANO BÁSICO -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border border-opacity-10 shadow-sm text-center d-flex flex-column justify-content-between overflow-hidden position-relative {% if empresa.plano == 'basico' %}border-primary border-2{% endif %}"
+                 style="border-radius: 1.5rem; transition: transform 0.3s;"
+                 onmouseover="this.style.transform='translateY(-8px)'"
+                 onmouseout="this.style.transform='none'">
+                
+                {% if empresa.plano == 'basico' %}
+                <span class="position-absolute top-0 end-0 bg-primary text-white px-3 py-1 fw-bold font-monospace" style="border-bottom-left-radius: 1rem; font-size: 0.72rem; letter-spacing: 0.05em;">SEU PLANO</span>
+                {% endif %}
+
+                <div class="p-4 pt-5">
+                    <h5 class="text-uppercase fw-bold text-muted" style="letter-spacing: 0.1em; font-size: 0.85rem;">Plano Básico</h5>
+                    <div class="my-4">
+                        <span class="fs-2 fw-bold align-top" style="font-size: 1.5rem !important;">R$</span>
+                        <span class="display-4 fw-black text-dark" style="font-size: 3rem; font-weight: 800;">79</span>
+                        <span class="text-muted">/ mês</span>
+                        <div class="small text-muted mt-1">Anual: R$ 948 (pagamento único)</div>
+                    </div>
+                    <hr class="w-25 mx-auto my-4 opacity-15">
+                    
+                    <ul class="list-unstyled text-start px-3 mb-0" style="font-size: 0.92rem; line-height: 2;">
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-success"></i> Até 2 Usuários Ativos</li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-success"></i> Clientes e Vendas</li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-success"></i> Gestão de Estoque</li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-success"></i> Controle Financeiro</li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-success"></i> Suporte por E-mail</li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-success"></i> Atualizações Automáticas</li>
+                        <li class="d-flex align-items-center gap-2 mb-2 text-muted text-decoration-line-through"><i class="bi bi-x-circle text-danger"></i> Assistente IA</li>
+                        <li class="d-flex align-items-center gap-2 mb-2 text-muted text-decoration-line-through"><i class="bi bi-x-circle text-danger"></i> Personalização de Marca</li>
+                        <li class="d-flex align-items-center gap-2 mb-2 text-muted text-decoration-line-through"><i class="bi bi-x-circle text-danger"></i> APIs Customizadas</li>
+                    </ul>
+                </div>
+
+                <div class="p-4 bg-light border-top mt-auto">
+                    {% if empresa.plano == 'basico' %}
+                    <button class="btn btn-outline-primary w-100 disabled py-2 fw-bold" style="border-radius: 0.75rem;">Plano Ativo</button>
+                    {% else %}
+                    <button class="btn btn-outline-secondary w-100 py-2 fw-bold" style="border-radius: 0.75rem;" onclick="solicitarUpgrade('Básico')">Migrar para Básico</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- PLANO PROFISSIONAL (PME) -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border border-opacity-10 shadow-lg text-center d-flex flex-column justify-content-between overflow-hidden position-relative {% if empresa.plano == 'profissional' %}border-primary border-2{% else %}border-info border-opacity-20{% endif %}"
+                 style="border-radius: 1.5rem; transition: transform 0.3s; background: linear-gradient(180deg, #ffffff 0%, rgba(14, 165, 233, 0.02) 100%);"
+                 onmouseover="this.style.transform='translateY(-8px)'"
+                 onmouseout="this.style.transform='none'">
+
+                <span class="position-absolute top-0 start-50 translate-middle-x bg-info text-white px-4 py-1 fw-bold shadow-sm" 
+                      style="border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;">
+                    {% if empresa.plano == 'profissional' %}SEU PLANO{% else %}Recomendado{% endif %}
+                </span>
+
+                <div class="p-4 pt-5">
+                    <h5 class="text-uppercase fw-bold text-info" style="letter-spacing: 0.15em; font-size: 0.85rem;">Profissional (PME)</h5>
+                    <div class="my-4">
+                        <span class="fs-2 fw-bold align-top" style="font-size: 1.5rem !important;">R$</span>
+                        <span class="display-4 fw-black text-dark" style="font-size: 3rem; font-weight: 800;">199</span>
+                        <span class="text-muted">/ mês</span>
+                        <div class="small text-muted mt-1">Anual: R$ 2.388 (equivalente a R$ 199/mês)</div>
+                    </div>
+                    <hr class="w-25 mx-auto my-4 opacity-15">
+                    
+                    <ul class="list-unstyled text-start px-3 mb-0" style="font-size: 0.92rem; line-height: 2;">
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-info"></i> Até 5 Usuários Ativos</li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-info"></i> <strong>Todos os Módulos inclusos</strong></li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-info"></i> Suporte por E-mail & Chat</li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-info"></i> <strong>Assistente IA (Ilimitado)</strong></li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-info"></i> <strong>White Label (Marca Própria)</strong></li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-info"></i> Atualizações Automáticas</li>
+                        <li class="d-flex align-items-center gap-2 mb-2 text-muted text-decoration-line-through"><i class="bi bi-x-circle text-danger"></i> APIs Customizadas</li>
+                    </ul>
+                </div>
+
+                <div class="p-4 bg-light border-top mt-auto">
+                    {% if empresa.plano == 'profissional' %}
+                    <button class="btn btn-outline-info w-100 disabled py-2 fw-bold" style="border-radius: 0.75rem;">Plano Ativo</button>
+                    {% else %}
+                    <button class="btn btn-primary w-100 py-2 fw-bold shadow" style="border-radius: 0.75rem; background: var(--primary-gradient);" onclick="solicitarUpgrade('Profissional')">Contratar Upgrade</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- PLANO ENTERPRISE (INDÚSTRIA) -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border border-opacity-10 shadow-sm text-center d-flex flex-column justify-content-between overflow-hidden position-relative {% if empresa.plano == 'enterprise' %}border-primary border-2{% endif %}"
+                 style="border-radius: 1.5rem; transition: transform 0.3s;"
+                 onmouseover="this.style.transform='translateY(-8px)'"
+                 onmouseout="this.style.transform='none'">
+
+                {% if empresa.plano == 'enterprise' %}
+                <span class="position-absolute top-0 end-0 bg-primary text-white px-3 py-1 fw-bold font-monospace" style="border-bottom-left-radius: 1rem; font-size: 0.72rem; letter-spacing: 0.05em;">SEU PLANO</span>
+                {% endif %}
+
+                <div class="p-4 pt-5">
+                    <h5 class="text-uppercase fw-bold text-dark" style="letter-spacing: 0.1em; font-size: 0.85rem;">Enterprise (Indústria)</h5>
+                    <div class="my-4">
+                        <span class="fs-2 fw-bold align-top" style="font-size: 1.5rem !important;">R$</span>
+                        <span class="display-4 fw-black text-dark" style="font-size: 3rem; font-weight: 800;">499</span>
+                        <span class="text-muted">/ mês</span>
+                        <div class="small text-muted mt-1">Anual: R$ 5.988 (equivalente a R$ 499/mês)</div>
+                    </div>
+                    <hr class="w-25 mx-auto my-4 opacity-15">
+                    
+                    <ul class="list-unstyled text-start px-3 mb-0" style="font-size: 0.92rem; line-height: 2;">
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-dark"></i> Até 20 Usuários Ativos</li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-dark"></i> Todos os Módulos inclusos</li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-dark"></i> Suporte por E-mail & Chat</li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-dark"></i> Assistente IA (Ilimitado)</li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-dark"></i> White Label (Marca Própria)</li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-dark"></i> <strong>APIs Customizadas</strong></li>
+                        <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-check-circle-fill text-dark"></i> <strong>Atualização sob Demanda</strong></li>
+                    </ul>
+                </div>
+
+                <div class="p-4 bg-light border-top mt-auto">
+                    {% if empresa.plano == 'enterprise' %}
+                    <button class="btn btn-outline-dark w-100 disabled py-2 fw-bold" style="border-radius: 0.75rem;">Plano Ativo</button>
+                    {% else %}
+                    <button class="btn btn-outline-dark w-100 py-2 fw-bold" style="border-radius: 0.75rem;" onclick="solicitarUpgrade('Enterprise')">Contratar Enterprise</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Solicitação de Upgrade -->
+<div class="modal fade" id="upgradeModal" tabindex="-1" aria-hidden="true" style="backdrop-filter: blur(8px);">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.25rem; overflow: hidden;">
+            <div class="modal-header bg-dark text-white border-0 py-3">
+                <h5 class="modal-title fw-bold">Upgrade de Plano</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="stat-icon bg-light text-primary mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.75rem;">
+                    <i class="bi bi-arrow-up-circle-fill"></i>
+                </div>
+                <h4 class="fw-bold mb-2">Migrar para o Plano <span id="nomePlanoSelecionado" class="text-primary"></span>?</h4>
+                <p class="text-muted small">
+                    Sua solicitação será encaminhada para o nosso setor comercial/financeiro. Em instantes um consultor entrará em contato para ativar o novo plano e formalizar a contratação.
+                </p>
+                <div class="bg-light p-3 rounded-3 text-start mb-3" style="font-size: 0.85rem;">
+                    <i class="bi bi-info-circle me-2 text-info"></i>
+                    <strong>Nota:</strong> Você receberá as instruções de faturamento no e-mail cadastrado da sua empresa ({{ empresa.email|default:"não cadastrado" }}).
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-3 bg-light d-flex gap-2">
+                <button type="button" class="btn btn-secondary w-50 py-2 fw-bold" data-bs-dismiss="modal" style="border-radius: 0.75rem;">Cancelar</button>
+                <button type="button" class="btn btn-primary w-50 py-2 fw-bold" style="border-radius: 0.75rem; background: var(--primary-gradient);" onclick="confirmarUpgrade()">Enviar Solicitação</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let planoSelecionado = '';
+    const myModal = new bootstrap.Modal(document.getElementById('upgradeModal'));
+
+    function solicitarUpgrade(plano) {
+        planoSelecionado = plano;
+        document.getElementById('nomePlanoSelecionado').innerText = plano;
+        myModal.show();
+    }
+
+    function confirmarUpgrade() {
+        myModal.hide();
+        // Dispara um alerta de sucesso nativo do bootstrap via DOM ou recarrega com mensagem
+        alert(`Solicitação de migração para o plano ${planoSelecionado} enviada com sucesso! Nossa equipe entrará em contato.`);
+    }
+</script>
+{% endblock %}

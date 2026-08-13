@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block page_title %}Painel Fiscal{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100 bg-primary bg-opacity-10 text-primary">
+            <div class="card-body p-4 text-center">
+                <p class="small fw-bold text-uppercase mb-1 opacity-75">Notas Emitidas</p>
+                <h3 class="fw-bold mb-0">{{ notas_emitidas|default:0 }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100 bg-warning bg-opacity-10 text-warning">
+            <div class="card-body p-4 text-center text-dark">
+                <p class="small fw-bold text-uppercase mb-1 opacity-75">Rascunhos</p>
+                <h3 class="fw-bold mb-0">{{ notas_rascunho|default:0 }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100 bg-success bg-opacity-10 text-success">
+            <div class="card-body p-4 text-center">
+                <p class="small fw-bold text-uppercase mb-1 opacity-75">Valor Total</p>
+                <h3 class="fw-bold mb-0">R$ {{ total_valor|floatformat:2|default:"0,00" }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100 card-fiscal-empty" style="border-radius: 1rem; overflow: hidden;">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Atividade Fiscal Recente</h5>
+                <a href="{% url 'fiscal:nota_fiscal_list' %}" class="btn btn-sm btn-outline-primary">Ver Todas</a>
+            </div>
+            <div class="card-body p-0">
+                {% if notas_recentes %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Número</th>
+                                <th>Cliente</th>
+                                <th class="text-end pe-4">Valor Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for nf in notas_recentes %}
+                            <tr>
+                                <td class="ps-4 fw-bold text-dark">{{ nf.numero }}</td>
+                                <td>{{ nf.cliente.nome }}</td>
+                                <td class="text-end pe-4 fw-semibold text-primary">R$ {{ nf.valor_total|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <!-- Empty State Premium -->
+                    <div class="empty-state-fiscal p-5 text-center d-flex flex-column align-items-center justify-content-center" style="min-height: 280px;">
+                        <div class="empty-icon-ring mb-4">
+                            <div class="empty-icon-inner">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+                        </div>
+                        <h6 class="fw-bold mb-2">Nenhum registro fiscal</h6>
+                        <p class="text-secondary small mb-4" style="max-width: 280px;">
+                            Não há notas fiscais emitidas recentemente.
+                        </p>
+                        <a href="{% url 'fiscal:nota_fiscal_create' %}" class="btn btn-sm btn-primary px-4 py-2 shadow-sm fw-semibold">
+                            <i class="bi bi-plus-lg me-2"></i> Emitir Nota Fiscal
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0">Ações Fiscais</h5>
+            </div>
+            <div class="card-body p-4 text-center">
+                <div class="d-grid gap-3">
+                    <a href="{% url 'fiscal:nota_fiscal_create' %}" class="btn btn-primary p-3 shadow-sm d-flex justify-content-between align-items-center">
+                        <span class="fw-bold"><i class="bi bi-file-earmark-plus me-2"></i> Emitir Nova NF</span>
+                        <i class="bi bi-chevron-right opacity-50"></i>
+                    </a>
+                    <a href="{% url 'fiscal:nota_fiscal_relatorio' %}" class="btn btn-outline-primary p-3 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold"><i class="bi bi-graph-up me-2"></i> Dashboard de Análise</span>
+                        <i class="bi bi-chevron-right opacity-50"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    /* ── Empty State Premium — Fiscal ── */
+    .card-fiscal-empty {
+        background: linear-gradient(135deg,
+            rgba(59, 130, 246, 0.10) 0%,
+            rgba(139, 92, 246, 0.04) 55%,
+            rgba(14, 165, 233, 0.06) 100%) !important;
+        border: 1px solid rgba(59, 130, 246, 0.20) !important;
+        border-top: 4px solid #3b82f6 !important;
+    }
+    [data-bs-theme="dark"] .card-fiscal-empty {
+        background: linear-gradient(135deg,
+            rgba(59, 130, 246, 0.08) 0%,
+            rgba(139, 92, 246, 0.03) 55%,
+            rgba(14, 165, 233, 0.05) 100%) !important;
+        border-color: rgba(59, 130, 246, 0.25) !important;
+    }
+
+    /* Ícone com anel de brilho */
+    .empty-icon-ring {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .empty-icon-ring::before {
+        content: '';
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(59, 130, 246, 0.12);
+        animation: pulse-ring 2.5s ease-in-out infinite;
+    }
+    .empty-icon-inner {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(59,130,246,0.25), rgba(139,92,246,0.15));
+        border: 2px solid rgba(59, 130, 246, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+    }
+    .empty-icon-inner i {
+        font-size: 1.5rem;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    @keyframes pulse-ring {
+        0%   { transform: scale(0.92); opacity: 0.6; }
+        50%  { transform: scale(1.08); opacity: 0.2; }
+        100% { transform: scale(0.92); opacity: 0.6; }
+    }
+</style>
+{% endblock %}

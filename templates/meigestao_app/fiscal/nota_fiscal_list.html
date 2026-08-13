@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block page_title %}Notas Fiscais{% endblock %}
+
+{% block content %}
+{% include "layout/_hero.html" with title="Gestão Fiscal" subtitle="Consolidação tributária e emissão de documentos fiscais." eyebrow="Conformidade" primary_button_text="Nova Nota" primary_button_url=view.get_create_url glow_color_1="14, 165, 233" glow_color_2="16, 185, 129" %}
+
+<div class="row mb-4 g-4 animate-init">
+    <div class="col-md-4">
+        <div class="card card-accent card-accent-info border-0 p-4 text-center">
+            <p class="small fw-bold text-uppercase mb-1 opacity-75">Emitidas</p>
+            <h3 class="fw-bold mb-0 text-info">{{ notas_emitidas|default:0 }}</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-accent card-accent-warning border-0 p-4 text-center">
+            <p class="small fw-bold text-uppercase mb-1 opacity-75">Rascunhos</p>
+            <h3 class="fw-bold mb-0 text-warning">{{ notas_rascunho|default:0 }}</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-accent card-accent-success border-0 h-100 p-4 text-center">
+            <p class="small fw-bold text-uppercase mb-1 opacity-75">Valor Total</p>
+            <h3 class="fw-bold mb-0 text-success">R$ {{ total_valor|floatformat:2|default:"0,00" }}</h3>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm card-fiscal-list-empty" style="border-radius: 1rem; overflow: hidden;">
+    <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0">Registros Fiscais</h5>
+        <div class="d-flex gap-2">
+            <a href="{% url 'fiscal:nota_fiscal_relatorio' %}" class="btn btn-outline-primary px-4">
+                <i class="bi bi-graph-up me-1"></i> Ver Relatório
+            </a>
+            <a href="{% url 'fiscal:nota_fiscal_create' %}" class="btn btn-primary px-4 shadow-sm">
+                <i class="bi bi-plus-lg me-1"></i> Nova Nota
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if notas_fiscais %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-bordered align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 text-uppercase small fw-bold text-secondary py-3">Número/Série</th>
+                        <th class="text-uppercase small fw-bold text-secondary py-3">Cliente</th>
+                        <th class="text-uppercase small fw-bold text-secondary py-3">Data Emissão</th>
+                        <th class="text-end text-uppercase small fw-bold text-secondary py-3">Valor Total</th>
+                        <th class="text-center text-uppercase small fw-bold text-secondary py-3">Status</th>
+                        <th class="text-center pe-4 text-uppercase small fw-bold text-secondary py-3" style="width: 120px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for nf in notas_fiscais %}
+                    <tr>
+                        <td class="ps-4 fw-bold text-dark">{{ nf.numero }} / {{ nf.serie }}</td>
+                        <td>{{ nf.cliente.nome }}</td>
+                        <td class="text-muted">{{ nf.data_emissao|date:"d/m/Y" }}</td>
+                        <td class="text-end fw-semibold">R$ {{ nf.valor_total|floatformat:2 }}</td>
+                        <td class="text-center">
+                            {% if nf.status == 'emitida' %}
+                                <span class="badge rounded-pill bg-success bg-opacity-10 text-success border-0 px-3">Emitida</span>
+                            {% elif nf.status == 'rascunho' %}
+                                <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning border-0 px-3 text-dark">Rascunho</span>
+                            {% else %}
+                                <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger border-0 px-3">Cancelada</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center pe-4">
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{% url 'fiscal:nota_fiscal_detail' nf.pk %}" class="btn btn-sm btn-light border" title="Ver Detalhes">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'fiscal:nota_fiscal_update' nf.pk %}" class="btn btn-sm btn-light border" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <!-- Empty State Premium -->
+            <div class="empty-state-fiscal empty-state-fiscal-style p-5 text-center d-flex flex-column align-items-center justify-content-center" style="min-height: 340px;">
+                <div class="empty-icon-ring mb-4">
+                    <div class="empty-icon-inner">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                </div>
+                <h5 class="fw-bold mb-2">Nenhum registro fiscal</h5>
+                <p class="text-secondary small mb-4" style="max-width: 320px;">
+                    Não há notas fiscais cadastradas no sistema. Que tal registrar a primeira?
+                </p>
+                <a href="{% url 'fiscal:nota_fiscal_create' %}" class="btn btn-primary px-4 py-2 shadow-sm fw-semibold">
+                    <i class="bi bi-plus-lg me-2"></i> Emitir Nota Fiscal
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+<style>
+    /* ── Empty State Premium — Fiscal List ── */
+    .card-fiscal-list-empty {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border) !important;
+    }
+    .empty-state-fiscal-style {
+        background: linear-gradient(135deg,
+            rgba(59, 130, 246, 0.10) 0%,
+            rgba(16, 185, 129, 0.04) 55%,
+            rgba(14, 165, 233, 0.06) 100%) !important;
+        border-top: 4px solid #3b82f6 !important;
+        border-radius: 1rem;
+    }
+    [data-bs-theme="dark"] .card-fiscal-list-empty {
+        background: linear-gradient(135deg,
+            rgba(59, 130, 246, 0.08) 0%,
+            rgba(16, 185, 129, 0.03) 55%,
+            rgba(14, 165, 233, 0.05) 100%) !important;
+        border-color: rgba(59, 130, 246, 0.25) !important;
+    }
+
+    /* Ícone com anel de brilho */
+    .empty-icon-ring {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .empty-icon-ring::before {
+        content: '';
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: rgba(59, 130, 246, 0.12);
+        animation: pulse-ring 2.5s ease-in-out infinite;
+    }
+    .empty-icon-inner {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(59,130,246,0.25), rgba(16,185,129,0.15));
+        border: 2px solid rgba(59, 130, 246, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+    }
+    .empty-icon-inner i {
+        font-size: 2rem;
+        background: linear-gradient(135deg, #3b82f6, #10b981);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    @keyframes pulse-ring {
+        0%   { transform: scale(0.92); opacity: 0.6; }
+        50%  { transform: scale(1.08); opacity: 0.2; }
+        100% { transform: scale(0.92); opacity: 0.6; }
+    }
+</style>
+{% endblock %}

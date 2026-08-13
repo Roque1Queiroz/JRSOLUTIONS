@@ -1,0 +1,683 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block page_title %}Painel de Controle{% endblock %}
+
+{% block content %}
+<style>
+    /* KPI Cards */
+    .kpi-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        text-decoration: none;
+        display: block;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    @keyframes fadeUpIn {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .kpi-card:nth-child(1) {
+        animation: fadeUpIn 0.4s ease both;
+    }
+
+    .kpi-card:nth-child(2) {
+        animation: fadeUpIn 0.4s ease 0.08s both;
+    }
+
+    .kpi-card:nth-child(3) {
+        animation: fadeUpIn 0.4s ease 0.16s both;
+    }
+
+    .kpi-card:nth-child(4) {
+        animation: fadeUpIn 0.4s ease 0.24s both;
+    }
+
+    /* Scrollbar bloco de notas */
+    .card-scrollable {
+        max-height: 400px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+
+    .card-scrollable::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .card-scrollable::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .card-header-toggle {
+        cursor: pointer;
+    }
+
+    .toggle-btn {
+        transition: transform 0.3s ease;
+    }
+
+    /* Cores por Categoria de Lembrete */
+    .note-prioridade {
+        background-color: #fee2e2 !important;
+        border-left: 5px solid #ef4444 !important;
+    }
+
+    .note-manutencao {
+        background-color: #fff8e1 !important;
+        border-left: 5px solid #ffc107 !important;
+    }
+
+    .note-orcamento {
+        background-color: #ecfdf5 !important;
+        border-left: 5px solid #10b981 !important;
+    }
+
+    /* Dark mode â€” notas */
+    [data-bs-theme="dark"] .note-prioridade {
+        background-color: rgba(239, 68, 68, 0.12) !important;
+    }
+
+    [data-bs-theme="dark"] .note-manutencao {
+        background-color: rgba(245, 158, 11, 0.10) !important;
+    }
+
+    [data-bs-theme="dark"] .note-orcamento {
+        background-color: rgba(16, 185, 129, 0.10) !important;
+    }
+
+    [data-bs-theme="dark"] .lembrete-item {
+        background-color: var(--color-surface) !important;
+    }
+
+    .compact-card {
+        min-height: var(--compact-card-height, 170px);
+    }
+
+    .compact-card .card-body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .empty-card-message {
+        color: var(--color-text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+
+    .compact-card-layout {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    /* ── Cards de Seção com Gradiente ── */
+    .card-chart {
+        background: linear-gradient(135deg,
+            rgba(79, 70, 229, 0.07) 0%,
+            rgba(99, 102, 241, 0.03) 60%,
+            rgba(14, 165, 233, 0.05) 100%) !important;
+        border: 1px solid rgba(79, 70, 229, 0.12) !important;
+        border-top: 3px solid #4f46e5 !important;
+    }
+    [data-bs-theme="dark"] .card-chart {
+        background: linear-gradient(135deg,
+            rgba(79, 70, 229, 0.12) 0%,
+            rgba(99, 102, 241, 0.05) 60%,
+            rgba(14, 165, 233, 0.08) 100%) !important;
+        border-color: rgba(99, 102, 241, 0.25) !important;
+    }
+
+    .card-vendas {
+        background: linear-gradient(135deg,
+            rgba(16, 185, 129, 0.07) 0%,
+            rgba(6, 182, 212, 0.03) 60%,
+            rgba(99, 102, 241, 0.04) 100%) !important;
+        border: 1px solid rgba(16, 185, 129, 0.15) !important;
+        border-top: 3px solid #10b981 !important;
+    }
+    [data-bs-theme="dark"] .card-vendas {
+        background: linear-gradient(135deg,
+            rgba(16, 185, 129, 0.10) 0%,
+            rgba(6, 182, 212, 0.04) 60%,
+            rgba(99, 102, 241, 0.06) 100%) !important;
+        border-color: rgba(16, 185, 129, 0.25) !important;
+    }
+
+    /* ── Cards Suaves ── */
+    /* Bloco de Notas — âmbar/mel suave */
+    .card-gradient-warning {
+        background: linear-gradient(135deg,
+            rgba(251, 191, 36, 0.12) 0%,
+            rgba(245, 158, 11, 0.07) 100%) !important;
+        border: 1px solid rgba(245, 158, 11, 0.25) !important;
+        border-left: 4px solid #f59e0b !important;
+    }
+    .card-gradient-warning .card-header,
+    .card-gradient-warning h5 {
+        color: #92400e !important;
+    }
+    [data-bs-theme="dark"] .card-gradient-warning {
+        background: linear-gradient(135deg,
+            rgba(251, 191, 36, 0.10) 0%,
+            rgba(245, 158, 11, 0.05) 100%) !important;
+        border-color: rgba(245, 158, 11, 0.3) !important;
+    }
+    [data-bs-theme="dark"] .card-gradient-warning h5 {
+        color: #fcd34d !important;
+    }
+
+    /* Reembolsos — rosa/blush suave */
+    .card-gradient-danger {
+        background: linear-gradient(135deg,
+            rgba(239, 68, 68, 0.09) 0%,
+            rgba(244, 63, 94, 0.05) 100%) !important;
+        border: 1px solid rgba(239, 68, 68, 0.22) !important;
+        border-left: 4px solid #ef4444 !important;
+    }
+    .card-gradient-danger h5 {
+        color: #991b1b !important;
+    }
+    [data-bs-theme="dark"] .card-gradient-danger {
+        background: linear-gradient(135deg,
+            rgba(239, 68, 68, 0.10) 0%,
+            rgba(244, 63, 94, 0.06) 100%) !important;
+        border-color: rgba(239, 68, 68, 0.3) !important;
+    }
+    [data-bs-theme="dark"] .card-gradient-danger h5 {
+        color: #fca5a5 !important;
+    }
+
+    /* Botão Glass — adaptado para cards suaves */
+    .btn-glass {
+        background: rgba(0, 0, 0, 0.06) !important;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(0, 0, 0, 0.10) !important;
+        color: inherit !important;
+        transition: all 0.3s ease;
+    }
+    .btn-glass:hover {
+        background: rgba(0, 0, 0, 0.10) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    [data-bs-theme="dark"] .btn-glass {
+        background: rgba(255,255,255,0.06) !important;
+        border-color: rgba(255,255,255,0.10) !important;
+        color: #f1f5f9 !important;
+    }
+    [data-bs-theme="dark"] .btn-glass:hover {
+        background: rgba(255,255,255,0.12) !important;
+    }
+
+    /* ── KPI Cards — Gradiente Diagonal por Accent ── */
+    .kpi-card.card-accent-palegreen {
+        background: linear-gradient(135deg,
+            rgba(152, 251, 152, 0.18) 0%,
+            rgba(16, 185, 129, 0.07) 100%) !important;
+    }
+    .kpi-card.card-accent-indigo {
+        background: linear-gradient(135deg,
+            rgba(99, 102, 241, 0.14) 0%,
+            rgba(75, 0, 130, 0.06) 100%) !important;
+    }
+    .kpi-card.card-accent-turquoise {
+        background: linear-gradient(135deg,
+            rgba(64, 224, 208, 0.15) 0%,
+            rgba(6, 182, 212, 0.06) 100%) !important;
+    }
+    .kpi-card.card-accent-orangered {
+        background: linear-gradient(135deg,
+            rgba(255, 100, 50, 0.13) 0%,
+            rgba(239, 68, 68, 0.06) 100%) !important;
+    }
+    [data-bs-theme="dark"] .kpi-card.card-accent-palegreen {
+        background: linear-gradient(135deg,
+            rgba(152, 251, 152, 0.10) 0%,
+            rgba(16, 185, 129, 0.04) 100%) !important;
+    }
+    [data-bs-theme="dark"] .kpi-card.card-accent-indigo {
+        background: linear-gradient(135deg,
+            rgba(99, 102, 241, 0.14) 0%,
+            rgba(75, 0, 130, 0.06) 100%) !important;
+    }
+    [data-bs-theme="dark"] .kpi-card.card-accent-turquoise {
+        background: linear-gradient(135deg,
+            rgba(64, 224, 208, 0.12) 0%,
+            rgba(6, 182, 212, 0.04) 100%) !important;
+    }
+    [data-bs-theme="dark"] .kpi-card.card-accent-orangered {
+        background: linear-gradient(135deg,
+            rgba(255, 100, 50, 0.12) 0%,
+            rgba(239, 68, 68, 0.04) 100%) !important;
+    }
+</style>
+
+<!-- INDICADORES PRINCIPAIS (KPIs) -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <a href="{% url 'financeiro:receita_lista' %}" class="kpi-card card card-stats card-accent card-accent-palegreen p-4 border-0">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+                <span class="badge bg-primary bg-opacity-10 text-primary fw-bold small">Este mês</span>
+            </div>
+            <h6 class="text-secondary fw-semibold small text-uppercase mb-1">Faturamento (Mês)</h6>
+            <h2 class="fw-bold mb-0 text-nowrap" style="color: var(--color-text-primary); font-size: 1.6rem;">R$ {{ faturamento_mes|floatformat:2|intcomma }}</h2>
+        </a>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <a href="{% url 'financeiro:transacao_lista' %}" class="kpi-card card card-stats card-accent card-accent-indigo p-4 border-0">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-icon bg-info bg-opacity-10 text-info">
+                    <i class="bi bi-bank"></i>
+                </div>
+                <span class="text-info fw-bold small">Saldo Atual</span>
+            </div>
+            <h6 class="text-secondary fw-semibold small text-uppercase mb-1">Saldo em Caixa</h6>
+            <h2 class="fw-bold mb-0 text-nowrap" style="color: var(--color-text-primary); font-size: 1.6rem;">R$ {{ saldo_caixa|floatformat:2|intcomma }}</h2>
+        </a>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <a href="{% url 'clientes:cliente_list' %}" class="kpi-card card card-stats card-accent card-accent-turquoise p-4 border-0">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-icon" style="background: rgba(64, 224, 208, 0.15); color: #008b8b;">
+                    <i class="bi bi-people"></i>
+                </div>
+                <span class="badge fw-bold small" style="background: rgba(64, 224, 208, 0.2); color: #008b8b;">{{ clientes_novos }} novos</span>
+            </div>
+            <h6 class="text-secondary fw-semibold small text-uppercase mb-1">Total de Clientes</h6>
+            <h2 class="fw-bold mb-0 text-nowrap" style="color: var(--color-text-primary); font-size: 1.6rem;">{{ total_clientes }}</h2>
+        </a>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <a href="{% url 'estoque:produto_list' %}" class="kpi-card card card-stats card-accent card-accent-orangered p-4 border-0">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                {% if estoque_baixo > 0 %}
+                <span class="badge fw-bold small" style="background: rgba(255, 69, 0, 0.2); color: #ff4500;">{{ estoque_baixo }} crítico(s)</span>
+                {% else %}
+                <span class="badge fw-bold small" style="background: rgba(255, 69, 0, 0.1); color: #ff4500;"><i class="bi bi-check-circle-fill"></i> Ok</span>
+                {% endif %}
+            </div>
+            <h6 class="text-secondary fw-semibold small text-uppercase mb-1">Alertas de Estoque</h6>
+            <h2 class="fw-bold mb-0 text-nowrap" style="color: var(--color-text-primary); font-size: 1.6rem;">{{ estoque_baixo }}</h2>
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- GRÃFICO DE FATURAMENTO -->
+    <div class="col-lg-8">
+        <div class="card card-chart shadow-sm overflow-hidden {% if has_revenue_data %}h-100{% else %}compact-card{% endif %}">
+            <div
+                class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="bi bi-graph-up text-primary me-2"></i>Desempenho Comercial</h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-glass rounded-pill px-3 dropdown-toggle" type="button" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        {% if current_period == '7d' %}Últimos 7 dias
+                        {% elif current_period == '30d' %}Últimos 30 dias
+                        {% elif current_period == '12m' %}Último Ano
+                        {% else %}Últimos 6 meses{% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="periodDropdown">
+                        <li><a class="dropdown-item {% if current_period == '7d' %}active{% endif %}" href="?periodo=7d">Últimos 7 dias</a></li>
+                        <li><a class="dropdown-item {% if current_period == '30d' %}active{% endif %}" href="?periodo=30d">Últimos 30 dias</a></li>
+                        <li><a class="dropdown-item {% if not current_period or current_period == '6m' %}active{% endif %}" href="?periodo=6m">Últimos 6 meses</a></li>
+                        <li><a class="dropdown-item {% if current_period == '12m' %}active{% endif %}" href="?periodo=12m">Último Ano</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body p-4 pt-0">
+                {% if has_revenue_data %}
+                    <div style="height: 300px;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                {% else %}
+                    <div class="w-100 py-3">
+                        <i class="bi bi-graph-up-arrow fs-2 text-primary opacity-50"></i>
+                        <p class="empty-card-message mt-2">Sem dados de faturamento para exibir no momento.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- BLOCO DE NOTAS -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm card-gradient-warning {% if has_lembretes_ativos %}h-100{% else %}compact-card{% endif %}">
+            <div
+                class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2"></i>Bloco de Notas</h5>
+                <button class="btn btn-sm btn-glass rounded-circle shadow-sm" data-bs-toggle="modal"
+                    data-bs-target="#modalLembrete" title="Nova nota">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+            <div class="card-body p-4 pt-2">
+                <div class="card-scrollable lembretes-list">
+                    {% for lembrete in lembretes_ativos %}
+                    <div
+                        class="lembrete-item p-3 mb-3 rounded-2 shadow-sm note-{{ lembrete.categoria }} border-0 d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <h6 class="fw-bold mb-0 text-dark">{{ lembrete.titulo }}</h6>
+                            </div>
+                            <p class="small text-muted mb-0">{{ lembrete.conteudo|truncatechars:120 }}</p>
+                            {% if lembrete.data_servico %}
+                            <span class="badge bg-light border text-muted fw-normal mt-2" style="font-size:10px;">
+                                <i class="bi bi-calendar2 me-1"></i>{{ lembrete.data_servico|date:"d/m/Y" }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <form method="post" action="{% url 'core:lembrete_concluir' lembrete.id %}"
+                            class="d-inline ms-2">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-light rounded-pill shadow-sm border-0"
+                                title="Concluir">
+                                <i class="bi bi-check-circle text-success"></i>
+                            </button>
+                        </form>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-journal-x fs-1 text-warning opacity-50 mb-3"></i>
+                        <p class="text-muted small mb-3">Nenhum lembrete ativo no momento.</p>
+                        <button class="btn btn-sm btn-glass px-4 rounded-pill" data-bs-toggle="modal"
+                            data-bs-target="#modalLembrete">
+                            <i class="bi bi-plus-lg me-1"></i> Clique aqui para adicionar
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'core:lembrete_lista' %}"
+                        class="btn btn-sm btn-glass px-4 rounded-pill text-decoration-none">
+                        Ver Histórico <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- VENDAS RECENTES -->
+    <div class="col-lg-8">
+        <div class="card card-vendas shadow-sm overflow-hidden {% if has_vendas_recentes %}h-100{% else %}compact-card{% endif %}">
+            <div
+                class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Vendas Recentes</h5>
+                <a href="{% url 'vendas:venda_list' %}" class="btn btn-sm btn-light border">Ver Todas</a>
+            </div>
+            <div class="card-body p-0 mt-2">
+                {% if has_vendas_recentes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">Cliente</th>
+                                    <th>Data</th>
+                                    <th>Valor</th>
+                                    <th class="pe-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for venda in vendas_recentes %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark">{{ venda.cliente.nome }}</div>
+                                        <div class="small text-muted">ID: {{ venda.id }}</div>
+                                    </td>
+                                    <td>{{ venda.data_venda|date:"d/m/Y" }}</td>
+                                    <td class="fw-bold text-primary">R$ {{ venda.valor_total|floatformat:2|intcomma }}</td>
+                                    <td class="pe-4">
+                                        <span
+                                            class="badge {% if venda.status == 'confirmada' %}bg-success{% else %}bg-warning{% endif %} bg-opacity-10 text-{% if venda.status == 'confirmada' %}success{% else %}warning text-dark{% endif %}">
+                                            {{ venda.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="w-100 py-3 text-center">
+                        <i class="bi bi-receipt fs-2 text-primary opacity-50"></i>
+                        <p class="empty-card-message mt-2">Nenhuma venda registrada recentemente.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+      <!-- REEMBOLSOS RÃ PIDOS -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm card-gradient-danger p-4 {% if has_reembolsos_pendentes %}h-100{% else %}compact-card compact-card-layout{% endif %}">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0"><i class="bi bi-receipt me-2"></i>Reembolsos Pendentes</h5>
+                {% if has_reembolsos_pendentes %}
+                <form action="{% url 'financeiro:reembolso_lista' %}" method="get" class="d-flex gap-1"
+                    style="max-width: 150px;">
+                    <input type="text" name="q" class="form-control form-control-sm btn-glass text-white border-0"
+                        placeholder="Buscar..." style="background: rgba(255,255,255,0.1) !important;">
+                </form>
+                {% endif %}
+            </div>
+
+            {% if has_reembolsos_pendentes %}
+            <div class="d-flex align-items-center mb-4 p-3 rounded-3" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239,68,68,0.15);">
+                <div class="stat-icon me-3" style="background: rgba(239,68,68,0.12); color: #dc2626;">
+                    <i class="bi bi-wallet-fill"></i>
+                </div>
+                <div>
+                    <h6 class="small fw-bold text-uppercase mb-0" style="color: #dc2626; opacity: 0.85;">Aguardando Pagamento</h6>
+                    <h3 class="fw-bold mb-0 text-nowrap" style="color: #991b1b;">R$ {{ reembolsos_pendentes_valor|floatformat:2|intcomma }}</h3>
+                </div>
+            </div>
+
+            {% if reembolsos_alta_prioridade > 0 %}
+            <div class="alert alert-danger border-0 py-2 mb-4 d-flex align-items-center animate__animated animate__pulse animate__infinite">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span class="small fw-bold">{{ reembolsos_alta_prioridade }} em ALTA PRIORIDADE</span>
+            </div>
+            {% endif %}
+
+            <div class="d-grid gap-2 mt-auto">
+                <a href="{% url 'financeiro:reembolso_criar' %}" class="btn btn-sm btn-outline-danger py-2 fw-semibold">
+                    <i class="bi bi-plus-circle me-1"></i> Nova Solicitação
+                </a>
+                <a href="{% url 'financeiro:reembolso_lista' %}"
+                    class="btn btn-sm btn-light py-2 fw-semibold">
+                    <i class="bi bi-list-check me-1"></i> Gerenciar Tudo
+                </a>
+            </div>
+            {% else %}
+            <div class="text-center">
+                <i class="bi bi-wallet2 fs-2 text-danger opacity-30 mb-3"></i>
+                <p class="text-muted small mb-3">Sem reembolsos pendentes no momento.</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'financeiro:reembolso_criar' %}" class="btn btn-sm btn-outline-danger py-2 fw-semibold">
+                        <i class="bi bi-plus-circle me-1"></i> Clique aqui para adicionar
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Novo Lembrete -->
+<div class="modal fade" id="modalLembrete" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+            <div class="modal-header border-0 pt-4 px-4 bg-light"
+                style="border-top-left-radius: 1.5rem; border-top-right-radius: 1.5rem;">
+                <h5 class="fw-bold px-1 mb-0"><i class="bi bi-pencil-square me-2"></i>Nova Anotação</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'core:lembrete_criar' %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Título da Nota</label>
+                        <input type="text" name="titulo" class="form-control bg-light border-0 py-2"
+                            placeholder="Ex: Manutenção Maquina X" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Prioridade / Tipo</label>
+                            <select name="categoria" class="form-select bg-light border-0 py-2">
+                                <option value="prioridade">🔴 Prioritário</option>
+                                <option value="manutencao" selected>🔵 Manutenção</option>
+                                <option value="orcamento">🟢 Orçamento</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Data Prevista</label>
+                            <input type="date" name="data_servico" class="form-control bg-light border-0 py-2">
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Conteúdo</label>
+                        <textarea name="conteudo" class="form-control bg-light border-0 py-2" rows="4"
+                            placeholder="Detalhes importantes..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-5 shadow">Salvar Lembrete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function syncCompactCardHeight() {
+        const kpiRefCard = document.querySelector('.kpi-card');
+        if (!kpiRefCard) return;
+        const refHeight = kpiRefCard.offsetHeight;
+        if (!refHeight) return;
+        document.documentElement.style.setProperty('--compact-card-height', `${refHeight}px`);
+    }
+
+    function buildChart() {
+        const hasRevenueData = {{ has_revenue_data|yesno:"true,false" }};
+        if (!hasRevenueData) return;
+
+        const canvasEl = document.getElementById('revenueChart');
+        if (!canvasEl) return;
+
+        const isDark = document.body.getAttribute('data-bs-theme') === 'dark';
+        const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+        const tickColor = isDark ? '#94a3b8' : '#64748b';
+        const tooltipBg = isDark ? '#1e1f23' : '#ffffff';
+
+        const ctx = canvasEl.getContext('2d');
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, isDark ? 'rgba(99,102,241,0.35)' : 'rgba(79,70,229,0.18)');
+        gradient.addColorStop(1, 'rgba(79,70,229,0.0)');
+
+        if (window._revenueChart) window._revenueChart.destroy();
+
+        window._revenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ labels_grafico| safe }},
+    datasets: [{
+        label: 'Faturamento Mensal',
+        data: {{ dados_faturamento| safe }},
+        borderColor: '#4f46e5',
+        borderWidth: 3,
+        fill: true,
+        backgroundColor: gradient,
+        tension: 0.45,
+        pointBackgroundColor: isDark ? '#1e1f23' : '#fff',
+        pointBorderColor: '#4f46e5',
+        pointBorderWidth: 2.5,
+        pointRadius: 5,
+        pointHoverRadius: 8
+                }]
+            },
+    options: {
+        responsive: true,
+            maintainAspectRatio: false,
+                animation: { duration: 600, easing: 'easeOutQuart' },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: tooltipBg,
+                    titleColor: isDark ? '#f1f5f9' : '#1e293b',
+                        bodyColor: isDark ? '#94a3b8' : '#64748b',
+                            borderColor: isDark ? '#27272a' : '#e2e8f0',
+                                borderWidth: 1,
+                                    padding: 12,
+                                        cornerRadius: 10,
+                                            callbacks: {
+                    label: (ctx) => ' R$ ' + ctx.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                    grid: { color: gridColor },
+                ticks: {
+                    color: tickColor,
+                        callback: (v) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+                }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { color: tickColor }
+            }
+        }
+    }
+        });
+    }
+
+    syncCompactCardHeight();
+    buildChart();
+
+    // Rebuild chart quando o tema mudar para acertar as cores
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+            syncCompactCardHeight();
+            setTimeout(buildChart, 50);
+        });
+    }
+
+    window.addEventListener('resize', syncCompactCardHeight);
+</script>
+{% endblock %}

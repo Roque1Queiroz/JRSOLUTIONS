@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}Dados da Empresa â€” Sistema Gestor{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-building me-2"></i>Dados da Empresa</h2>
+        <a href="/" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Voltar
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-pencil-square me-2"></i>Informações do MEI
+            </h5>
+        </div>
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3">
+
+                    <!-- Dados Principais -->
+                    <div class="col-12">
+                        <h6 class="text-muted border-bottom pb-2">
+                            <i class="bi bi-person-badge me-1"></i>Dados Principais
+                        </h6>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            Razão Social <span class="text-danger">*</span>
+                        </label>
+                        {{ form.razao_social }}
+                        {% if form.razao_social.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.razao_social.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Nome Fantasia</label>
+                        {{ form.nome_fantasia }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">
+                            CNPJ <span class="text-danger">*</span>
+                        </label>
+                        {{ form.cnpj }}
+                        {% if form.cnpj.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.cnpj.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.email.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Telefone</label>
+                        {{ form.telefone }}
+                    </div>
+
+                    <!-- Endereço -->
+                    <div class="col-12 mt-2">
+                        <h6 class="text-muted border-bottom pb-2">
+                            <i class="bi bi-geo-alt me-1"></i>Endereço
+                        </h6>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">CEP</label>
+                        {{ form.cep }}
+                        {% if form.cep.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.cep.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-7">
+                        <label class="form-label fw-bold">Logradouro</label>
+                        {{ form.logradouro }}
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Número</label>
+                        {{ form.numero }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Complemento</label>
+                        {{ form.complemento }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Bairro</label>
+                        {{ form.bairro }}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Cidade</label>
+                        {{ form.cidade }}
+                    </div>
+
+                    <div class="col-md-1">
+                        <label class="form-label fw-bold">UF</label>
+                        {{ form.estado }}
+                    </div>
+
+                </div>
+
+                <!-- Botões -->
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i> Salvar Alterações
+                    </button>
+                    <a href="/" class="btn btn-outline-secondary">
+                        Cancelar
+                    </a>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Rodapé com info -->
+        {% if empresa %}
+        <div class="card-footer text-muted small">
+            <i class="bi bi-clock me-1"></i>
+            Última atualização: {{ empresa.atualizado_em|date:"d/m/Y H:i" }}
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-preenchimento via ViaCEP com tratamento de falhas e timeout
+    const cepInput = document.querySelector('[name="cep"]');
+    const submitBtn = document.querySelector('button[type="submit"]');
+
+    if (cepInput) {
+        cepInput.addEventListener('blur', function () {
+            const cep = this.value.replace(/\D/g, '');
+            if (cep.length === 8) {
+                // Bloquear botão e mostrar feedback visual
+                let originalBtnText = '';
+                if (submitBtn) {
+                    originalBtnText = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Buscando CEP...';
+                }
+
+                // Timeout de 3 segundos para liberar o botão
+                let fetchFinished = false;
+                const unlockButton = () => {
+                    if (submitBtn && !fetchFinished) {
+                        fetchFinished = true;
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                    }
+                };
+
+                setTimeout(unlockButton, 3000);
+
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (!data.erro) {
+                            const logradouroInput = document.querySelector('[name="logradouro"]');
+                            if (logradouroInput && (!logradouroInput.value || logradouroInput.value.trim() === '')) {
+                                logradouroInput.value = data.logradouro || '';
+                            }
+                            
+                            const bairroInput = document.querySelector('[name="bairro"]');
+                            if (bairroInput && (!bairroInput.value || bairroInput.value.trim() === '')) {
+                                bairroInput.value = data.bairro || '';
+                            }
+
+                            const cidadeInput = document.querySelector('[name="cidade"]');
+                            if (cidadeInput) cidadeInput.value = data.localidade || '';
+
+                            const estadoInput = document.querySelector('[name="estado"]');
+                            if (estadoInput) estadoInput.value = data.uf || '';
+                        }
+                    })
+                    .catch(() => console.warn('Erro ao buscar CEP. O usuário pode preencher manualmente.'))
+                    .finally(() => {
+                        unlockButton();
+                    });
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "meigestao_app/almoxarifado/base_almoxarifado.html" %}
+
+{% block title %}Requisições Internas - Sistema Gestor{% endblock %}
+{% block page_title %}Almoxarifado{% endblock %}
+
+{% block content %}
+{% include "layout/_hero.html" with title="Requisições de Materiais" subtitle="Histórico de solicitações de consumo e ferramentas." eyebrow="Operacional" primary_button_text="Nova Requisição" primary_button_url="/almoxarifado/requisicoes/nova/" secondary_button_text="Voltar ao Dashboard" secondary_button_url="/almoxarifado/" glow_color_1="56, 189, 248" glow_color_2="30, 64, 175" %}
+
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 1rem; overflow: hidden; background: var(--color-surface); border: 1px solid var(--color-border) !important;">
+    <div class="card-body p-0">
+        {% if requisicoes %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th scope="col" class="ps-4 text-secondary small fw-bold" width="80">ID</th>
+                            <th scope="col" class="text-secondary small fw-bold">SOLICITANTE / SETOR</th>
+                            <th scope="col" class="text-secondary small fw-bold">ORIGEM</th>
+                            <th scope="col" class="text-secondary small fw-bold">DATA</th>
+                            <th scope="col" class="text-center text-secondary small fw-bold">STATUS</th>
+                            <th scope="col" class="text-center pe-4 text-secondary small fw-bold" width="120">AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requisicoes %}
+                        <tr>
+                            <td class="ps-4 fw-semibold text-secondary">#{{ req.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold text-dark">{{ req.solicitante.get_full_name|default:req.solicitante.username }}</span>
+                                        <span class="text-muted small">{{ req.setor.nome }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="small fw-medium text-secondary">{{ req.local_origem.nome }}</div>
+                            </td>
+                            <td>
+                                <div class="small text-secondary">{{ req.criado_em|date:"d/m/Y H:i" }}</div>
+                            </td>
+                            <td class="text-center">
+                                {% if req.status == 'SOLICITADO' %}
+                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-2 rounded-pill small fw-bold">Pendente</span>
+                                {% elif req.status == 'APROVADO' %}
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-2 rounded-pill small fw-bold">Aprovado</span>
+                                {% elif req.status == 'ENTREGUE' %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill small fw-bold">Entregue</span>
+                                {% elif req.status == 'RECUSADO' %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill small fw-bold">Recusado</span>
+                                {% else %}
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2 rounded-pill small fw-bold">{{ req.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center pe-4">
+                                <a href="{% url 'almoxarifado:requisicao_detail' req.id %}" class="btn btn-sm btn-light text-primary border shadow-sm">
+                                    <i class="bi bi-eye-fill"></i> Detalhes
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="p-3 border-top bg-light bg-opacity-10">
+                <span class="text-secondary small ps-2">Total de {{ requisicoes|length }} requisição(ões)</span>
+            </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="p-5 text-center">
+                <div class="mb-3">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle" style="width: 80px; height: 80px;">
+                        <i class="bi bi-list-task fs-1 text-primary"></i>
+                    </div>
+                </div>
+                <h5 class="fw-bold">Nenhuma requisição encontrada</h5>
+                <p class="text-secondary small">As solicitações de materiais aparecerão aqui.</p>
+                <a href="{% url 'almoxarifado:requisicao_create' %}" class="btn btn-primary mt-2">
+                    <i class="bi bi-plus-lg me-2"></i> Nova Requisição
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    [data-bs-theme="dark"] .bg-light { background-color: rgba(255,255,255,0.03) !important; }
+    .table td { color: var(--color-text-primary) !important; font-size: 0.9rem; }
+    .table th { letter-spacing: 0.05em; border-bottom: none; }
+    .text-dark { color: var(--color-text-primary) !important; }
+</style>
+{% endblock %}

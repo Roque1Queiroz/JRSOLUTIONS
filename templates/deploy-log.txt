@@ -1,0 +1,1 @@
+03/23/2026 10:31:50: Arquivo criado: C:\Users\roque\projetos\mei_gestao\templates\meigestao_app\vendas\venda_list.html

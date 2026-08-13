@@ -1,0 +1,130 @@
+﻿{% extends "meigestao_app/base.html" %}
+
+{% block title %}Formulário - Mei_Gestão{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="#">{% block module_name %}Módulo{% endblock %}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{% block form_title %}Formulário{% endblock %}</li>
+        </ol>
+    </nav>
+    
+    <!-- Título -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-1">
+                <i class="fas fa-edit" style="color: #10528a;"></i> 
+                {% block page_title %}Novo Registro{% endblock %}
+            </h1>
+            <p class="text-muted">Preencha os campos abaixo para continuar</p>
+        </div>
+    </div>
+    
+    <!-- Formulário -->
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-form"></i> 
+                        {% block form_header %}Formulário{% endblock %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>Erro!</strong> Verifique os erros abaixo:
+                        {% for error in form.non_field_errors %}
+                        <div>{{ error }}</div>
+                        {% endfor %}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="POST" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        {% block form_fields %}
+                        <!-- Campos do formulário serão renderizados aqui -->
+                        {% for field in form %}
+                            {% if field.widget.input_type != 'hidden' %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label">
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                    <span class="text-danger">*</span>
+                                    {% endif %}
+                                </label>
+                                
+                                {% if field.widget.input_type == 'textarea' %}
+                                    {{ field }}
+                                {% elif field.widget.input_type == 'select' %}
+                                    {{ field }}
+                                {% else %}
+                                    {{ field }}
+                                {% endif %}
+                                
+                                {% if field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in field.errors %}
+                                    <i class="fas fa-exclamation-circle"></i> {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                
+                                {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text|safe }}</small>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                        {% endblock %}
+                        
+                        <!-- Botões -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Salvar
+                            </button>
+                            <a href="{% block list_url %}#{% endblock %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control, .form-select {
+        border-color: #ddd;
+        transition: border-color 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #10528a;
+        box-shadow: 0 0 0 0.2rem rgba(16, 82, 138, 0.25);
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: #343a40;
+    }
+    
+    .invalid-feedback {
+        color: #f44336;
+        font-size: 0.875rem;
+    }
+    
+    .form-text {
+        display: block;
+        margin-top: 0.25rem;
+    }
+</style>
+{% endblock %}
+

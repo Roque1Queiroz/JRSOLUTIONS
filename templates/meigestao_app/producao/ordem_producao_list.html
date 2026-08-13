@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4 animate-init">
+    <div class="col-md-12">
+        <div class="card border-0 shadow-sm p-4 bg-light d-flex flex-row justify-content-between align-items-center">
+            <div>
+                <h4 class="fw-bold mb-0">Ordens de Produção (OP)</h4>
+                <p class="text-muted mb-0">Rastreabilidade e controle do chão de fábrica.</p>
+            </div>
+            <a href="{% url 'producao:ordem_producao_create' %}" class="btn btn-primary px-4 py-2">
+                <i class="bi bi-gear-fill me-2"></i> Nova Ordem de Produção
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm animate-init" style="animation-delay: 0.1s;">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light bg-opacity-50">
+                    <tr class="text-muted small text-uppercase fw-bold">
+                        <th class="ps-4 py-3">OP #</th>
+                        <th>Produto Acabado</th>
+                        <th class="text-center">Quantidade</th>
+                        <th>Status</th>
+                        <th class="text-center pe-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for op in ordens %}
+                    <tr>
+                        <td class="ps-4">
+                            <span class="fw-bold text-dark">#{{ op.id }}</span>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ op.ficha_tecnica.produto_final.nome }}</div>
+                            <div class="small text-muted">Abertura: {{ op.criado_em|date:"d/m/Y" }}</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="fw-bold fs-5">{{ op.quantidade_planejada }}</span> <small class="text-muted">un</small>
+                        </td>
+                        <td>
+                            {% if op.status == 'ABERTA' %}
+                                <span class="badge bg-secondary-subtle text-secondary px-3 py-2 border">PLANEJADA</span>
+                            {% elif op.status == 'PRODUCAO' %}
+                                <span class="badge bg-primary-subtle text-primary px-3 py-2 border">EM EXECUÇÃO</span>
+                            {% elif op.status == 'FINALIZADA' %}
+                                <span class="badge bg-success-subtle text-success px-3 py-2 border">FINALIZADA</span>
+                            {% elif op.status == 'CANCELADA' %}
+                                <span class="badge bg-danger-subtle text-danger px-3 py-2 border">CANCELADA</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center pe-4">
+                            <a href="{% url 'producao:ordem_producao_detail' op.id %}" class="btn btn-sm btn-light border px-3">
+                                Detalhes
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">Nenhuma ordem de produção registrada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

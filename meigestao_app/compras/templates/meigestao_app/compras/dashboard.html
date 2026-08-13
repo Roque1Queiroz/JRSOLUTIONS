@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block page_title %}Gestão de Compras{% endblock %}
+
+{% block content %}
+{% url 'compras:pedido_create' as btn_url %}
+{% include "layout/_hero.html" with title="Suprimentos e Compras" subtitle="Gerenciamento de fornecedores, cotações e ordens de compra." eyebrow="Operacional" primary_button_text="Solicitar Compra" primary_button_url=btn_url glow_color_1="59, 130, 246" glow_color_2="139, 92, 246" %}
+
+<div class="row mb-5 g-4 animate-init">
+    <div class="col-md-3">
+        <div class="card card-accent card-accent-primary border-0 p-4 text-center">
+            <p class="small fw-bold text-uppercase mb-1 opacity-75">Pedidos Abertos</p>
+            <h3 class="fw-bold mb-0 text-primary">{{ pedidos_abertos|default:0 }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-accent card-accent-warning border-0 p-4 text-center">
+            <p class="small fw-bold text-uppercase mb-1 opacity-75">Em Cotação</p>
+            <h3 class="fw-bold mb-0 text-warning">{{ em_cotacao|default:0 }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-accent card-accent-success border-0 p-4 text-center">
+            <p class="small fw-bold text-uppercase mb-1 opacity-75">Aprovados</p>
+            <h3 class="fw-bold mb-0 text-success">{{ aprovados|default:0 }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-accent card-accent-info border-0 p-4 text-center">
+            <p class="small fw-bold text-uppercase mb-1 opacity-75">Fornecedores</p>
+            <h3 class="fw-bold mb-0 text-info">{{ fornecedores_ativos|default:0 }}</h3>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm animate-init card-compras-empty" style="animation-delay: 0.1s; overflow: hidden;">
+    <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0">Pedidos de Compra Recentes</h5>
+        <div>
+            <a href="{% url 'compras:fornecedor_list' %}" class="btn btn-sm btn-outline-info me-2">Fornecedores</a>
+            <a href="#" class="btn btn-sm btn-outline-secondary">Ver Todos</a>
+        </div>
+    </div>
+    <div class="card-body p-0 mt-3">
+        {% if ultimos_pedidos %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Pedido</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido in ultimos_pedidos %}
+                    <tr>
+                        <td class="ps-4 fw-bold">#{{ pedido.id }}</td>
+                        <td class="text-muted">{{ pedido.criado_em|date:"d/m/Y" }}</td>
+                        <td>
+                            <span class="badge rounded-pill 
+                                {% if pedido.status == 'SOLICITADO' %}bg-primary
+                                {% elif pedido.status == 'COTACAO' %}bg-warning
+                                {% elif pedido.status == 'APROVADO' %}bg-success
+                                {% else %}bg-secondary{% endif %} bg-opacity-10 
+                                {% if pedido.status == 'SOLICITADO' %}text-primary
+                                {% elif pedido.status == 'COTACAO' %}text-warning
+                                {% elif pedido.status == 'APROVADO' %}text-success
+                                {% else %}text-secondary{% endif %} px-3">
+                                {{ pedido.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="{% url 'compras:pedido_detail' pedido.pk %}" class="btn btn-sm btn-light border">
+                                <i class="bi bi-eye"></i> Mapa de Cotação
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <!-- Empty State Premium -->
+            <div class="empty-state-compras p-5 text-center d-flex flex-column align-items-center justify-content-center" style="min-height: 280px;">
+                <div class="empty-icon-ring mb-4">
+                    <div class="empty-icon-inner">
+                        <i class="bi bi-cart"></i>
+                    </div>
+                </div>
+                <h6 class="fw-bold mb-2">Nenhum pedido recente</h6>
+                <p class="text-secondary small mb-4" style="max-width: 280px;">
+                    Nenhum pedido de compra foi solicitado recentemente.
+                </p>
+                <a href="{% url 'compras:pedido_create' %}" class="btn btn-sm btn-primary px-4 py-2 shadow-sm fw-semibold">
+                    <i class="bi bi-plus-lg me-2"></i> Solicitar Compra
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+<style>
+    /* ── Empty State Premium — Compras ── */
+    .card-compras-empty {
+        background: linear-gradient(135deg,
+            rgba(59, 130, 246, 0.10) 0%,
+            rgba(139, 92, 246, 0.04) 55%,
+            rgba(16, 185, 129, 0.06) 100%) !important;
+        border: 1px solid rgba(59, 130, 246, 0.20) !important;
+        border-top: 4px solid #3b82f6 !important;
+    }
+    [data-bs-theme="dark"] .card-compras-empty {
+        background: linear-gradient(135deg,
+            rgba(59, 130, 246, 0.08) 0%,
+            rgba(139, 92, 246, 0.03) 55%,
+            rgba(16, 185, 129, 0.05) 100%) !important;
+        border-color: rgba(59, 130, 246, 0.25) !important;
+    }
+
+    /* Ícone com anel de brilho */
+    .empty-icon-ring {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .empty-icon-ring::before {
+        content: '';
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(59, 130, 246, 0.12);
+        animation: pulse-ring 2.5s ease-in-out infinite;
+    }
+    .empty-icon-inner {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(59,130,246,0.25), rgba(139,92,246,0.15));
+        border: 2px solid rgba(59, 130, 246, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+    }
+    .empty-icon-inner i {
+        font-size: 1.5rem;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    @keyframes pulse-ring {
+        0%   { transform: scale(0.92); opacity: 0.6; }
+        50%  { transform: scale(1.08); opacity: 0.2; }
+        100% { transform: scale(0.92); opacity: 0.6; }
+    }
+</style>
+{% endblock %}

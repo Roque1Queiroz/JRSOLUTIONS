@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Cliente: {{ cliente.nome }}{% endblock %}
+{% block page_title %}Perfil do Cliente{% endblock %}
+
+{% block content %}
+<div class="row g-4 animate-init">
+    <!-- Card de Informações do Cliente -->
+    <div class="col-md-4">
+        <div class="premium-form-card">
+            <div class="text-center mb-4">
+                <div class="avatar-placeholder mx-auto mb-3">
+                    <span class="fs-1 fw-bold text-primary">{{ cliente.nome|slice:":1"|upper }}</span>
+                </div>
+                <h4 class="fw-bold mb-1">{{ cliente.nome }}</h4>
+                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">Cliente Ativo</span>
+            </div>
+
+            <hr class="opacity-10 my-4">
+
+            <div class="client-info-list">
+                <div class="mb-3">
+                    <label class="text-secondary small fw-bold text-uppercase d-block mb-1">Contato</label>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-envelope text-primary"></i>
+                        <span>{{ cliente.email|default:"---" }}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 mt-2">
+                        <i class="bi bi-telephone text-primary"></i>
+                        <span>{{ cliente.telefone|default:"---" }}</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-secondary small fw-bold text-uppercase d-block mb-1">Endereço</label>
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="bi bi-geo-alt text-primary mt-1"></i>
+                        <span>{{ cliente.endereco|default:"Endereço não cadastrado" }}</span>
+                    </div>
+                </div>
+
+                <div class="mb-0">
+                    <label class="text-secondary small fw-bold text-uppercase d-block mb-1">Registro</label>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-calendar-check text-primary"></i>
+                        <span>Desde {{ cliente.criado_em|date:"d/m/Y" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 mt-5">
+                <a href="{% url 'clientes:cliente_update' cliente.id %}" class="btn btn-primary fw-bold">
+                    <i class="bi bi-pencil-square me-2"></i> Editar Cadastro
+                </a>
+                <a href="{% url 'vendas:venda_create' %}?cliente={{ cliente.id }}" class="btn btn-success fw-bold">
+                    <i class="bi bi-cart-plus me-2"></i> Nova Venda
+                </a>
+                <a href="{% url 'clientes:cliente_list' %}" class="btn btn-outline-secondary fw-semibold">
+                    <i class="bi bi-arrow-left me-2"></i> Voltar à Lista
+                </a>
+                <div class="mt-2 text-center">
+                    <a href="{% url 'clientes:cliente_delete' cliente.id %}" class="text-danger small text-decoration-none">
+                        <i class="bi bi-trash"></i> Excluir Cliente
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Histórico de Vendas -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem;">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0">Histórico de Vendas</h5>
+                <p class="text-secondary small">Últimas transações realizadas para este cliente.</p>
+            </div>
+            <div class="card-body p-0">
+                {% if vendas_cliente %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light bg-opacity-50">
+                            <tr>
+                                <th class="ps-4">Data</th>
+                                <th>Status</th>
+                                <th class="text-end pe-4">Valor Total</th>
+                                <th class="text-center" style="width: 80px;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venda in vendas_cliente %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark">{{ venda.data_venda|date:"d/m/Y" }}</div>
+                                    <div class="text-secondary small">#{{ venda.id }}</div>
+                                </td>
+                                <td>
+                                    {% if venda.status == 'confirmada' %}
+                                        <span class="badge bg-success bg-opacity-10 text-success">Confirmada</span>
+                                    {% elif venda.status == 'rascunho' %}
+                                        <span class="badge bg-warning bg-opacity-10 text-warning text-dark">Rascunho</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ venda.status|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end pe-4 fw-bold">R$ {{ venda.valor_total|floatformat:2 }}</td>
+                                <td class="text-center">
+                                    <a href="{% url 'vendas:venda_detail' venda.pk %}" class="btn btn-sm btn-light border" title="Ver Detalhes">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-3 text-secondary opacity-25">
+                        <i class="bi bi-receipt fs-1"></i>
+                    </div>
+                    <h6 class="text-secondary">Nenhuma venda encontrada</h6>
+                    <p class="text-muted small">Este cliente ainda não possui histórico de compras.</p>
+                    <a href="{% url 'vendas:venda_create' %}?cliente={{ cliente.id }}" class="btn btn-sm btn-outline-primary mt-2">
+                        Registrar Primeira Venda
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-placeholder {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(79, 70, 229, 0.05));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid rgba(79, 70, 229, 0.2);
+    }
+    .client-info-list i {
+        width: 20px;
+    }
+</style>
+{% endblock %}

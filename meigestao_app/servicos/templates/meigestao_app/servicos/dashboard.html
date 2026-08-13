@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block page_title %}Gestão de Serviços{% endblock %}
+
+{% block content %}
+{% include "layout/_hero.html" with title="Ordens de Serviço" subtitle="Gerenciamento de serviços externos, manufatura e manutenção interna." eyebrow="Operacional" primary_button_text="Nova O.S." primary_button_url="/servicos/criar/" glow_color_1="245, 158, 11" glow_color_2="217, 70, 239" %}
+
+<div class="row mb-5 g-4 animate-init">
+    <div class="col-md-4">
+        <div class="card card-accent card-accent-warning border-0 p-4 text-center">
+            <p class="small fw-bold text-uppercase mb-1 opacity-75">O.S. Abertas</p>
+            <h3 class="fw-bold mb-0 text-warning">{{ os_abertas|default:0 }}</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-accent card-accent-info border-0 p-4 text-center">
+            <p class="small fw-bold text-uppercase mb-1 opacity-75">Em Execução</p>
+            <h3 class="fw-bold mb-0 text-info">{{ os_em_execucao|default:0 }}</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-accent card-accent-success border-0 p-4 text-center">
+            <p class="small fw-bold text-uppercase mb-1 opacity-75">Finalizadas</p>
+            <h3 class="fw-bold mb-0 text-success">{{ os_finalizadas|default:0 }}</h3>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm animate-init card-os-empty" style="animation-delay: 0.1s; overflow: hidden;">
+    <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0">Atividades Recentes</h5>
+        <a href="{% url 'servicos:os_list' %}" class="btn btn-sm btn-outline-secondary">Ver Tudo</a>
+    </div>
+    <div class="card-body p-0">
+        {% if ultimas_os %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Código</th>
+                        <th>Tipo</th>
+                        <th>Cliente/Setor</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for os in ultimas_os %}
+                    <tr>
+                        <td class="ps-4 fw-bold">#{{ os.id }}</td>
+                        <td>{{ os.get_tipo_display }}</td>
+                        <td>{{ os.cliente.nome|default:"Manufatura/Interno" }}</td>
+                        <td>
+                            <span class="badge rounded-pill 
+                                {% if os.status == 'ABERTA' %}bg-warning
+                                {% elif os.status == 'EXECUCAO' %}bg-info
+                                {% elif os.status == 'FINALIZADA' %}bg-success
+                                {% else %}bg-secondary{% endif %} bg-opacity-10 
+                                {% if os.status == 'ABERTA' %}text-warning
+                                {% elif os.status == 'EXECUCAO' %}text-info
+                                {% elif os.status == 'FINALIZADA' %}text-success
+                                {% else %}text-secondary{% endif %} px-3">
+                                {{ os.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="{% url 'servicos:os_detail' os.pk %}" class="btn btn-sm btn-light border">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <!-- Empty State Premium -->
+            <div class="empty-state-os p-5 text-center d-flex flex-column align-items-center justify-content-center" style="min-height: 280px;">
+                <div class="empty-icon-ring mb-4">
+                    <div class="empty-icon-inner">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                </div>
+                <h6 class="fw-bold mb-2">Nenhuma atividade recente</h6>
+                <p class="text-secondary small mb-4" style="max-width: 280px;">
+                    Não há ordens de serviço sendo executadas no momento.
+                </p>
+                <a href="/servicos/criar/" class="btn btn-sm btn-primary px-4 py-2 shadow-sm fw-semibold">
+                    <i class="bi bi-plus-lg me-2"></i> Nova O.S.
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+<style>
+    /* ── Empty State Premium — Ordem de Serviço ── */
+    .card-os-empty {
+        background: linear-gradient(135deg,
+            rgba(245, 158, 11, 0.10) 0%,
+            rgba(251, 191, 36, 0.04) 55%,
+            rgba(217, 70, 239, 0.06) 100%) !important;
+        border: 1px solid rgba(245, 158, 11, 0.20) !important;
+        border-top: 4px solid #f59e0b !important;
+    }
+    [data-bs-theme="dark"] .card-os-empty {
+        background: linear-gradient(135deg,
+            rgba(245, 158, 11, 0.08) 0%,
+            rgba(251, 191, 36, 0.03) 55%,
+            rgba(217, 70, 239, 0.05) 100%) !important;
+        border-color: rgba(245, 158, 11, 0.25) !important;
+    }
+
+    /* Ícone com anel de brilho */
+    .empty-icon-ring {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .empty-icon-ring::before {
+        content: '';
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(245, 158, 11, 0.12);
+        animation: pulse-ring 2.5s ease-in-out infinite;
+    }
+    .empty-icon-inner {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(245,158,11,0.25), rgba(217,70,239,0.15));
+        border: 2px solid rgba(245, 158, 11, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+    }
+    .empty-icon-inner i {
+        font-size: 1.5rem;
+        background: linear-gradient(135deg, #f59e0b, #d946ef);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    @keyframes pulse-ring {
+        0%   { transform: scale(0.92); opacity: 0.6; }
+        50%  { transform: scale(1.08); opacity: 0.2; }
+        100% { transform: scale(0.92); opacity: 0.6; }
+    }
+</style>
+{% endblock %}

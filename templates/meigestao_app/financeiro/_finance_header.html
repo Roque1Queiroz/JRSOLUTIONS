@@ -1,0 +1,8 @@
+{% firstof flow_page_title flow_heading flow_form_title flow_detail_page_title flow_delete_page_title "Gestão Financeira" as header_title %}
+{% firstof flow_subtitle flow_form_subtitle "Organize entradas e saídas do seu caixa." as header_subtitle %}
+{% include "layout/_hero.html" with title=header_title subtitle=header_subtitle eyebrow="Central Financeira" primary_button_text=flow_create_button_label|default:"Nova Transação" primary_button_url=flow_create_url secondary_button_url=flow_list_url tertiary_button_url=show_print|yesno:"javascript:window.print()," glow_color_1="79, 70, 229" glow_color_2="14, 165, 233" tabs=tabs_data %}
+
+{% comment %}
+    Nota: O componente Hero global agora lida com os gradientes, sombras e responsividade.
+    As abas do financeiro são passadas dinamicamente para manter a funcionalidade original.
+{% endcomment %}

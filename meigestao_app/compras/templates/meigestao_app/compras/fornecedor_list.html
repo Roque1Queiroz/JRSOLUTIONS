@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block page_title %}Fornecedores{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm animate-init">
+    <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="fw-bold mb-1">Gestão de Fornecedores</h4>
+            <p class="text-muted small mb-0">Parceiros comerciais e prestadores de serviço.</p>
+        </div>
+        <a href="{% url 'compras:fornecedor_create' %}" class="btn btn-primary px-4 shadow-sm">
+            <i class="bi bi-plus-lg me-1"></i> Novo Fornecedor
+        </a>
+    </div>
+    <div class="card-body p-0 mt-3">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Nome/Razão Social</th>
+                        <th>CNPJ</th>
+                        <th>Contato</th>
+                        <th>Email</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-end pe-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in fornecedores %}
+                    <tr>
+                        <td class="ps-4 fw-bold text-dark">{{ f.nome }}</td>
+                        <td class="text-muted">{{ f.cnpj|default:"---" }}</td>
+                        <td>{{ f.telefone|default:"---" }}</td>
+                        <td>{{ f.email|default:"---" }}</td>
+                        <td class="text-center">
+                            {% if f.ativo %}
+                                <span class="badge rounded-pill bg-success bg-opacity-10 text-success border-0 px-3">Ativo</span>
+                            {% else %}
+                                <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger border-0 px-3">Inativo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="#" class="btn btn-sm btn-light border" title="Ver Histórico">
+                                <i class="bi bi-clock-history"></i>
+                            </a>
+                            <a href="{% url 'compras:fornecedor_edit' f.pk %}" class="btn btn-sm btn-light border" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            Nenhum fornecedor cadastrado para esta empresa.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

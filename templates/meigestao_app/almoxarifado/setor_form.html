@@ -1,0 +1,71 @@
+{% extends "meigestao_app/almoxarifado/base_almoxarifado.html" %}
+
+{% block content %}
+<div class="row animate-init">
+    <div class="col-md-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h4 class="fw-bold mb-1">{% if form.instance.pk %}Editar{% else %}Cadastrar{% endif %} Setor / CC</h4>
+                <p class="text-muted small mb-0">Defina o nome e o responsável pelo centro de custo ou departamento.</p>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger border-0 shadow-sm mb-4" style="border-radius: 0.75rem;">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-circle-fill fs-4 me-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Erro no Cadastro</h6>
+                                <ul class="mb-0 small ps-3">
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label-premium">Nome do Setor</label>
+                        {{ form.nome }}
+                        <div class="form-text">Ex: Produção, Vendas, Administrativo.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label-premium">Responsável</label>
+                        {{ form.responsavel }}
+                        <div class="form-text">Quem aprova as requisições deste setor?</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label-premium">Descrição / Observações</label>
+                        {{ form.descricao }}
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end mt-5">
+                        <a href="{% url 'almoxarifado:setor_list' %}" class="btn btn-light border px-4">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold text-uppercase">SALVAR SETOR</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-label-premium {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+</style>
+{% endblock %}

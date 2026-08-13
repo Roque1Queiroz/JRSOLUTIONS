@@ -1,0 +1,58 @@
+﻿:root {
+    --bg-body: #f8f9fa;
+    --bg-light: #ffffff;
+    --bg-dark: #343a40;
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --primary-blue: #007bff;
+    --primary-blue-dark: #0056b3;
+    --border-color: #dee2e6;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --transition-speed: 0.3s ease-in-out;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-body: #212529;
+        --bg-light: #2c3034;
+        --bg-dark: #1a1d20;
+        --text-primary: #e9ecef;
+        --text-secondary: #adb5bd;
+        --primary-blue: #66b3ff;
+        --primary-blue-dark: #3385ff;
+        --border-color: #495057;
+        --shadow-color: rgba(0, 0, 0, 0.3);
+    }
+}
+
+body.dark-mode {
+    --bg-body: #212529;
+    --bg-light: #2c3034;
+    --bg-dark: #1a1d20;
+    --text-primary: #e9ecef;
+    --text-secondary: #adb5bd;
+    --primary-blue: #66b3ff;
+    --primary-blue-dark: #3385ff;
+    --border-color: #495057;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+body {
+    background-color: var(--bg-body);
+    color: var(--text-primary);
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+.navbar { background-color: var(--bg-light) !important; border-bottom-color: var(--border-color) !important; }
+#sidebar-wrapper { background-color: var(--bg-dark); color: var(--text-secondary); }
+#sidebar-wrapper .sidebar-heading { color: #ffffff; }
+#sidebar-wrapper .list-group-item { color: var(--text-secondary); }
+#sidebar-wrapper .list-group-item:hover { color: #ffffff; background-color: rgba(255, 255, 255, 0.1); }
+.card { background-color: var(--bg-light); border-color: var(--border-color); }
+.card-header { background-color: var(--bg-light); color: var(--text-primary); }
+.table { background-color: var(--bg-light); color: var(--text-primary); }
+.table thead { background-color: #e9ecef; color: var(--text-primary); }
+.form-control, .form-select { background-color: var(--bg-light); color: var(--text-primary); border-color: var(--border-color); }
+.footer { background-color: var(--bg-light); border-top-color: var(--border-color) !important; color: var(--text-secondary); }
+.btn-primary { background-color: var(--primary-blue); }
+.btn-primary:hover { background-color: var(--primary-blue-dark); }

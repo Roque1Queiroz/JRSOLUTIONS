@@ -1,0 +1,212 @@
+﻿{% extends "base.html" %}
+
+{% block title %}{% if form.instance.id %}Editar Nota Fiscal{% else %}Nova Nota Fiscal{% endif %} - Sistema Gestor{% endblock %}
+{% block page_title %}Módulo Fiscal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="mb-1 fw-bold">
+                    {% if form.instance.id %}
+                        <i class="bi bi-file-earmark-text text-warning me-2"></i>Edição de Nota Fiscal #{{ form.instance.numero }}
+                    {% else %}
+                        <i class="bi bi-file-earmark-plus text-primary me-2"></i>Emissão de Nota Fiscal
+                    {% endif %}
+                </h4>
+                <p class="text-secondary small mb-0">Consolidação fiscal e tributária da operação.</p>
+            </div>
+            <a href="{% url 'fiscal:nota_fiscal_list' %}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i> Voltar Ã  Lista
+            </a>
+        </div>
+
+        <form method="post" novalidate id="nota-fiscal-form">
+            {% csrf_token %}
+
+            {% if form.errors %}
+                <div class="alert alert-danger border-0 shadow-sm mb-4" style="border-radius: 1rem;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                        <div>
+                            <strong class="d-block">Erro de Validação</strong>
+                            <span class="small">Corrija os campos destacados para prosseguir com a emissão.</span>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="row g-4 mb-4">
+                <div class="col-lg-8">
+                    <!-- Dados Principais -->
+                    <div class="premium-form-card mb-4">
+                        <h6 class="fw-bold mb-4 text-primary small text-uppercase letter-spacing-1">1. Dados do Documento</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.numero.label }}</label>
+                                {{ form.numero }}
+                                {% if form.numero.errors %}<div class="text-danger x-small mt-1">{{ form.numero.errors }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.serie.label }}</label>
+                                {{ form.serie }}
+                                {% if form.serie.errors %}<div class="text-danger x-small mt-1">{{ form.serie.errors }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">{{ form.cliente.label }}</label>
+                                {{ form.cliente }}
+                                {% if form.cliente.errors %}<div class="text-danger x-small mt-1">{{ form.cliente.errors }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">{{ form.venda.label }}</label>
+                                {{ form.venda }}
+                                {% if form.venda.errors %}<div class="text-danger x-small mt-1">{{ form.venda.errors }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tributação -->
+                    <div class="premium-form-card">
+                        <h6 class="fw-bold mb-4 text-primary small text-uppercase letter-spacing-1">2. Tributação & Alíquotas</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Valor ICMS (Crédito)</label>
+                                <div class="input-group-premium">
+                                    <span class="prefix">R$</span>
+                                    {{ form.valor_icms }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Valor IPI</label>
+                                <div class="input-group-premium">
+                                    <span class="prefix">R$</span>
+                                    {{ form.valor_ipi }}
+                                </div>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <label class="form-label">{{ form.descricao.label }}</label>
+                                {{ form.descricao }}
+                                {% if form.descricao.errors %}<div class="text-danger x-small mt-1">{{ form.descricao.errors }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <!-- Financeiro -->
+                    <div class="card border-0 shadow-sm h-100" style="border-radius: 1.25rem; background: var(--color-surface); border: 1px solid var(--color-border) !important;">
+                        <div class="card-body p-4">
+                            <h6 class="fw-bold mb-4 text-dark border-bottom pb-2">Resumo Financeiro</h6>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Situação Fiscal</label>
+                                {{ form.status }}
+                                {% if form.status.errors %}<div class="text-danger x-small mt-1">{{ form.status.errors }}</div>{% endif %}
+                            </div>
+
+                            <hr class="opacity-10 my-4">
+
+                            <div class="mb-3">
+                                <label class="form-label">Subtotal da Nota</label>
+                                <div class="input-group-premium">
+                                    <span class="prefix">R$</span>
+                                    {{ form.valor_subtotal }}
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label text-success">Total de Descontos</label>
+                                <div class="input-group-premium">
+                                    <span class="prefix">-R$</span>
+                                    {{ form.valor_desconto }}
+                                </div>
+                            </div>
+
+                            <div class="p-3 bg-primary bg-opacity-10 rounded-3 mb-4 border border-primary border-opacity-10">
+                                <span class="text-primary small fw-bold text-uppercase d-block mb-1">Valor Final</span>
+                                <h3 class="mb-0 fw-bold text-primary">R$ 0,00</h3>
+                                <span class="text-muted" style="font-size: 10px;">Cálculo automático baseado nos itens</span>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary py-2 fw-bold shadow-sm">
+                                    <i class="bi bi-check-circle me-1"></i> Finalizar Documento
+                                </button>
+                                <a href="{% url 'fiscal:nota_fiscal_list' %}" class="btn btn-light py-2 text-muted fw-semibold">
+                                    Descartar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .premium-form-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 1.25rem;
+        padding: 2rem;
+        box-shadow: var(--shadow-sm);
+    }
+    .premium-form-card input, 
+    .premium-form-card select, 
+    .premium-form-card textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--color-border);
+        border-radius: 0.75rem;
+        font-size: 0.9rem;
+        background: var(--color-background);
+        color: var(--color-text-primary);
+        transition: all 0.2s ease;
+    }
+    .premium-form-card input:focus, 
+    .premium-form-card select:focus, 
+    .premium-form-card textarea:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+    .premium-form-card label {
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        margin-bottom: 0.4rem;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .input-group-premium {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        background: var(--color-background);
+        border: 1px solid var(--color-border);
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+    .input-group-premium .prefix {
+        padding: 0.75rem 0.75rem 0.75rem 1rem;
+        background: rgba(0,0,0,0.02);
+        color: var(--color-text-secondary);
+        font-weight: bold;
+        font-size: 0.85rem;
+        border-right: 1px solid var(--color-border);
+    }
+    .input-group-premium input {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
+    .x-small { font-size: 11px; }
+    .text-dark { color: var(--color-text-primary) !important; }
+    
+    [data-bs-theme="dark"] .input-group-premium .prefix {
+        background: rgba(255,255,255,0.03);
+    }
+</style>
+{% endblock %}

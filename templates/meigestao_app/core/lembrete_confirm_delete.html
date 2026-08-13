@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block page_title %}Excluir Lembrete{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center animate-init">
+    <div class="col-lg-6">
+        <div class="premium-form-card p-5 shadow-lg text-center">
+            <div class="form-icon-circle bg-danger bg-opacity-10 text-danger mx-auto mb-4">
+                <i class="bi bi-trash"></i>
+            </div>
+            
+            <h2 class="fw-extrabold mb-3">Excluir Lembrete?</h2>
+            <p class="text-muted mb-5">
+                Você está prestes a excluir permanentemente esta anotação: <br>
+                <strong class="text-dark">"{{ object.titulo }}"</strong>
+                <br><br>
+                Deseja continuar?
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex gap-3 justify-content-center">
+                    <button type="submit" class="btn btn-danger px-5 py-3 fw-bold shadow-sm">
+                        <i class="bi bi-trash-fill me-2"></i> CONFIRMAR EXCLUSÃO
+                    </button>
+                    <a href="{% url 'core:dashboard' %}" class="btn btn-light border px-5 py-3">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-icon-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+    }
+    .fw-extrabold { font-weight: 800; }
+</style>
+{% endblock %}

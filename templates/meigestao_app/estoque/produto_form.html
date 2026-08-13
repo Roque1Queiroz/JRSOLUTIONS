@@ -1,0 +1,112 @@
+﻿{% extends "base.html" %}
+
+{% block title %}
+  {% if form.instance.pk %}Editar Produto{% else %}Novo Produto{% endif %} - Sistema Gestor
+{% endblock %}
+{% block page_title %}Estoque e Inventário{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-10 col-lg-8">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="mb-1 fw-bold">
+          {% if form.instance.pk %}
+            <i class="bi bi-pencil-square text-warning me-2"></i>Editar Produto
+          {% else %}
+            <i class="bi bi-box-seam text-primary me-2"></i>Novo Produto no Estoque
+          {% endif %}
+        </h4>
+        <p class="text-secondary small mb-0">Preencha os detalhes e métricas financeiras do produto.</p>
+      </div>
+      <a href="{% url 'estoque:produto_list' %}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2">
+        <i class="bi bi-arrow-left"></i> Voltar
+      </a>
+    </div>
+
+    <div class="premium-form-container">
+      <form method="post" class="needs-validation">
+        {% csrf_token %}
+        
+        <!-- Seção 1: Informações do Produto -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <h5 class="fw-bold mb-0 text-primary small text-uppercase letter-spacing-1">1. Informações do Produto</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label for="{{ form.nome.id_for_label }}" class="form-label small fw-bold text-secondary">NOME DO PRODUTO</label>
+                        {{ form.nome }}
+                        {{ form.nome.errors }}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="{{ form.sku.id_for_label }}" class="form-label small fw-bold text-secondary">SKU / CÓDIGO</label>
+                        {{ form.sku }}
+                        {{ form.sku.errors }}
+                    </div>
+                    <div class="col-md-12">
+                        <label for="{{ form.categoria.id_for_label }}" class="form-label small fw-bold text-secondary">CATEGORIA</label>
+                        {{ form.categoria }}
+                        {{ form.categoria.errors }}
+                    </div>
+                    <div class="col-md-12">
+                        <label for="{{ form.descricao.id_for_label }}" class="form-label small fw-bold text-secondary">DESCRIÇÃO DETALHADA</label>
+                        {{ form.descricao }}
+                        {{ form.descricao.errors }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção 2: Financeiro & Status -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <h5 class="fw-bold mb-0 text-primary small text-uppercase letter-spacing-1">2. Precificação & Disponibilidade</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.preco_custo.id_for_label }}" class="form-label small fw-bold text-secondary">PREÇO DE CUSTO (R$)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">R$</span>
+                            {{ form.preco_custo }}
+                        </div>
+                        {{ form.preco_custo.errors }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.preco_venda.id_for_label }}" class="form-label small fw-bold text-secondary">PREÇO DE VENDA (R$)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">R$</span>
+                            {{ form.preco_venda }}
+                        </div>
+                        {{ form.preco_venda.errors }}
+                    </div>
+                    <div class="col-12 mt-4">
+                        <div class="form-check form-switch p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between">
+                            <div>
+                                <label class="form-check-label fw-bold text-secondary mb-0 p-0" for="{{ form.ativo.id_for_label }}">Produto Ativo no Sistema</label>
+                                <p class="small text-muted mb-0">Se desativado, o produto não aparecerá nas telas de venda.</p>
+                            </div>
+                            {{ form.ativo }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-3 mt-4 pt-3">
+          <a href="{% url 'estoque:produto_list' %}" class="btn btn-outline-secondary fw-semibold px-4">
+            Descartar Alterações
+          </a>
+          <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm">
+            <i class="bi bi-check2-circle me-1"></i> {% if form.instance.pk %}Salvar Alterações{% else %}Confirmar Cadastro{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

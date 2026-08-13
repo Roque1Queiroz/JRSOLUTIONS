@@ -1,0 +1,34 @@
+# Pastas e arquivos locais de desenvolvimento
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Banco de dados local e backups
+*.sqlite3
+*.bak
+db.sqlite3
+backup_*
+Arquivo_Morto/
+
+# Arquivos de ambiente e segredos
+.env
+.env.example
+
+# Versionamento e IDEs
+.git/
+.gitignore
+.vscode/
+
+# Arquivos de mídia e estáticos locais (gerenciados por volumes)
+media/
+staticfiles/
+
+# Logs e arquivos temporários
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+pytest.ini

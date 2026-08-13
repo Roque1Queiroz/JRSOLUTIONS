@@ -1,0 +1,9 @@
+﻿{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1>Painel de Controle</h1>
+    <p>Bem-vindo ao sistema Sistema Gestor.</p>
+    <hr>
+    <a href="{% url 'clientes:cliente_list' %}" class="btn btn-primary">Gerenciar Clientes</a>
+</div>
+{% endblock %}

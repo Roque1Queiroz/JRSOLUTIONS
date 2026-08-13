@@ -1,0 +1,5 @@
+{% load i18n %}
+<nav class="nav-sidebar">
+  <input type="text" id="nav-filter" placeholder="{% translate 'Digite para filtrar…' %}" aria-label="{% translate 'Filtro de navegação' %}">
+  {% include 'admin/app_list.html' with app_list=app_list %}
+</nav>

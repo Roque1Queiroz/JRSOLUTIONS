@@ -1,0 +1,233 @@
+﻿
+{% extends "meigestao_app/base.html" %}
+
+{% block title %}Dashboard - Mei_Gestão{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-1"><i class="fas fa-chart-line" style="color: #10528a;"></i> Dashboard</h1>
+            <p class="text-muted">Bem-vindo ao Mei_Gestão - Visão geral do seu negócio</p>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total de Vendas</h6>
+                            <h3 class="mb-0" style="color: #10528a;">R$ 45.320</h3>
+                        </div>
+                        <i class="fas fa-shopping-cart fa-3x" style="color: #10528a; opacity: 0.2;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total de Clientes</h6>
+                            <h3 class="mb-0" style="color: #4CAF50;">342</h3>
+                        </div>
+                        <i class="fas fa-users fa-3x" style="color: #4CAF50; opacity: 0.2;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Produtos em Estoque</h6>
+                            <h3 class="mb-0" style="color: #ff9800;">1.245</h3>
+                        </div>
+                        <i class="fas fa-box fa-3x" style="color: #ff9800; opacity: 0.2;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Receita do Mês</h6>
+                            <h3 class="mb-0" style="color: #2196F3;">R$ 12.540</h3>
+                        </div>
+                        <i class="fas fa-dollar-sign fa-3x" style="color: #2196F3; opacity: 0.2;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Vendas por Mês</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="vendas-chart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-pie-chart"></i> Distribuição de Produtos</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="produtos-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Últimas Vendas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr style="background-color: #f8f9fa;">
+                                    <th>ID</th>
+                                    <th>Cliente</th>
+                                    <th>Valor</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#001</td>
+                                    <td>João Silva</td>
+                                    <td>R$ 1.200</td>
+                                    <td>10/03/2026</td>
+                                </tr>
+                                <tr>
+                                    <td>#002</td>
+                                    <td>Maria Santos</td>
+                                    <td>R$ 850</td>
+                                    <td>09/03/2026</td>
+                                </tr>
+                                <tr>
+                                    <td>#003</td>
+                                    <td>Pedro Costa</td>
+                                    <td>R$ 2.100</td>
+                                    <td>08/03/2026</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user-plus"></i> Clientes Recentes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr style="background-color: #f8f9fa;">
+                                    <th>Nome</th>
+                                    <th>Email</th>
+                                    <th>Telefone</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Ana Silva</td>
+                                    <td>ana@email.com</td>
+                                    <td>(11) 99999-1111</td>
+                                </tr>
+                                <tr>
+                                    <td>Carlos Mendes</td>
+                                    <td>carlos@email.com</td>
+                                    <td>(11) 99999-2222</td>
+                                </tr>
+                                <tr>
+                                    <td>Lucia Oliveira</td>
+                                    <td>lucia@email.com</td>
+                                    <td>(11) 99999-3333</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const vendasCtx = document.getElementById('vendas-chart').getContext('2d');
+    new Chart(vendasCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+            datasets: [{
+                label: 'Vendas (R$)',
+                data: [12000, 15000, 10000, 18000, 22000, 20000],
+                borderColor: '#10528a',
+                backgroundColor: 'rgba(16, 82, 138, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#10528a',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: true, position: 'top' } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+    
+    const produtosCtx = document.getElementById('produtos-chart').getContext('2d');
+    new Chart(produtosCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Eletrônicos', 'Roupas', 'Alimentos', 'Outros'],
+            datasets: [{
+                data: [30, 25, 20, 25],
+                backgroundColor: ['#10528a', '#4CAF50', '#ff9800', '#2196F3'],
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: true, position: 'bottom' } }
+        }
+    });
+</script>
+
+<style>
+    .border-left-primary { border-left: 4px solid #10528a; }
+    .border-left-success { border-left: 4px solid #4CAF50; }
+    .border-left-warning { border-left: 4px solid #ff9800; }
+    .border-left-info { border-left: 4px solid #2196F3; }
+</style>
+{% endblock %}
+

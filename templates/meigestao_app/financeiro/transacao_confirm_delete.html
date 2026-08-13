@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block page_title %}{{ flow_delete_page_title|default:"Excluir Transação" }}{% endblock %}
+
+{% block content %}
+{% include "meigestao_app/financeiro/_finance_header.html" with flow_delete_page_title=flow_delete_page_title flow_list_url=flow_list_url %}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-lg text-center overflow-hidden">
+            <div class="card-header bg-danger bg-opacity-10 py-5 border-0">
+                <div class="rounded-circle bg-danger bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <i class="bi bi-trash-fill text-danger fs-1"></i>
+                </div>
+                <h3 class="fw-bold text-danger mb-0">{{ flow_delete_heading|default:"Confirmar Exclusão" }}</h3>
+            </div>
+            <div class="card-body p-5">
+                <p class="text-muted fs-5 mb-4">
+                    Você está prestes a excluir permanentemente a {{ flow_singular|default:"transação"|lower }}:<br>
+                    <strong class="text-dark">"{{ transacao.descricao }}"</strong> no valor de <strong class="text-{% if transacao.tipo == 'receita' or transacao.tipo == 'entrada' %}success{% else %}danger{% endif %}">R$ {{ transacao.valor|floatformat:2 }}</strong>.
+                </p>
+                <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center text-start" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                    <div>
+                        Esta ação não pode ser desfeita. O saldo da conta será recalculado automaticamente.
+                    </div>
+                </div>
+                
+                <form method="post" class="mt-5">
+                    {% csrf_token %}
+                    <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                        <a href="{% url flow_detail_url_name transacao.pk %}" class="btn btn-outline-secondary px-5 py-2">
+                            <i class="bi bi-x-circle me-2"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger px-5 py-2 shadow-sm">
+                            <i class="bi bi-trash me-2"></i> Confirmar Exclusão
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

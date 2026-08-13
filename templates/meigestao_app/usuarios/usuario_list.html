@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Usuários - Sistema Gestor{% endblock %}
+{% block page_title %}Sistema e Segurança{% endblock %}
+
+{% block content %}
+{% include "layout/_hero.html" with title="Gestão de Usuários" subtitle="Administre o acesso e credenciais de colaboradores com segurança." eyebrow="Controle de Acesso" primary_button_text="Convidar Membro" primary_button_url="/admin/auth/user/add/" glow_color_1="79, 70, 229" glow_color_2="14, 165, 233" %}
+
+<div class="card border-0 mb-4 shadow-sm">
+    <div class="card-body p-0">
+        {% if usuarios %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="ps-4">Usuário</th>
+                            <th scope="col">Grupo / Permissão</th>
+                            <th scope="col" class="text-center">Acesso Autorizado</th>
+                            <th scope="col" class="text-center pe-4" width="130">Ações Admin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reg_user in usuarios %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; font-weight: 700;">
+                                        {{ reg_user.usuario.username|make_list|first|upper }}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold text-dark">{{ reg_user.usuario.username }}</h6>
+                                        <small class="text-secondary">#{{ reg_user.id }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge-soft-info"><i class="bi bi-shield-lock"></i> {{ reg_user.get_permissao_display|default:"Colaborador Base" }}</span>
+                            </td>
+                            <td class="text-center">
+                                {% if reg_user.ativo %}
+                                    <span class="badge-soft-success">Acesso Liberado</span>
+                                {% else %}
+                                    <span class="badge-soft-danger">Conta Revogada</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center pe-4">
+                                <a href="/admin/" class="btn btn-sm btn-light text-warning" title="Modificar Conta Admin">
+                                    <i class="bi bi-gear-wide-connected"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <!-- Premium Empty State -->
+            <div class="empty-state">
+                <div class="mb-3">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle" style="width: 100px; height: 100px;">
+                        <i class="bi bi-people fs-1 text-primary m-0" style="opacity: 1;"></i>
+                    </div>
+                </div>
+                <h4>Usuários Restritos</h4>
+                <p>O painel não acusou convidados ou usuários administrativos adicionais em seu escopo.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

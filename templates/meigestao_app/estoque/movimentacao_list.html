@@ -1,0 +1,139 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Movimentações - Sistema Gestor{% endblock %}
+{% block page_title %}Movimentações de Inventário{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h4 class="mb-1 fw-bold">Histórico do Estoque</h4>
+            <p class="text-secondary mb-0 small">Rastreamento de entradas, saídas, ajustes e devoluções.</p>
+        </div>
+        <div>
+            <a href="{% url 'estoque:produto_list' %}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i> Voltar aos Produtos
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros Premium -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label text-secondary small fw-semibold">Gatilho do Movimento</label>
+                <select class="form-select shadow-none" name="tipo">
+                    <option value="">Todas as naturezas</option>
+                    <option value="entrada" {% if request.GET.tipo == 'entrada' %}selected{% endif %}>Entrada Registrada</option>
+                    <option value="saida" {% if request.GET.tipo == 'saida' %}selected{% endif %}>Saída Externa</option>
+                    <option value="ajuste" {% if request.GET.tipo == 'ajuste' %}selected{% endif %}>Ajuste Manual</option>
+                    <option value="devolucao" {% if request.GET.tipo == 'devolucao' %}selected{% endif %}>Devolução</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label text-secondary small fw-semibold">Filtro de Período</label>
+                <select class="form-select shadow-none" name="periodo">
+                    <option value="">Todo o histórico</option>
+                    <option value="hoje" {% if request.GET.periodo == 'hoje' %}selected{% endif %}>Realizado Hoje</option>
+                    <option value="semana" {% if request.GET.periodo == 'semana' %}selected{% endif %}>Última Semana</option>
+                    <option value="mes" {% if request.GET.periodo == 'mes' %}selected{% endif %}>Último Mês Fechado</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100 fw-medium">
+                    Aplicar Filtro <i class="bi bi-funnel ms-1"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 mb-4 shadow-sm">
+    <div class="card-body p-0">
+        {% if movimentacoes %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="ps-4">Item / Produto</th>
+                            <th scope="col">Natureza</th>
+                            <th scope="col" class="text-center">Volume (Qtd)</th>
+                            <th scope="col">Data/Hora</th>
+                            <th scope="col" class="pe-4">Justificativa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in movimentacoes %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-body-secondary rounded flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-box fs-5 text-secondary"></i>
+                                    </div>
+                                    <div>
+                                        <a href="{% url 'estoque:produto_detail' mov.produto.id %}" class="fw-bold text-decoration-none text-primary">{{ mov.produto.nome }}</a>
+                                        <span class="d-block text-secondary small">SKU: {{ mov.produto.sku|default:"-" }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if mov.tipo_movimento == 'entrada' %}
+                                    <span class="badge-soft-success"><i class="bi bi-arrow-down-left"></i> Entrada</span>
+                                {% elif mov.tipo_movimento == 'saida' %}
+                                    <span class="badge-soft-danger"><i class="bi bi-arrow-up-right"></i> Saída</span>
+                                {% elif mov.tipo_movimento == 'ajuste' %}
+                                    <span class="badge-soft-warning"><i class="bi bi-sliders"></i> Ajuste</span>
+                                {% elif mov.tipo_movimento == 'devolucao' %}
+                                    <span class="badge-soft-info"><i class="bi bi-arrow-counterclockwise"></i> Devolução</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ mov.tipo_movimento }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center fw-bold fs-6">
+                                {% if mov.tipo_movimento == 'saida' %}-{% else %}+{% endif %}{{ mov.quantidade }}
+                            </td>
+                            <td class="text-secondary small">
+                                <i class="bi bi-clock me-1"></i> {{ mov.data_movimento|date:"d/m/Y H:i" }}
+                            </td>
+                            <td class="pe-4 text-secondary small text-truncate" style="max-width: 200px;" title="{{ mov.motivo }}">
+                                {{ mov.motivo|default:"Nenhum comentário" }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if is_paginated %}
+            <div class="p-3 border-top bg-light text-center rounded-bottom">
+                <nav aria-label="Navegação">
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item"><a class="page-link shadow-none" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                        {% endif %}
+                        <li class="page-item active text-muted"><span class="page-link bg-transparent text-secondary border-0">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                        {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link shadow-none" href="?page={{ page_obj.next_page_number }}">Próxima</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+
+        {% else %}
+            <!-- Premium Empty State -->
+            <div class="empty-state">
+                <div class="mb-3">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-secondary bg-opacity-10 rounded-circle" style="width: 100px; height: 100px;">
+                        <i class="bi bi-clock-history fs-1 text-secondary m-0"></i>
+                    </div>
+                </div>
+                <h4>Nenhum log gravado</h4>
+                <p>Nenhum histórico de movimentação foi detectado sob estes filtros no sistema.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

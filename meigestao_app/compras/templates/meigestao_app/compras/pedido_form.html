@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block page_title %}Solicitar Compra{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center animate-init">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm overflow-hidden">
+            <div class="card-header bg-primary text-white p-4 border-0">
+                <h4 class="fw-bold mb-0">Novas Solicitação de Compra</h4>
+                <p class="small mb-0 opacity-75">Inicie um processo de cotação para novos materiais.</p>
+            </div>
+            <div class="card-body p-4 p-md-5">
+                <div class="alert alert-info border-0 d-flex align-items-center mb-4">
+                    <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                    <div>
+                        Após salvar este pedido, você poderá adicionar os itens e os orçamentos (Mapa de Cotação).
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label for="{{ form.data_prevista.id_for_label }}" class="form-label small fw-bold text-secondary">DATA PREVISTA</label>
+                        {{ form.data_prevista }}
+                        {{ form.data_prevista.errors }}
+                    </div>
+                    <div class="mb-4">
+                        <label for="{{ form.observacoes.id_for_label }}" class="form-label small fw-bold text-secondary">OBSERVAÇÕES</label>
+                        {{ form.observacoes }}
+                        {{ form.observacoes.errors }}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between pt-4 border-top">
+                        <a href="{% url 'compras:dashboard' %}" class="btn btn-light px-4 border">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-5 shadow-sm">
+                            <i class="bi bi-check2-circle me-1"></i> Abrir Solicitação
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

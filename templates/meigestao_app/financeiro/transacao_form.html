@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block page_title %}{{ flow_form_title|default:"Nova Transação" }}{% endblock %}
+
+{% block content %}
+{% include "meigestao_app/financeiro/_finance_header.html" with flow_form_title=flow_form_title flow_form_subtitle=flow_form_subtitle flow_list_url=flow_list_url %}
+
+<div class="row justify-content-center animate-init">
+    <div class="col-lg-8">
+        <div class="premium-form-card p-5 shadow-lg finance-form-panel">
+            <div class="text-center mb-5">
+                <div class="form-icon-circle bg-primary bg-opacity-10 text-primary mx-auto mb-3">
+                    <i class="{{ flow_icon_class|default:'bi bi-cash-stack' }}"></i>
+                </div>
+                <h2 class="fw-extrabold mb-1 underline-heading">{{ flow_form_title|default:"Nova Transação" }}</h2>
+                <p class="text-muted small">{{ flow_form_subtitle|default:"Gerenciamento de entrada e saída do fluxo de caixa." }}</p>
+            </div>
+
+            <form method="post" novalidate id="transacao-form">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger border-0 shadow-sm mb-4 rounded-4" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                            <div><strong>Ops!</strong> Verifique os campos destacados abaixo.</div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-12">
+                        <label class="form-label-premium"><i class="bi bi-building me-2"></i>Empresa</label>
+                        {{ form.empresa }}
+                        {% if form.empresa.errors %}<div class="text-danger small mt-1">{{ form.empresa.errors }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label-premium"><i class="bi bi-pencil-square me-2"></i>Descrição</label>
+                    {{ form.descricao }}
+                    {% if form.descricao.errors %}<div class="text-danger small mt-1">{{ form.descricao.errors }}</div>{% endif %}
+                </div>
+
+                <div class="row g-4 mb-4">
+                    {% if flow_show_tipo_field %}
+                    <div class="col-md-6">
+                        <label class="form-label-premium"><i class="bi bi-tag me-2"></i>Tipo</label>
+                        {{ form.tipo }}
+                    </div>
+                    <div class="col-md-6">
+                    {% else %}
+                    <div class="col-md-12">
+                    {% endif %}
+                        <label class="form-label-premium"><i class="bi bi-grid me-2"></i>Categoria</label>
+                        {{ form.categoria }}
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label-premium"><i class="bi bi-currency-dollar me-2"></i>Valor (R$)</label>
+                        {{ form.valor }}
+                        {% if form.valor.errors %}<div class="text-danger small mt-1">{{ form.valor.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-premium"><i class="bi bi-wallet2 me-2"></i>Conta Bancária</label>
+                        {{ form.conta }}
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label-premium"><i class="bi bi-calendar-event me-2"></i>Data Transação</label>
+                        {{ form.data_transacao }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-premium"><i class="bi bi-calendar-check me-2"></i>Data Vencimento</label>
+                        {{ form.data_vencimento }}
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <div class="premium-form-card p-3 bg-surface-raised border d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon-sm finance-switch-icon bg-success bg-opacity-10 text-success">
+                                <i class="bi bi-check-lg"></i>
+                            </div>
+                            <div>
+                                <span class="fw-bold d-block lh-1">{{ flow_paid_status_label|default:"Liquidada" }}</span>
+                                <small class="text-muted">{{ flow_paid_help_text|default:"Marque se o valor já foi pago ou recebido." }}</small>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch fs-4">
+                            {{ form.paga }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 pt-4 border-top">
+                    <button type="submit" class="btn btn-primary px-5 py-3 fw-bold flex-grow-1 shadow-sm">
+                        <i class="bi bi-save me-2"></i> {{ flow_save_button_label|default:"SALVAR TRANSAÇÃO" }}
+                    </button>
+                    <a href="{{ flow_list_url|default:'#' }}" class="btn btn-light border px-4 py-3">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-icon-circle {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+    }
+    .fw-extrabold { font-weight: 800; }
+    .stat-icon-sm {
+        width: 40px;
+        height: 40px;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .finance-form-panel {
+        background:
+            linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98));
+    }
+    .finance-switch-icon {
+        box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.12);
+    }
+    [data-bs-theme="dark"] .finance-form-panel {
+        background:
+            linear-gradient(180deg, rgba(24,24,27,0.98), rgba(30,31,35,0.98));
+    }
+</style>
+{% endblock %}

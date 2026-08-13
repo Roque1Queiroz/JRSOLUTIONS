@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block page_title %}Manual Técnico - Série HSI{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --doc-primary: #1e466e;
+        --doc-accent: #c0392b;
+        --doc-secondary: #2c3e50;
+        --doc-bg: #ffffff;
+        --doc-muted: #f8fafc;
+        --doc-border: #e2e8f0;
+    }
+
+    .doc-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        background: var(--doc-bg);
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+        padding: 4rem;
+        color: var(--doc-secondary);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Marca d'água ou detalhe decorativo */
+    .doc-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        background: linear-gradient(90deg, var(--doc-primary), var(--doc-accent));
+    }
+
+    .doc-header {
+        border-bottom: 2px solid var(--doc-border);
+        padding-bottom: 2rem;
+        margin-bottom: 3rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .doc-title-main {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--doc-primary);
+        line-height: 1.2;
+        margin: 0;
+    }
+
+    .doc-subtitle {
+        color: var(--doc-accent);
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .section-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--doc-secondary);
+        background: var(--doc-muted);
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem;
+        margin-top: 3.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 6px solid var(--doc-primary);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .sub-section-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--doc-primary);
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--doc-border);
+    }
+
+    .doc-text {
+        font-size: 1.05rem;
+        line-height: 1.7;
+        margin-bottom: 1.25rem;
+        text-align: justify;
+    }
+
+    /* Tabelas Premium */
+    .table-responsive-doc {
+        margin: 1.5rem 0 2.5rem;
+        border-radius: 1rem;
+        border: 1px solid var(--doc-border);
+        overflow: hidden;
+    }
+
+    .table-doc {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: collapse;
+    }
+
+    .table-doc th {
+        background-color: var(--doc-primary);
+        color: white;
+        font-weight: 600;
+        padding: 1rem;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+    }
+
+    .table-doc td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--doc-border);
+        font-size: 0.95rem;
+    }
+
+    .table-doc tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-doc tr:nth-child(even) {
+        background-color: #fcfdfe;
+    }
+
+    /* Avisos e Callouts */
+    .doc-alert {
+        background: #fff9f0;
+        border: 1px solid #ffedd5;
+        border-left: 5px solid #f97316;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        margin: 2rem 0;
+        color: #9a3412;
+    }
+
+    .doc-alert strong {
+        color: #c2410c;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .badge-doc {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: var(--doc-muted);
+        border: 1px solid var(--doc-border);
+        border-radius: 2rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .print-button {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 1000;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--doc-primary);
+        color: white;
+        border: none;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .print-button:hover {
+        transform: scale(1.1);
+        background: var(--doc-accent);
+    }
+
+    @media print {
+        .no-print, .sidebar, .topbar, .print-button {
+            display: none !important;
+        }
+        .main-content {
+            margin-left: 0 !important;
+            padding: 0 !important;
+        }
+        .doc-container {
+            box-shadow: none;
+            margin: 0;
+            padding: 0;
+            max-width: 100%;
+        }
+        body {
+            background-color: white !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .doc-container {
+            padding: 2rem;
+        }
+        .doc-title-main {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+
+<div class="doc-container">
+    <div class="doc-header">
+        <div>
+            <span class="doc-subtitle">Sistema Gestor - Suporte Técnico</span>
+            <h1 class="doc-title-main">Acionador de Motor de Elevador</h1>
+            <p class="text-muted">Série HSI - Manual do Utilizador</p>
+        </div>
+        <div class="text-end d-none d-md-block">
+            {% if empresa_logo_url %}
+                <img src="{{ empresa_logo_url }}" alt="Logo" style="max-height: 80px; border-radius: 8px;">
+            {% endif %}
+            <div class="mt-2 fw-bold text-uppercase small">{{ empresa_nome }}</div>
+        </div>
+    </div>
+
+    <div class="section-title">
+        <i class="bi bi-info-circle-fill"></i> 1. Geral
+    </div>
+    <p class="doc-text">
+        Este manual contém informações cruciais sobre montagem, manutenção, ligações elétricas, diagnóstico de falhas e configuração de parâmetros para os inversores da série HSI (Heytech). Para garantir uma instalação correta e segura, leia atentamente todas as instruções antes de iniciar qualquer procedimento.
+    </p>
+    <p class="doc-text">
+        Site oficial para consulta técnica: <strong>www.heytech.com.tr</strong>
+    </p>
+
+    <div class="section-title">
+        <i class="bi bi-shield-lock-fill"></i> 2. Avisos de Segurança
+    </div>
+    <div class="doc-alert">
+        <strong><i class="bi bi-exclamation-triangle-fill me-2"></i> PROTOCOLO DE SEGURANÇA OBRIGATÓRIO</strong>
+        <ul class="mb-0">
+            <li>As ligações elétricas devem ser executadas apenas por profissionais qualificados.</li>
+            <li>O terminal de terra (PE) do inversor deve ser ligado obrigatoriamente de acordo com as normas.</li>
+            <li>Após desligar a alimentação, aguarde pelo menos <strong>5 minutos</strong> para a descarga total dos capacitores.</li>
+            <li>A manutenção deve ser realizada por técnicos autorizados.</li>
+            <li>Não instale o equipamento em ambientes explosivos ou com gases corrosivos.</li>
+            <li>Utilize cabos com bitola adequada conforme tabela de materiais.</li>
+        </ul>
+    </div>
+
+    <div class="section-title">
+        <i class="bi bi-grid-3x3-gap-fill"></i> 3. Tipo do Inversor & Capacidades
+    </div>
+    <div class="table-responsive-doc">
+        <table class="table-doc">
+            <thead>
+                <tr>
+                    <th>Modelo</th>
+                    <th>Capacidade Nominal (kVA)</th>
+                    <th>Corrente Nominal (A)</th>
+                    <th>Potência Motor (kW)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>HSI055</td><td>8,5</td><td>13</td><td>5,5</td></tr>
+                <tr><td>HSI075</td><td>14</td><td>18</td><td>7,5</td></tr>
+                <tr><td>HSI110</td><td>18</td><td>27</td><td>11</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section-title">
+        <i class="bi bi-cpu-fill"></i> 4. Especificações Técnicas
+    </div>
+    <div class="table-responsive-doc">
+        <table class="table-doc">
+            <tr>
+                <td class="fw-bold w-50">Binário de arranque</td>
+                <td>150% a 0 Hz (PG), 120% a 0,5 Hz (V/F)</td>
+            </tr>
+            <tr>
+                <td class="fw-bold">Tensão máx. saída</td>
+                <td>3F 380/400/415/440/460 V</td>
+            </tr>
+            <tr>
+                <td class="fw-bold">Faixa de frequência</td>
+                <td>0–120 Hz</td>
+            </tr>
+            <tr>
+                <td class="fw-bold">Sobrecarga</td>
+                <td>160% (5s) < 3 Hz / 185% (10s) > 3 Hz</td>
+            </tr>
+            <tr>
+                <td class="fw-bold">Proteção sobretensão</td>
+                <td>> 725 V</td>
+            </tr>
+            <tr>
+                <td class="fw-bold">Temperatura ambiente</td>
+                <td>-10°C a +45°C</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section-title">
+        <i class="bi bi-lightning-charge-fill"></i> 5. Resistor de Frenagem
+    </div>
+    <div class="table-responsive-doc">
+        <table class="table-doc">
+            <thead>
+                <tr>
+                    <th>Modelo</th>
+                    <th>Mínimo (Ω)</th>
+                    <th>Recomendado (Ω)</th>
+                    <th>Potência (W)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>HSI055</td><td>56</td><td>70</td><td>2000 / 1600</td></tr>
+                <tr><td>HSI075</td><td>56</td><td>64</td><td>3200 / 2000</td></tr>
+                <tr><td>HSI110</td><td>34</td><td>40</td><td>4000 / 3200</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section-title">
+        <i class="bi bi-box-seam-fill"></i> 7. Tabela de Materiais Sugeridos
+    </div>
+    <div class="table-responsive-doc">
+        <table class="table-doc">
+            <thead>
+                <tr>
+                    <th>Componente</th>
+                    <th>HSI055</th>
+                    <th>HSI075</th>
+                    <th>HSI110</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Contactores motor</td><td>18 A</td><td>22 A</td><td>32 A</td></tr>
+                <tr><td>Fusível entrada 3F</td><td>20 A</td><td>25 A</td><td>32 A</td></tr>
+                <tr><td>Cabos potência</td><td>2,5 mm²</td><td>4 mm²</td><td>4 mm²</td></tr>
+                <tr><td>UPS recomendado</td><td>1500 VA</td><td>2000 VA</td><td>3000 VA</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section-title">
+        <i class="bi bi-diagram-3-fill"></i> 8. Ligações Elétricas
+    </div>
+    <div class="table-responsive-doc">
+        <table class="table-doc">
+            <tr>
+                <td class="fw-bold bg-light">Terminais Rede</td>
+                <td>R, S, T</td>
+                <td class="fw-bold bg-light">Saída Motor</td>
+                <td>U, V, W</td>
+            </tr>
+            <tr>
+                <td class="fw-bold bg-light">Frenagem</td>
+                <td>BR+, BR-</td>
+                <td class="fw-bold bg-light">Resgate (UPS)</td>
+                <td>BAT</td>
+            </tr>
+            <tr>
+                <td class="fw-bold bg-light">Direção</td>
+                <td>UP / DWN</td>
+                <td class="fw-bold bg-light">Relé Travão</td>
+                <td>QA, QB</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section-title">
+        <i class="bi bi-bug-fill"></i> 12. Códigos de Erro & Diagnóstico
+    </div>
+    <div class="table-responsive-doc">
+        <table class="table-doc">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Descrição</th>
+                    <th>Solução Recomendada</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="badge-doc">ERR 20</span></td>
+                    <td>Sobrecorrente</td>
+                    <td>Verificar resistor, cabos UVW e encoder.</td>
+                </tr>
+                <tr>
+                    <td><span class="badge-doc">ERR 27</span></td>
+                    <td>Sobretensão DC</td>
+                    <td>Aumentar tempo de desaceleração.</td>
+                </tr>
+                <tr>
+                    <td><span class="badge-doc">ERR 31</span></td>
+                    <td>Erro Encoder</td>
+                    <td>Verificar blindagem e conexões do encoder.</td>
+                </tr>
+                <tr>
+                    <td><span class="badge-doc">ERR 41</span></td>
+                    <td>Erro de Travão</td>
+                    <td>Verificar relé e alimentação mecânica.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="doc-alert" style="background: #eff6ff; border-color: #dbeafe; border-left-color: #3b82f6; color: #1e40af;">
+        <strong><i class="bi bi-patch-check-fill me-2"></i> CERTIFICAÇÃO E CONFORMIDADE</strong>
+        Este equipamento atende às normas internacionais de segurança e compatibilidade eletromagnética (EMC).
+    </div>
+
+    <footer class="mt-5 pt-4 border-top text-center text-muted small">
+        <p>© {{ hoje|date:"Y" }} {{ empresa_nome }} - Todos os direitos reservados.<br>
+        Heytech Inverter Series - Documentação Técnica Oficial</p>
+    </footer>
+</div>
+
+<button class="print-button" onclick="window.print()" title="Imprimir Manual">
+    <i class="bi bi-printer-fill fs-4"></i>
+</button>
+
+{% endblock %}
