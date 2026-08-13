@@ -158,6 +158,8 @@ class Venda(BaseModel):
     def clean(self) -> None:
         super().clean()
         errors = {}
+        if self._state.adding and self.status in {'entregue', 'cancelada'}:
+            errors['status'] = 'Uma venda nova não pode nascer em estado terminal.'
         if self.empresa_id and self.cliente_id and self.cliente.empresa_id != self.empresa_id:
             errors['cliente'] = 'O cliente deve pertencer à mesma empresa da venda.'
         if self.desconto is not None and self.desconto < 0:
@@ -165,9 +167,31 @@ class Venda(BaseModel):
         if errors:
             raise ValidationError(errors)
 
+    def validar_transicao_status(self) -> None:
+        if not self.pk:
+            return
+        status_anterior = type(self).objects.filter(pk=self.pk).values_list(
+            'status', flat=True
+        ).first()
+        transicoes_permitidas = {
+            'rascunho': {'rascunho', 'confirmada', 'cancelada'},
+            'confirmada': {'confirmada', 'entregue', 'cancelada'},
+            'entregue': {'entregue'},
+            'cancelada': {'cancelada'},
+        }
+        if self.status not in transicoes_permitidas.get(status_anterior, set()):
+            raise ValidationError(
+                {
+                    'status': (
+                        f'Transição de {status_anterior} para {self.status} não permitida.'
+                    )
+                }
+            )
+
     def save(self, *args, **kwargs) -> None:
         with transaction.atomic():
             self.validar_mutacao_se_nao_liquidada()
+            self.validar_transicao_status()
             self.full_clean()
             super().save(*args, **kwargs)
             self.sincronizar_transacao_financeira()

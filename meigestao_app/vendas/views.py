@@ -211,7 +211,11 @@ class VendaUpdateView(LoginRequiredMixin, EmpresaFormMixin, UpdateView):
                         status_anterior == 'rascunho'
                         and status_solicitado == 'confirmada'
                     )
-                    if confirmar_apos_itens:
+                    cancelar_apos_itens = (
+                        status_anterior == 'confirmada'
+                        and status_solicitado == 'cancelada'
+                    )
+                    if confirmar_apos_itens or cancelar_apos_itens:
                         form.instance.status = status_anterior
 
                     self.object = form.save()
@@ -223,6 +227,10 @@ class VendaUpdateView(LoginRequiredMixin, EmpresaFormMixin, UpdateView):
                         from .services import confirmar_venda
 
                         self.object = confirmar_venda(self.object.pk)
+                    elif cancelar_apos_itens:
+                        from .services import cancelar_venda
+
+                        self.object = cancelar_venda(self.object.pk)
                 
                 logger.info(f"Venda #{self.object.id} atualizada.")
                 messages.success(self.request, 'Alterações salvas com sucesso!')

@@ -126,6 +126,13 @@ class MovimentacaoEstoque(BaseModel):
         blank=True,
         related_name='movimento_saida_estoque',
     )
+    movimento_saida_estornado = models.OneToOneField(
+        'self',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='movimento_devolucao_estoque',
+    )
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='movimentacoes_estoque', null=True)
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='movimentacoes')
     tipo_movimento = models.CharField(max_length=20, choices=TIPO_MOVIMENTO_CHOICES)
@@ -178,9 +185,13 @@ class MovimentacaoEstoque(BaseModel):
 
         self.full_clean()
         criando = self._state.adding
-        if not criando and self.item_venda_id:
+        vinculado_venda = bool(
+            self.item_venda_id or self.movimento_saida_estornado_id
+        )
+        if not criando and vinculado_venda:
             original = type(self).objects.filter(pk=self.pk).values(
                 'item_venda_id',
+                'movimento_saida_estornado_id',
                 'empresa_id',
                 'produto_id',
                 'tipo_movimento',
@@ -188,6 +199,7 @@ class MovimentacaoEstoque(BaseModel):
             ).first()
             campos_economicos = {
                 'item_venda_id': self.item_venda_id,
+                'movimento_saida_estornado_id': self.movimento_saida_estornado_id,
                 'empresa_id': self.empresa_id,
                 'produto_id': self.produto_id,
                 'tipo_movimento': self.tipo_movimento,
@@ -209,7 +221,7 @@ class MovimentacaoEstoque(BaseModel):
 
             # Movimentos de venda são validados e aplicados por trigger de banco,
             # incluindo bulk_create/importações, para impedir prova de baixa falsa.
-            if self.item_venda_id:
+            if self.item_venda_id or self.movimento_saida_estornado_id:
                 return
 
             # Atualizar estoque automaticamente somente na criação.
