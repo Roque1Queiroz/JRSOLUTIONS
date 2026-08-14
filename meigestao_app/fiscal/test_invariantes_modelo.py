@@ -1,5 +1,6 @@
 import pytest
 from django.core.exceptions import ValidationError
+from django.db import DatabaseError, IntegrityError, transaction
 
 from meigestao_app.clientes.models import Cliente
 from meigestao_app.core.models import Empresa
@@ -60,3 +61,116 @@ def test_nota_fiscal_rejeita_venda_de_outro_cliente(dados_fiscais_multitenant):
         nota.full_clean()
 
     assert "venda" in erro.value.message_dict
+
+
+@pytest.mark.django_db
+def test_mesmo_numero_e_serie_podem_existir_em_empresas_diferentes(
+    dados_fiscais_multitenant,
+):
+    empresa_a, cliente_a, _, cliente_b, _ = dados_fiscais_multitenant
+    empresa_b = cliente_b.empresa
+
+    NotaFiscal.objects.create(
+        empresa=empresa_a,
+        cliente=cliente_a,
+        numero='1',
+        serie='1',
+        valor_subtotal='100.00',
+    )
+    nota_b = NotaFiscal.objects.create(
+        empresa=empresa_b,
+        cliente=cliente_b,
+        numero='1',
+        serie='1',
+        valor_subtotal='100.00',
+    )
+
+    assert nota_b.pk is not None
+
+
+@pytest.mark.django_db
+def test_mesmo_numero_pode_existir_em_series_diferentes(
+    dados_fiscais_multitenant,
+):
+    empresa_a, cliente_a, *_ = dados_fiscais_multitenant
+
+    NotaFiscal.objects.create(
+        empresa=empresa_a,
+        cliente=cliente_a,
+        numero='1',
+        serie='1',
+        valor_subtotal='100.00',
+    )
+    nota_serie_2 = NotaFiscal.objects.create(
+        empresa=empresa_a,
+        cliente=cliente_a,
+        numero='1',
+        serie='2',
+        valor_subtotal='100.00',
+    )
+
+    assert nota_serie_2.pk is not None
+
+
+@pytest.mark.django_db
+def test_numero_e_serie_nao_se_repetem_na_mesma_empresa(
+    dados_fiscais_multitenant,
+):
+    empresa_a, cliente_a, *_ = dados_fiscais_multitenant
+    NotaFiscal.objects.create(
+        empresa=empresa_a,
+        cliente=cliente_a,
+        numero='1',
+        serie='1',
+        valor_subtotal='100.00',
+    )
+
+    with pytest.raises((ValidationError, IntegrityError)):
+        with transaction.atomic():
+            NotaFiscal.objects.create(
+                empresa=empresa_a,
+                cliente=cliente_a,
+                numero='1',
+                serie='1',
+                valor_subtotal='100.00',
+            )
+
+
+@pytest.mark.django_db
+def test_queryset_update_nao_pode_emitir_sem_numero(dados_fiscais_multitenant):
+    empresa_a, cliente_a1, *_ = dados_fiscais_multitenant
+    nota = NotaFiscal.objects.create(
+        empresa=empresa_a,
+        cliente=cliente_a1,
+        numero=None,
+        serie='1',
+        status='rascunho',
+        valor_subtotal='100.00',
+    )
+
+    with pytest.raises(DatabaseError):
+        with transaction.atomic():
+            NotaFiscal.objects.filter(pk=nota.pk).update(status='emitida')
+
+    nota.refresh_from_db()
+    assert nota.status == 'rascunho'
+
+
+@pytest.mark.django_db
+def test_queryset_update_nao_pode_cancelar_sem_numero(dados_fiscais_multitenant):
+    empresa_a, cliente_a1, *_ = dados_fiscais_multitenant
+    nota = NotaFiscal.objects.create(
+        empresa=empresa_a,
+        cliente=cliente_a1,
+        numero='',
+        serie='1',
+        status='rascunho',
+        valor_subtotal='100.00',
+    )
+
+    with pytest.raises(DatabaseError):
+        with transaction.atomic():
+            NotaFiscal.objects.filter(pk=nota.pk).update(status='cancelada')
+
+    nota.refresh_from_db()
+    assert nota.status == 'rascunho'

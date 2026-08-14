@@ -1,9 +1,28 @@
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from meigestao_app.core.models import BaseModel, Empresa
 from meigestao_app.clientes.models import Cliente
 from meigestao_app.vendas.models import Venda
+
+
+class NotaFiscalSequencia(models.Model):
+    empresa = models.ForeignKey(
+        Empresa,
+        on_delete=models.CASCADE,
+        related_name='sequencias_notas_fiscais',
+    )
+    serie = models.CharField(max_length=5, default='1')
+    ultimo_numero = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['empresa', 'serie'],
+                name='fiscal_seq_empresa_serie_uniq',
+            )
+        ]
+
 
 class NotaFiscal(BaseModel):
     """Modelo para Notas Fiscais com validações de negócio"""
@@ -18,7 +37,12 @@ class NotaFiscal(BaseModel):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='notas_fiscais')
     venda = models.OneToOneField(Venda, on_delete=models.SET_NULL, null=True, blank=True, related_name='nota_fiscal')
     
-    numero = models.CharField(max_length=20, unique=True, help_text="Número da NF")
+    numero = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
+        help_text="Número da NF",
+    )
     serie = models.CharField(max_length=5, default='1', help_text="Série da NF")
     data_emissao = models.DateTimeField(default=timezone.now)
     data_saida = models.DateTimeField(null=True, blank=True)
@@ -42,6 +66,22 @@ class NotaFiscal(BaseModel):
             models.Index(fields=['cliente', 'data_emissao']),
             models.Index(fields=['status']),
         ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['empresa', 'serie', 'numero'],
+                name='fiscal_nf_empresa_serie_numero_uniq',
+            ),
+            models.CheckConstraint(
+                check=(
+                    ~models.Q(status__in=['emitida', 'cancelada'])
+                    | (
+                        models.Q(numero__isnull=False)
+                        & ~models.Q(numero='')
+                    )
+                ),
+                name='fiscal_nf_status_final_exige_numero',
+            ),
+        ]
     
     def __str__(self):
         return f"NF {self.numero}/{self.serie} - {self.cliente.nome}"
@@ -51,8 +91,10 @@ class NotaFiscal(BaseModel):
         errors = {}
         
         # Validar número da NF
-        if not self.numero or self.numero.strip() == '':
-            errors['numero'] = 'O número da NF é obrigatório.'
+        if self.status in ['emitida', 'cancelada'] and (
+            not self.numero or self.numero.strip() == ''
+        ):
+            errors['numero'] = 'O número da NF é obrigatório para notas emitidas ou canceladas.'
         
         # Validar série
         if not self.serie or self.serie.strip() == '':
@@ -119,10 +161,40 @@ class NotaFiscal(BaseModel):
     
     def emitir(self):
         """Emite a nota fiscal (muda status para emitida)"""
-        if self.status != 'rascunho':
-            raise ValidationError('Apenas rascunhos podem ser emitidos.')
-        self.status = 'emitida'
-        self.save()
+        with transaction.atomic():
+            nota = NotaFiscal.objects.select_for_update().get(pk=self.pk)
+            if nota.status != 'rascunho':
+                raise ValidationError('Apenas rascunhos podem ser emitidos.')
+
+            sequencia = (
+                NotaFiscalSequencia.objects.select_for_update()
+                .filter(empresa=nota.empresa, serie=nota.serie)
+                .first()
+            )
+            if sequencia is None:
+                try:
+                    with transaction.atomic():
+                        sequencia = NotaFiscalSequencia.objects.create(
+                            empresa=nota.empresa,
+                            serie=nota.serie,
+                            ultimo_numero=0,
+                        )
+                except IntegrityError:
+                    sequencia = (
+                        NotaFiscalSequencia.objects.select_for_update().get(
+                            empresa=nota.empresa,
+                            serie=nota.serie,
+                        )
+                    )
+
+            sequencia.ultimo_numero += 1
+            sequencia.save(update_fields=['ultimo_numero'])
+
+            nota.numero = str(sequencia.ultimo_numero)
+            nota.status = 'emitida'
+            nota.save(update_fields=['numero', 'status', 'atualizado_em'])
+            self.numero = nota.numero
+            self.status = nota.status
     
     def cancelar(self):
         """Cancela a nota fiscal"""
