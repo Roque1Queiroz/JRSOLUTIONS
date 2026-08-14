@@ -27,7 +27,6 @@ services:
   web:
     build: .
     container_name: mei_gestao_app
-    command: /app/scripts/entrypoint.sh
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
@@ -49,7 +48,7 @@ services:
   worker:
     build: .
     container_name: mei_gestao_worker
-    command: celery -A mei_gestao worker --loglevel=info
+    command: ["celery", "-A", "config", "worker", "--loglevel=info"]
     volumes:
       - .:/app
     env_file:

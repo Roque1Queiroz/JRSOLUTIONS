@@ -30,6 +30,7 @@ WORKDIR /app
 # Instala apenas bibliotecas de runtime essenciais (como libpq para o PostgreSQL)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
+    postgresql-client \
     curl \
     gettext \
     && rm -rf /var/lib/apt/lists/*
