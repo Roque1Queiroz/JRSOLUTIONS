@@ -1,6 +1,7 @@
 from pathlib import Path
 import environ
 import os
+from celery.schedules import crontab
 
 # Inicializa as variáveis de ambiente
 env = environ.Env(
@@ -152,3 +153,23 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'admin:login'
 
 LOGIN_REDIRECT_URL = '/'
+
+# ---------------------------------------------------------------------------
+# Celery (worker + agendador/beat)
+# ---------------------------------------------------------------------------
+# O broker e o result backend usam o mesmo Redis. Em produção a URL vem da
+# variável de ambiente REDIS_URL (definida no docker-compose.yml).
+CELERY_BROKER_URL = env('REDIS_URL', default='redis://localhost:6379/1')
+CELERY_RESULT_BACKEND = env('REDIS_URL', default='redis://localhost:6379/1')
+CELERY_TIMEZONE = 'America/Sao_Paulo'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+# Relatório financeiro noturno (Cientista Financeiro), diário à 00:00.
+CELERY_BEAT_SCHEDULE = {
+    'bi-financeiro-noturno': {
+        'task': 'meigestao_app.financeiro.tasks.processar_bi_financeiro_noturno',
+        'schedule': crontab(hour=0, minute=0),
+    },
+}

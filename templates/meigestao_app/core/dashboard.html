@@ -328,8 +328,36 @@
     </div>
 </div>
 
+<!-- CIENTISTA FINANCEIRO (Relatório do Dia) -->
+{% if analise %}
+<div class="card border-0 shadow-sm mb-4 overflow-hidden {% if analise.status == 'PERIGO' %}card-gradient-danger{% elif analise.status == 'ALERTA' %}card-gradient-warning{% else %}card-accent-palegreen{% endif %}">
+    <div class="card-body p-4 d-flex flex-column flex-md-row align-items-md-center gap-3">
+        <div class="stat-icon rounded-3 d-flex align-items-center justify-content-center"
+            style="width:54px;height:54px;font-size:1.6rem;
+            {% if analise.status == 'PERIGO' %}background:rgba(220,53,69,.15);color:#dc3545;
+            {% elif analise.status == 'ALERTA' %}background:rgba(255,193,7,.15);color:#b8860b;
+            {% else %}background:rgba(32,201,151,.15);color:#20c997;{% endif %}">
+            <i class="bi {% if analise.status == 'PERIGO' %}bi-exclamation-octagon-fill{% elif analise.status == 'ALERTA' %}bi-exclamation-triangle-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+        </div>
+        <div class="flex-grow-1">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                <h5 class="fw-bold mb-0"><i class="bi bi-stars me-2 text-primary"></i>Cientista Financeiro</h5>
+                <span class="badge bg-white bg-opacity-25 border fw-bold small">Relatório de {{ analise.data }}</span>
+                <span class="badge fw-bold small {% if analise.status == 'PERIGO' %}text-danger{% elif analise.status == 'ALERTA' %}text-warning{% else %}text-success{% endif %}" style="background:rgba(255,255,255,.6);">{{ analise.status }}</span>
+            </div>
+            <p class="mb-2 fw-semibold" style="color: var(--color-text-primary);">{{ analise.mensagem }}</p>
+            <div class="d-flex flex-wrap gap-4 small text-muted">
+                <span><i class="bi bi-arrow-down-circle text-success me-1"></i>Entradas hoje: <strong class="text-success">R$ {{ analise.entradas_hoje|floatformat:2|intcomma }}</strong></span>
+                <span><i class="bi bi-arrow-up-circle text-danger me-1"></i>Saídas hoje: <strong class="text-danger">R$ {{ analise.saidas_hoje|floatformat:2|intcomma }}</strong></span>
+                <span><i class="bi bi-graph-up-arrow text-primary me-1"></i>Projeção fim do dia: <strong class="{% if analise.projecao < 0 %}text-danger{% else %}text-success{% endif %}">R$ {{ analise.projecao|floatformat:2|intcomma }}</strong></span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="row g-4 mb-4">
-    <!-- GRÃFICO DE FATURAMENTO -->
+    <!-- GRÃFICO DE FATURAMENTO -->
     <div class="col-lg-8">
         <div class="card card-chart shadow-sm overflow-hidden {% if has_revenue_data %}h-100{% else %}compact-card{% endif %}">
             <div

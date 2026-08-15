@@ -25,3 +25,12 @@ def test_web_nao_redefine_command_para_o_proprio_entrypoint():
     web_command = compose['services']['web'].get('command')
 
     assert web_command in (None, '')
+
+
+def test_beat_agendador_executa_com_app_correta():
+    compose = yaml.safe_load((BASE_DIR / 'docker-compose.yml').read_text(encoding='utf-8'))
+    beat_command = compose['services']['beat']['command']
+
+    assert isinstance(beat_command, list)
+    assert beat_command[:4] == ['celery', '-A', 'config', 'beat']
+

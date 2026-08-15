@@ -11,7 +11,7 @@ from .models import Empresa
 from meigestao_app.clientes.models import Cliente
 from meigestao_app.estoque.models import Produto, Estoque
 from meigestao_app.vendas.models import Venda, ItemVenda
-from meigestao_app.financeiro.models import ContaBancaria, Transacao, ReciboReembolso
+from meigestao_app.financeiro.models import ContaBancaria, Transacao, ReciboReembolso, RelatorioInteligencia
 from meigestao_app.fiscal.models import NotaFiscal
 from .models import Empresa, Lembrete
 from django.contrib import messages
@@ -83,6 +83,22 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         hoje = timezone.now()
         inicio_mes = hoje.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         empresa = None if self.request.user.is_staff else _get_user_empresa(self.request.user)
+
+        # Análise do Cientista Financeiro: relatório persistido de hoje ou cálculo ao vivo.
+        analise = None
+        if empresa is not None:
+            data_referencia = timezone.localdate()
+            try:
+                relatorio = RelatorioInteligencia.objects.get(
+                    empresa=empresa, data_referencia=data_referencia
+                )
+                analise = relatorio.dados_json
+            except RelatorioInteligencia.DoesNotExist:
+                analise = CientistaFinanceiroService.gerar_analise_matinal(empresa)
+        context['analise'] = analise
+        context['analise_entradas'] = float((analise or {}).get('entradas_hoje') or 0)
+        context['analise_saidas'] = float((analise or {}).get('saidas_hoje') or 0)
+        context['analise_projecao'] = float((analise or {}).get('projecao') or 0)
 
         clientes_qs = Cliente.objects.all() if self.request.user.is_staff else Cliente.objects.filter(empresa=empresa)
         produtos_qs = Produto.objects.all() if self.request.user.is_staff else Produto.objects.filter(empresa=empresa)

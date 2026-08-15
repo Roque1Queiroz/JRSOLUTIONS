@@ -81,3 +81,33 @@ class ReciboReembolso(BaseModel):
 
     def __str__(self):
         return f'{self.item} - R$ {self.valor} ({self.colaborador.usuario.first_name})'
+
+
+class RelatorioInteligencia(BaseModel):
+    """Relatório financeiro gerado pelo worker noturno (Cientista Financeiro)."""
+
+    empresa = models.ForeignKey(
+        Empresa, on_delete=models.CASCADE, related_name='relatorios_inteligencia'
+    )
+    data_referencia = models.DateField(
+        verbose_name='Data de Referência', db_index=True
+    )
+    dados_json = models.JSONField(
+        verbose_name='Dados do Relatório',
+        help_text='Conteúdo da análise: entradas, saídas, projeção, status e mensagem.',
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['empresa', 'data_referencia'],
+                name='uniq_relatorio_inteligencia_empresa_data',
+            )
+        ]
+        ordering = ['-data_referencia']
+        verbose_name = 'Relatório Inteligente'
+        verbose_name_plural = 'Relatórios Inteligentes'
+
+    def __str__(self):
+        return f'Relatório {self.empresa} - {self.data_referencia}'
+
