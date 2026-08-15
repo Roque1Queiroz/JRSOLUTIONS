@@ -62,6 +62,21 @@ O sistema é 100% responsivo. No celular, o menu lateral fica escondido; toque n
 
 O painel administrativo (`/admin/`) é a área de configuração avançada, acessível apenas por administradores. Por ele é possível criar usuários, definir permissões e gerenciar configurações. O sistema também permite a **Personalização de Marca (White Label)**, em que a empresa define o logo e o nome exibidos no topo do menu.
 
+### Planos do sistema e recursos disponíveis
+
+Cada empresa possui um plano contratado, que define permissões, limites e acesso a módulos:
+
+- **Plano Básico:** foco no uso essencial. Permite até **2 usuários** vinculados.
+- **Plano Profissional (PME):** permite até **5 usuários** e inclui recursos de IA e personalização de marca (White Label).
+- **Plano Enterprise (Indústria):** permite até **20 usuários**, abrange todos os recursos do Profissional e inclui também **APIs customizadas** para integrações.
+
+Regras importantes:
+
+- **Limitador de usuários:** o limite de usuários vinculados de uma empresa é controlado pelo plano. Ao tentar criar um usuário além do limite, o sistema bloqueia a criação e avisa que o limite do plano foi atingido.
+- **Assistente de IA (chatbot do Sistema Gestor):** o chat de suporte inteligente **só aparece nos planos Profissional e Enterprise**. Em planos Básicos o widget do assistente não é exibido.
+- **White Label:** logo e nome personalizados da empresa estão disponíveis nos planos Profissional e Enterprise.
+- **APIs customizadas:** disponíveis somente no plano Enterprise.
+
 ---
 
 ## 2. Dashboard (Visão Geral)
