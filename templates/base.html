@@ -1124,8 +1124,9 @@
     <!-- Script do Chat -->
     <script>
         const sessionId = 'session_' + Math.floor(Math.random() * 1000000);
-        // Usamos a porta 8001 para o Chatbot para não conflitar com o Django (8000)
-        const API_URL = 'http://localhost:8001';
+        // O bot do assistente roda como serviço separado na porta 8003, no MESMO
+        // host da página (funciona de qualquer máquina, não apenas localhost).
+        const API_URL = `${window.location.protocol}//${window.location.hostname}:8003`;
 
         function toggleChat() {
             const chatWindow = document.getElementById('chatbot-window');
@@ -1158,7 +1159,7 @@
                 addMessage(data.answer, 'bot');
             } catch (error) {
                 console.error(error);
-                addMessage("Desculpe, ocorreu um erro ao conectar com o assistente. Verifique se o servidor do chatbot está rodando na porta 8001.", 'bot');
+                addMessage("Desculpe, ocorreu um erro ao conectar com o assistente. Verifique se o servidor do chatbot está rodando na porta 8003.", 'bot');
             }
         }
 
