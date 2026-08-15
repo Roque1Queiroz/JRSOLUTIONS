@@ -4,6 +4,16 @@ Este manual é a base de conhecimento oficial do assistente virtual (chatbot) do
 
 O Sistema Gestor é uma plataforma completa de gestão empresarial (também chamada de MEI Gestão), desenvolvida pela JR Solutions Tecnologia. Com ela o usuário controla, em um único lugar acessível pelo navegador: clientes, vendas, estoque, financeiro, fiscal, produção, serviços, compras e relatórios. Funciona 100% pelo navegador de internet, sem necessidade de instalar nenhum programa.
 
+## Comportamento do assistente (chatbot)
+
+Regras que o assistente do Sistema Gestor deve sempre seguir ao responder:
+
+- **Corrigir erros de escrita do usuário.** Se o usuário digitar uma palavra errada ou com ortografia incorreta, o assistente deve entender a intenção, corrigir a grafia e **responder usando a palavra correta** — nunca repetir o erro de escrita na resposta.
+- **Responder sempre em português brasileiro correto**, com acentuação e ortografia adequadas.
+- **Permanecer no escopo do software.** Ajudar apenas com dúvidas sobre os módulos do Sistema Gestor (Acesso e Login, Dashboard, Clientes, Vendas, Produtos e Estoque, Financeiro, Fiscal, Almoxarifado, Produção, O.S., Compras, Relatórios/BI e Planos). Fora desse escopo, orientar educadamente que a pergunta está fora do alcance do assistente.
+- **Ser objetivo e didático**, usando passos claros ao ensinar um procedimento.
+- **Indicar quando não souber:** se a dúvida não estiver coberta neste manual, recomendar contatar o administrador do sistema ou o suporte técnico (JR Solutions Tecnologia).
+
 ---
 
 ## 1. Acesso e Login
@@ -544,6 +554,62 @@ Quando a mercadoria chega, o usuário abre o pedido e muda para **Recebido**. Pa
 ## 11. Relatórios e BI
 
 O sistema oferece a área **BI de Resultados** (Menu Principal), de relatórios avançados e gráficos gerenciais. O BI de Resultados usa o **preço de custo** dos produtos para calcular o lucro real da empresa no fim do mês. Complementarmente, o sistema dispõe de relatórios gerenciais e da DRE, além dos relatórios fiscais gerados pelo módulo Fiscal, que podem ser repassados ao contador.
+
+---
+
+## 12. Erros comuns e como resolver
+
+Quando o sistema mostra uma mensagem de erro, o assistente deve explicar a causa e a solução. Os casos mais comuns:
+
+- **"CPF/CNPJ já cadastrado" (Cliente):** o campo CPF/CNPJ é único no cadastro de clientes. Isso significa que já existe um cliente com esse documento. Verifique o cadastro existente (busque pelo documento) e edite-o em vez de criar outro.
+- **"Estoque insuficiente" (Venda):** a quantidade vendida é maior do que há disponível para o produto. Dê entrada na quantidade no estoque antes de confirmar a venda.
+- **"Limite de usuários do plano atingido":** a empresa já vinculou o número máximo de usuários permitido pelo plano contratado (Básico: 2, Profissional: 5, Enterprise: 20). Para adicionar mais, faça upgrade de plano ou remova um usuário inativo.
+- **"O número da NF é obrigatório para notas emitidas ou canceladas":** ao emitir ou cancelar uma Nota Fiscal é obrigatório informar o número. Preencha o número e a série antes de salvar.
+- **"Serie é obrigatória" (NF):** toda Nota Fiscal precisa de uma série (valor padrão "1").
+- **Uma venda nova não pode nascer em estado Entregue ou Cancelada:** comece como Rascunho ou Confirmada e evolua o status depois.
+- **Transição de status não permitida:** o sistema só aceita caminhos válidos de status (ex.: Cancelada não volta para Confirmada). Verifique o fluxo correto da venda.
+
+## 13. Perguntas Frequentes (FAQ)
+
+- **Esqueci minha senha, como recupero?** O sistema não tem recuperação automática. O administrador redefine a senha pelo painel administrativo.
+- **Posso usar o sistema em mais de um computador ao mesmo tempo?** Sim, o acesso é pela internet; alterações podem exigir atualizar a página (F5) no outro dispositivo.
+- **O sistema funciona sem internet?** Não. Ele roda 100% pelo navegador e precisa de conexão com a internet para acessar o servidor.
+- **Não consigo acessar o sistema.** Confira o endereço, o Caps Lock e se as credenciais estão corretas; se continuar, contate o administrador.
+- **O que é o painel `/admin/`?** É a área de configuração avançada, de uso do administrador, onde se criam usuários, definem permissões e gerenciam configurações.
+- **Por que não vejo o chatbot de IA?** O assistente inteligente só aparece nos planos **Profissional** e **Enterprise**. Em planos **Básicos** ele não é exibido.
+- **O que é "estoque baixo"?** Quando a quantidade de um produto iguala ou fica abaixo da quantidade mínima definida no cadastro, o sistema sinaliza como alerta de estoque baixo.
+- **Como funciona o reembolso?** No módulo Financeiro, o reembolso registra uma devolução de valor ao usuário/colaborador (com prioridade e comprovante) e pode ser vinculado a uma transação.
+- **Para que serve o Cientista Financeiro?** Ele gera automaticamente, à meia-noite, um relatório diário de saúde financeira (entradas, saídas e projeção do dia) exibido no topo do Dashboard, com status SUCESSO, ALERTA ou PERIGO.
+
+## 14. Glossário de termos
+
+- **Dashboard:** tela principal que abre após o login, com indicadores (KPIs) do negócio.
+- **KPI:** Indicador-Chave de Desempenho (ex.: Faturamento do mês, Saldo em caixa, Clientes novos, Estoque baixo).
+- **Sidebar:** menu lateral de navegação entre os módulos.
+- **Topbar:** barra superior com usuário logado, busca, tema claro/escuro e notificações.
+- **Venda:** registro de um negócio de venda, com status Rascunho, Confirmada, Entregue ou Cancelada.
+- **Baixa de estoque:** retirar a quantidade vendida/consumida do saldo do produto.
+- **Estorno:** desfazer um lançamento financeiro ou de estoque (ex.: ao cancelar uma venda).
+- **OP (Ordem de Produção):** ordem de produção (PCP) que transforma matéria-prima em produto acabado.
+- **O.S. (Ordem de Serviço):** registro de um trabalho que leva tempo para ser feito (conserto, instalação, manutenção).
+- **PCP:** Planejamento e Controle de Produção.
+- **SKU:** código interno/de barras do produto; se vazio, o sistema gera automaticamente.
+- **Margem de lucro:** diferença entre o preço de venda e o preço de custo do produto.
+- **NF (Nota Fiscal):** documento fiscal legal de uma venda, com número e série obrigatórios na emissão.
+- **DRE:** Demonstração do Resultado do Exercício, relatório gerencial de receitas e despesas.
+- **BI:** Business Intelligence; no sistema, é a área "BI de Resultados" com gráficos e relatórios gerenciais.
+- **White Label:** personalização da marca (logo e nome da empresa) na interface.
+- **Reembolso:** devolução de um valor pago pelo usuário/colaborador, registrado no módulo Financeiro.
+
+## 15. Guia do Administrador
+
+O administrador usa o painel `/admin/` para configurar o sistema. Principais tarefas:
+
+- **Criar usuário com perfil:** cadastre o usuário de login e, em seguida, crie o **Perfil** vinculando: usuário, empresa, **permissão** (Administrador, Gerente, Vendedor, Operador ou Almoxarife), telefone, data de admissão e status ativo. O limite de usuários da empresa (definido pelo plano) é validado; acima do limite, o sistema bloqueia a criação.
+- **Definir o plano da empresa:** no cadastro da Empresa, selecione o **Plano** (Básico, Profissional/PME ou Enterprise/Indústria). O plano controla limites de usuários e recursos (IA/chatbot, White Label e APIs).
+- **Personalizar a marca (White Label):** nos planos com esse recurso, defina o logo e o nome exibidos no topo do menu.
+- **Redefinir senha de um usuário:** selecione o usuário no painel admin e defina uma nova senha; informe o usuário da nova senha inicial.
+- **Gerenciar usuários:** manter perfis ativos/inativos conforme a equipe da empresa muda.
 
 ---
 

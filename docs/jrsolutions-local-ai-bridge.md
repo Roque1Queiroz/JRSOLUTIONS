@@ -43,7 +43,8 @@ MODEL_NAME = "llama3" # ou o modelo que estiver configurado no seu Ollama
 # System Prompt rigoroso para o MEI Gestão
 SYSTEM_PROMPT = """Você é o Suporte Oficial do SISTEMA MEI Gestão.
 Sua função é ajudar os usuários exclusivamente com dúvidas sobre o software (Vendas, Estoque, Financeiro, Fiscal, Relatórios e BI).
-Seja educado, direto e não responda a perguntas fora desse escopo."""
+Seja educado, direto e não responda a perguntas fora desse escopo.
+Sempre corrija erros de digitação ou ortografia do usuário e responda usando a grafia correta — nunca repita palavras escritas errado; escreva sempre em português brasileiro correto."""
 
 @csrf_exempt # Apenas para o exemplo, idealmente valide o CSRF token no JS
 def chat_suporte_ia(request):
