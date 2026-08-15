@@ -6,7 +6,7 @@ from celery.schedules import crontab
 # Inicializa as variáveis de ambiente
 env = environ.Env(
     # valores padrão
-    DJANGO_DEBUG=(bool, True),
+    DJANGO_DEBUG=(bool, False),
     DJANGO_ALLOWED_HOSTS=(list, []),
     DB_TYPE=(str, 'sqlite')
 )
@@ -19,6 +19,14 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = env('DJANGO_SECRET_KEY', default='django-insecure-seu-segredo-padrao')
 
 DEBUG = env('DJANGO_DEBUG')
+
+# Impede que produção rode acidentalmente com a chave placeholder ou em DEBUG.
+# Em produção é obrigatório informar DJANGO_SECRET_KEY e DJANGO_DEBUG=False.
+if not DEBUG and SECRET_KEY == 'django-insecure-seu-segredo-padrao':
+    raise RuntimeError(
+        'Ambiente de produção: defina uma DJANGO_SECRET_KEY forte no .env '
+        '(e DJANGO_DEBUG=False) antes de iniciar o serviço.'
+    )
 
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS')
 

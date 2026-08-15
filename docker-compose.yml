@@ -9,9 +9,8 @@ services:
     environment:
       - POSTGRES_DB=${DB_NAME:-mei_gestao}
       - POSTGRES_USER=${DB_USER:-postgres}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
-    ports:
-      - "5432:5432"
+      - POSTGRES_PASSWORD=${DB_PASSWORD:?defina a senha do PostgreSQL no .env}
+    # Sem "ports": o banco fica acessível apenas pela rede interna do Compose.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -21,8 +20,7 @@ services:
   redis:
     image: redis:alpine
     container_name: mei_gestao_redis
-    ports:
-      - "6379:6379"
+    # Sem "ports": o Redis fica acessível apenas pela rede interna do Compose.
 
   web:
     build: .
@@ -40,6 +38,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    # Expõe apenas em loopback (127.0.0.1). O acesso externo deve ser feito
+    # por um proxy reverso (nginx) ou túnel SSH; nunca diretamente à porta 8000.
+    ports:
+      - "127.0.0.1:8000:8000"
     environment:
       - DB_HOST=db
       - DB_PORT=5432
