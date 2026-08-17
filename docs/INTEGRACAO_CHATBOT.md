@@ -86,3 +86,24 @@ curl -s -X POST http://127.0.0.1:8003/chat \
 - **Segurança:** a `GROQ_API_KEY` (em `/home/ubuntu/chatbot_gestor/.env`) foi
   exposta num chat; **gerar nova chave no console da Groq** e atualizar o `.env`,
   depois `sudo systemctl restart chatbot-gestor`.
+
+## Status de execução (aplicado em 17/08/2026) ✅
+
+- **Regra de grafia aplicada** no `system_prompt` de `/home/ubuntu/chatbot_gestor/rag.py`
+  (linha ~98) e **serviço reiniciado** (`sudo systemctl restart chatbot-gestor`).
+- **Modelo trocado** (achado novo): `llama-3.1-8b-instant` foi **descontinuado na
+  Groq** (404 `model_not_found`). Modelos de chat disponíveis na conta hoje:
+  `openai/gpt-oss-20b` (responde vazio), `qwen/qwen3.6-27b` (vaza `thinking`),
+  `openai/gpt-oss-120b` (✅ limpo). **Fixado: `openai/gpt-oss-120b`** em `rag.py:67`.
+- **Manual re-embebedado:** `MANUAL_EMBED_BOT.md` (626 linhas, checksum
+  `72eef6dd...`) enviado para a VM e indexado via `POST /upload` → ChromaDB
+  subiu de **28 → 87 chunks**.
+- **Testes passaram:**
+  - `"como cadastru um clinete nvoe?"` → responde corrigindo a grafia ("cadastrar
+    um cliente novo") com passo a passo completo. ✅
+  - `"em quais planos aparece o chat de IA?"` → "disponível apenas nos planos
+    Profissional e Enterprise. No Básico não é exibido." ✅
+- **Backups** dos arquivos originais: `rag.py.bak_grafia` e `rag.py.bak_modelo`.
+- **Serviço ativo** (status `active`), endpoint `/health` → `{"status":"ok"}`.
+- Acesso SSH à VM habilitado com chave convertida de PuTTY → OpenSSH
+  (`/opt/data/workspace/.ssh/jrsolutions`).
