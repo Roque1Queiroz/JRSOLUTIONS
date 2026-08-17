@@ -1128,6 +1128,14 @@
         // host da página (funciona de qualquer máquina, não apenas localhost).
         const API_URL = `${window.location.protocol}//${window.location.hostname}:8003`;
 
+        // Dados agregados e SEGUROS da empresa autenticada (via Django), que o
+        // assistente pode usar como contexto além do manual. Endpoint @login_required.
+        let empresaDados = null;
+        fetch(`${window.location.origin}/core/bot/contexto/`)
+            .then(r => r.ok ? r.json() : null)
+            .then(d => { empresaDados = d; })
+            .catch(() => { empresaDados = null; });
+
         function toggleChat() {
             const chatWindow = document.getElementById('chatbot-window');
             chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
@@ -1150,7 +1158,7 @@
                 const response = await fetch(`${API_URL}/chat`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ session_id: sessionId, message: message })
+                    body: JSON.stringify({ session_id: sessionId, message: message, empresa_dados: empresaDados })
                 });
 
                 if (!response.ok) throw new Error("Erro na comunicação com o servidor.");

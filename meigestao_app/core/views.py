@@ -49,15 +49,67 @@ def setup_whitelabel(request):
 def dashboard(request):
     # Pegamos a empresa do usuário logado
     empresa = _get_user_empresa(request.user)
-    
+
     # O Cientista faz todo o trabalho duro aqui:
     analise_financeira = CientistaFinanceiroService.gerar_analise_matinal(empresa) if empresa else None
-    
+
     context = {
         'analise': analise_financeira,
         # ... seus outros dados do dashboard
     }
     return render(request, 'dashboard.html', context)
+
+
+@login_required
+def bot_contexto(request):
+    """
+    Endpoint APENAS-LEITURA que alimenta o assistente de IA (chatbot) com dados
+    reais e agrupados da EMPRESA do usuário logado.
+
+    Segurança:
+    - Exige autenticação (@login_required).
+    - Usa get_empresa_do_usuario, jamais 'all()': usuários não-staff só enxergam
+      a própria empresa. User staff retorna também apenas a empresa vinculada.
+    - Não devolve dados sensíveis (CPF/CNPJ completos, senhas, contas detalhadas),
+      apenas agregados para o bot responder em linguagem natural.
+    """
+    from django.http import JsonResponse
+
+    empresa = get_empresa_do_usuario(request.user)
+    if not empresa:
+        return JsonResponse({"erro": "Empresa não identificada."}, status=403)
+
+    hoje = timezone.now()
+    inicio_mes = hoje.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    inicio_hoje = hoje.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    vendas_qs = Venda.objects.filter(empresa=empresa)
+    # Faturamento = somatório de vendas CONFIRMADAS (mesma regra do dashboard).
+    faturamento_mes = (
+        vendas_qs.filter(data_venda__gte=inicio_mes, status='confirmada')
+        .aggregate(Sum('valor_total'))['valor_total__sum']
+        or 0
+    )
+    faturamento_hoje = (
+        vendas_qs.filter(data_venda__gte=inicio_hoje, status='confirmada')
+        .aggregate(Sum('valor_total'))['valor_total__sum']
+        or 0
+    )
+    total_vendas_mes = (
+        vendas_qs.filter(data_venda__gte=inicio_mes).exclude(status='cancelada').count()
+    )
+    vendas_pendentes = (
+        vendas_qs.filter(status='rascunho', data_venda__gte=inicio_mes).count()
+    )
+
+    return JsonResponse({
+        "empresa": empresa.nome,
+        "faturamento_mes": float(faturamento_mes),
+        "faturamento_hoje": float(faturamento_hoje),
+        "total_vendas_mes": total_vendas_mes,
+        "vendas_pendentes": vendas_pendentes,
+        "nota": "Dados agregados apenas desta empresa, filtrados pelo usuário autenticado.",
+    })
 
 def _get_user_empresa(user):
     try:
