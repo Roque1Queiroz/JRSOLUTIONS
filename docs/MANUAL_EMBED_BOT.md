@@ -77,13 +77,13 @@ O painel administrativo (`/admin/`) é a área de configuração avançada, aces
 Cada empresa possui um plano contratado, que define permissões, limites e acesso a módulos:
 
 - **Plano Básico:** foco no uso essencial. Permite até **2 usuários** vinculados.
-- **Plano Profissional (PME):** permite até **5 usuários** e inclui recursos de IA e personalização de marca (White Label).
+- **Plano Profissional (PME):** permite até **5 usuários** e inclui personalização de marca (White Label).
 - **Plano Enterprise (Indústria):** permite até **20 usuários**, abrange todos os recursos do Profissional e inclui também **APIs customizadas** para integrações.
 
 Regras importantes:
 
 - **Limitador de usuários:** o limite de usuários vinculados de uma empresa é controlado pelo plano. Ao tentar criar um usuário além do limite, o sistema bloqueia a criação e avisa que o limite do plano foi atingido.
-- **Assistente de IA (chatbot do Sistema Gestor):** o chat de suporte inteligente **só aparece nos planos Profissional e Enterprise**. Em planos Básicos o widget do assistente não é exibido.
+- **Assistente de IA (chatbot do Sistema Gestor):** o chat de suporte inteligente está disponível em **todos os planos**, inclusive no Básico (MEI). Qualquer usuário autenticado pode usar o assistente para tirar dúvidas sobre o sistema.
 - **White Label:** logo e nome personalizados da empresa estão disponíveis nos planos Profissional e Enterprise.
 - **APIs customizadas:** disponíveis somente no plano Enterprise.
 
@@ -576,7 +576,7 @@ Quando o sistema mostra uma mensagem de erro, o assistente deve explicar a causa
 - **O sistema funciona sem internet?** Não. Ele roda 100% pelo navegador e precisa de conexão com a internet para acessar o servidor.
 - **Não consigo acessar o sistema.** Confira o endereço, o Caps Lock e se as credenciais estão corretas; se continuar, contate o administrador.
 - **O que é o painel `/admin/`?** É a área de configuração avançada, de uso do administrador, onde se criam usuários, definem permissões e gerenciam configurações.
-- **Por que não vejo o chatbot de IA?** O assistente inteligente só aparece nos planos **Profissional** e **Enterprise**. Em planos **Básicos** ele não é exibido.
+- **Por que não vejo o chatbot de IA?** O assistente inteligente está disponível em **todos os planos**, inclusive no Básico. Se não aparecer, verifique se você está logado no sistema e recarregue a página (Ctrl+F5); em último caso, procure o administrador da sua empresa.
 - **O que é "estoque baixo"?** Quando a quantidade de um produto iguala ou fica abaixo da quantidade mínima definida no cadastro, o sistema sinaliza como alerta de estoque baixo.
 - **Como funciona o reembolso?** No módulo Financeiro, o reembolso registra uma devolução de valor ao usuário/colaborador (com prioridade e comprovante) e pode ser vinculado a uma transação.
 - **Para que serve o Cientista Financeiro?** Ele gera automaticamente, à meia-noite, um relatório diário de saúde financeira (entradas, saídas e projeção do dia) exibido no topo do Dashboard, com status SUCESSO, ALERTA ou PERIGO.

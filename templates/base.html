@@ -995,7 +995,7 @@
     {% block extra_js %}{% endblock %}
 
     <!-- Chatbot Widget Integration -->
-    {% if empresa_obj.plano != 'basico' %}
+    <!-- (Assistente de IA disponível em TODOS os planos, inclusive Básico/MEI) -->
     <!-- CSS do Chat -->
     <style>
         #chatbot-widget {
@@ -1176,7 +1176,6 @@
             if (e.key === 'Enter') sendMessage();
         });
     </script>
-    {% endif %}
 
 </body>
 
