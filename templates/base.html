@@ -81,6 +81,17 @@
             --text-secondary: #94a3b8;
         }
 
+        /* Dark mode: textos fixos (preços de cards, destaques) ficam legíveis */
+        [data-bs-theme="dark"] .text-dark {
+            color: #d4d4d8 !important;   /* cinza-claro legível sobre superfície escura */
+        }
+        [data-bs-theme="dark"] .text-muted {
+            color: var(--color-text-secondary) !important;
+        }
+        [data-bs-theme="dark"] .bg-light {
+            background-color: var(--color-surface-raised) !important;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-body);
