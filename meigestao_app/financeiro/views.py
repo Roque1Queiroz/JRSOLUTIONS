@@ -17,6 +17,11 @@ from .models import Transacao, ReciboReembolso, ContaBancaria
 from .forms import TransacaoForm, ReciboReembolsoForm
 from meigestao_app.usuarios.models import Perfil
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
+from meigestao_app.core.mixins import (
+    ExigeModuloPermissaoMixin,
+    ExigeEscritaModuloMixin,
+    ExigeExclusaoModuloMixin,
+)
 from meigestao_app.core.models import Empresa
 
 # Configuração de Logs (HM-Engineer)
@@ -332,7 +337,8 @@ class FluxoTransacaoMixin:
             transacao.tipo = self.tipo_fixo
 
 
-class TransacaoListView(FluxoTransacaoMixin, LoginRequiredMixin, ListView):
+class TransacaoListView(FluxoTransacaoMixin, LoginRequiredMixin, ExigeModuloPermissaoMixin, ListView):
+    modulo = 'financeiro'
     """Lista de transações financeiras com KPIs."""
     model = Transacao
     template_name = 'meigestao_app/financeiro/transacao_list.html'
@@ -354,7 +360,8 @@ class TransacaoListView(FluxoTransacaoMixin, LoginRequiredMixin, ListView):
         return context
 
 
-class TransacaoDetailView(FluxoTransacaoMixin, LoginRequiredMixin, DetailView):
+class TransacaoDetailView(FluxoTransacaoMixin, LoginRequiredMixin, ExigeModuloPermissaoMixin, DetailView):
+    modulo = 'financeiro'
     model = Transacao
     template_name = 'meigestao_app/financeiro/transacao_detail.html'
     context_object_name = 'transacao'
@@ -365,7 +372,8 @@ class TransacaoDetailView(FluxoTransacaoMixin, LoginRequiredMixin, DetailView):
         return context
 
 
-class TransacaoCreateView(FluxoTransacaoMixin, LoginRequiredMixin, CreateView):
+class TransacaoCreateView(FluxoTransacaoMixin, LoginRequiredMixin, ExigeEscritaModuloMixin, CreateView):
+    modulo = 'financeiro'
     model = Transacao
     form_class = TransacaoForm
     template_name = 'meigestao_app/financeiro/transacao_form.html'
@@ -443,7 +451,8 @@ class TransacaoCreateView(FluxoTransacaoMixin, LoginRequiredMixin, CreateView):
         return context
 
 
-class TransacaoUpdateView(FluxoTransacaoMixin, LoginRequiredMixin, UpdateView):
+class TransacaoUpdateView(FluxoTransacaoMixin, LoginRequiredMixin, ExigeEscritaModuloMixin, UpdateView):
+    modulo = 'financeiro'
     model = Transacao
     form_class = TransacaoForm
     template_name = 'meigestao_app/financeiro/transacao_form.html'
@@ -532,7 +541,8 @@ class TransacaoUpdateView(FluxoTransacaoMixin, LoginRequiredMixin, UpdateView):
         return context
 
 
-class TransacaoDeleteView(FluxoTransacaoMixin, LoginRequiredMixin, DeleteView):
+class TransacaoDeleteView(FluxoTransacaoMixin, LoginRequiredMixin, ExigeExclusaoModuloMixin, DeleteView):
+    modulo = 'financeiro'
     model = Transacao
     template_name = 'meigestao_app/financeiro/transacao_confirm_delete.html'
     context_object_name = 'transacao'

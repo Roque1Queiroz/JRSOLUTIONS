@@ -983,7 +983,7 @@ class TestFinanceiroFlow:
         empresa_a = Empresa.objects.create(nome="Empresa A Segura", cnpj="66.666.666/0001-66")
         empresa_b = Empresa.objects.create(nome="Empresa B Alvo", cnpj="77.777.777/0001-77")
         user = User.objects.create_user(username="perfil_empresa_a", password="password")
-        Perfil.objects.create(usuario=user, empresa=empresa_a, data_admissao=date.today())
+        Perfil.objects.create(usuario=user, empresa=empresa_a, permissao='gerente', data_admissao=date.today())
         client.login(username="perfil_empresa_a", password="password")
 
         response = client.post(reverse('financeiro:transacao_criar'), {

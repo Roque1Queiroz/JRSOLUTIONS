@@ -31,6 +31,7 @@ def empresas_com_usuario_e_estoque(db):
     Perfil.objects.create(
         usuario=usuario_a,
         empresa=empresa_a,
+        permissao='gerente',  # tem acesso a estoque (teste de isolamento entre empresas)
         data_admissao=date.today(),
     )
     categoria_b = Categoria.objects.create(

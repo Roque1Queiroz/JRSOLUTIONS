@@ -8,8 +8,18 @@ from django.shortcuts import redirect
 from .models import Cliente
 from meigestao_app.core.utils.csv_importer import CSVImportService
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
+from meigestao_app.core.mixins import (
+    ExigeModuloPermissaoMixin,
+    ExigeEscritaModuloMixin,
+    ExigeExclusaoModuloMixin,
+)
 
-class ClienteListView(LoginRequiredMixin, ListView):
+MODULO = 'clientes'
+
+
+class ClienteListView(LoginRequiredMixin, ExigeModuloPermissaoMixin, ListView):
+    modulo = MODULO
+
     model = Cliente
     template_name = 'meigestao_app/clientes/cliente_list.html'
     context_object_name = 'clientes'
@@ -30,7 +40,8 @@ class ClienteListView(LoginRequiredMixin, ListView):
         context['clientes_inativos'] = qs.filter(ativo=False).count()
         return context
 
-class ClienteCreateView(LoginRequiredMixin, CreateView):
+class ClienteCreateView(LoginRequiredMixin, ExigeEscritaModuloMixin, CreateView):
+    modulo = MODULO
     model = Cliente
     template_name = 'meigestao_app/clientes/cliente_form.html'
     fields = ['nome', 'tipo', 'cpf_cnpj', 'email', 'telefone', 'endereco', 'cidade', 'estado', 'cep', 'ativo']
@@ -41,7 +52,8 @@ class ClienteCreateView(LoginRequiredMixin, CreateView):
         messages.success(self.request, 'Cliente criado com sucesso!')
         return super().form_valid(form)
 
-class ClienteDetailView(LoginRequiredMixin, DetailView):
+class ClienteDetailView(LoginRequiredMixin, ExigeModuloPermissaoMixin, DetailView):
+    modulo = MODULO
     model = Cliente
     template_name = 'meigestao_app/clientes/cliente_detail.html'
     context_object_name = 'cliente'
@@ -56,7 +68,8 @@ class ClienteDetailView(LoginRequiredMixin, DetailView):
         context['vendas_cliente'] = self.object.vendas.all().order_by('-data_venda')
         return context
 
-class ClienteUpdateView(LoginRequiredMixin, UpdateView):
+class ClienteUpdateView(LoginRequiredMixin, ExigeEscritaModuloMixin, UpdateView):
+    modulo = MODULO
     model = Cliente
     template_name = 'meigestao_app/clientes/cliente_form.html'
     fields = ['nome', 'tipo', 'cpf_cnpj', 'email', 'telefone', 'endereco', 'cidade', 'estado', 'cep', 'ativo']
@@ -71,7 +84,8 @@ class ClienteUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, 'Cliente atualizado com sucesso!')
         return super().form_valid(form)
 
-class ClienteDeleteView(LoginRequiredMixin, DeleteView):
+class ClienteDeleteView(LoginRequiredMixin, ExigeExclusaoModuloMixin, DeleteView):
+    modulo = MODULO
     model = Cliente
     template_name = 'meigestao_app/clientes/cliente_confirm_delete.html'
     success_url = reverse_lazy('clientes:cliente_list')
@@ -84,10 +98,11 @@ class ClienteDeleteView(LoginRequiredMixin, DeleteView):
         messages.success(self.request, 'Cliente excluido com sucesso!')
         return super().delete(request, *args, **kwargs)
 
-class ClienteImportView(LoginRequiredMixin, View):
+class ClienteImportView(LoginRequiredMixin, ExigeEscritaModuloMixin, View):
     """
     View para processar a importação de clientes via CSV.
     """
+    modulo = MODULO
     def post(self, request, *args, **kwargs):
         csv_file = request.FILES.get('csv_file')
         
@@ -148,4 +163,4 @@ class ClienteImportView(LoginRequiredMixin, View):
                 err_msg += f" Detalhes: {err_details}"
             messages.warning(request, err_msg)
 
-        return redirect('clientes:cliente_list')
+        return redirect('clientes:cliente_list')

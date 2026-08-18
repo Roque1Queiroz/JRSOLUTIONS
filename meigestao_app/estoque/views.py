@@ -16,10 +16,17 @@ from meigestao_app.core.mixins import (
     EmpresaFormMixin,
     EmpresaQuerysetMixin,
     PerfilPermissaoMixin,
+    ExigeModuloPermissaoMixin,
+    ExigeEscritaModuloMixin,
+    ExigeExclusaoModuloMixin,
 )
 
+MODULO_ESTOQUE = 'estoque'
 
-class CategoriaListView(LoginRequiredMixin, ListView):
+
+class CategoriaListView(LoginRequiredMixin, ExigeModuloPermissaoMixin, ListView):
+    modulo = MODULO_ESTOQUE
+
     """Lista todas as categorias"""
     model = Categoria
     template_name = 'meigestao_app/estoque/categoria_list.html'
@@ -35,8 +42,10 @@ class CategoriaListView(LoginRequiredMixin, ListView):
         return queryset
 
 
-class CategoriaCreateView(LoginRequiredMixin, CreateView):
-    """Criar nova categoria"""
+class CategoriaCreateView(LoginRequiredMixin, ExigeEscritaModuloMixin, CreateView):
+    modulo = MODULO_ESTOQUE
+
+    """Cria uma nova categoria"""
     model = Categoria
     form_class = CategoriaForm
     template_name = 'meigestao_app/estoque/categoria_form.html'
@@ -47,14 +56,18 @@ class CategoriaCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class CategoriaDetailView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
+class CategoriaDetailView(LoginRequiredMixin, ExigeModuloPermissaoMixin, EmpresaQuerysetMixin, DetailView):
+    modulo = MODULO_ESTOQUE
+
     """Detalhes da categoria"""
     model = Categoria
     template_name = 'meigestao_app/estoque/categoria_detail.html'
     context_object_name = 'categoria'
 
 
-class CategoriaUpdateView(LoginRequiredMixin, EmpresaQuerysetMixin, UpdateView):
+class CategoriaUpdateView(LoginRequiredMixin, ExigeEscritaModuloMixin, EmpresaQuerysetMixin, UpdateView):
+    modulo = MODULO_ESTOQUE
+
     """Editar categoria"""
     model = Categoria
     form_class = CategoriaForm
@@ -66,14 +79,18 @@ class CategoriaUpdateView(LoginRequiredMixin, EmpresaQuerysetMixin, UpdateView):
         return super().form_valid(form)
 
 
-class CategoriaDeleteView(LoginRequiredMixin, EmpresaQuerysetMixin, DeleteView):
+class CategoriaDeleteView(LoginRequiredMixin, ExigeExclusaoModuloMixin, EmpresaQuerysetMixin, DeleteView):
+    modulo = MODULO_ESTOQUE
+
     """Deletar categoria"""
     model = Categoria
     template_name = 'meigestao_app/estoque/categoria_confirm_delete.html'
     success_url = reverse_lazy('estoque:categoria_list')
 
 
-class ProdutoListView(LoginRequiredMixin, ListView):
+class ProdutoListView(LoginRequiredMixin, ExigeModuloPermissaoMixin, ListView):
+    modulo = MODULO_ESTOQUE
+
     """Lista todos os produtos com filtros"""
     model = Produto
     template_name = 'meigestao_app/estoque/produto_list.html'
@@ -122,7 +139,9 @@ class ProdutoListView(LoginRequiredMixin, ListView):
         return context
 
 
-class ProdutoCreateView(LoginRequiredMixin, EmpresaFormMixin, CreateView):
+class ProdutoCreateView(LoginRequiredMixin, ExigeEscritaModuloMixin, EmpresaFormMixin, CreateView):
+    modulo = MODULO_ESTOQUE
+
     """Criar novo produto"""
     model = Produto
     form_class = ProdutoForm
@@ -137,7 +156,9 @@ class ProdutoCreateView(LoginRequiredMixin, EmpresaFormMixin, CreateView):
         return response
 
 
-class ProdutoDetailView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
+class ProdutoDetailView(LoginRequiredMixin, ExigeModuloPermissaoMixin, EmpresaQuerysetMixin, DetailView):
+    modulo = MODULO_ESTOQUE
+
     """Detalhes do produto"""
     model = Produto
     template_name = 'meigestao_app/estoque/produto_detail.html'
@@ -151,7 +172,9 @@ class ProdutoDetailView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
         return context
 
 
-class ProdutoUpdateView(LoginRequiredMixin, EmpresaQuerysetMixin, EmpresaFormMixin, UpdateView):
+class ProdutoUpdateView(LoginRequiredMixin, ExigeEscritaModuloMixin, EmpresaQuerysetMixin, EmpresaFormMixin, UpdateView):
+    modulo = MODULO_ESTOQUE
+
     """Editar produto"""
     model = Produto
     form_class = ProdutoForm
@@ -163,14 +186,18 @@ class ProdutoUpdateView(LoginRequiredMixin, EmpresaQuerysetMixin, EmpresaFormMix
         return super().form_valid(form)
 
 
-class ProdutoDeleteView(LoginRequiredMixin, EmpresaQuerysetMixin, DeleteView):
+class ProdutoDeleteView(LoginRequiredMixin, ExigeExclusaoModuloMixin, EmpresaQuerysetMixin, DeleteView):
+    modulo = MODULO_ESTOQUE
+
     """Deletar produto"""
     model = Produto
     template_name = 'meigestao_app/estoque/produto_confirm_delete.html'
     success_url = reverse_lazy('estoque:produto_list')
 
 
-class EstoqueDetailView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
+class EstoqueDetailView(LoginRequiredMixin, ExigeModuloPermissaoMixin, EmpresaQuerysetMixin, DetailView):
+    modulo = MODULO_ESTOQUE
+
     """Detalhes do estoque de um produto (pk na URL = pk do Produto)"""
     model = Estoque
     template_name = 'meigestao_app/estoque/estoque_detail.html'
@@ -189,7 +216,9 @@ class EstoqueDetailView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
         return context
 
 
-class EstoqueUpdateView(LoginRequiredMixin, EmpresaQuerysetMixin, UpdateView):
+class EstoqueUpdateView(LoginRequiredMixin, ExigeEscritaModuloMixin, EmpresaQuerysetMixin, UpdateView):
+    modulo = MODULO_ESTOQUE
+
     """Editar configurações de estoque (pk na URL = pk do Produto)"""
     model = Estoque
     form_class = EstoqueForm
@@ -272,7 +301,9 @@ class MovimentacaoEstoqueCreateView(
 
 
 
-class MovimentacaoEstoqueListView(LoginRequiredMixin, ListView):
+class MovimentacaoEstoqueListView(LoginRequiredMixin, ExigeModuloPermissaoMixin, ListView):
+    modulo = MODULO_ESTOQUE
+
     """Lista histórico de movimentações"""
     model = MovimentacaoEstoque
     template_name = 'meigestao_app/estoque/movimentacao_list.html'
@@ -302,7 +333,9 @@ class MovimentacaoEstoqueListView(LoginRequiredMixin, ListView):
         return queryset.order_by('-data_movimento')
 
 
-class EstoqueRelatorioView(LoginRequiredMixin, TemplateView):
+class EstoqueRelatorioView(LoginRequiredMixin, ExigeModuloPermissaoMixin, TemplateView):
+    modulo = MODULO_ESTOQUE
+
     """Relatório completo de estoque"""
     template_name = 'meigestao_app/estoque/estoque_relatorio.html'
     
@@ -336,7 +369,9 @@ class EstoqueRelatorioView(LoginRequiredMixin, TemplateView):
         
         return context
 
-class ProdutoImportView(LoginRequiredMixin, View):
+class ProdutoImportView(LoginRequiredMixin, ExigeEscritaModuloMixin, View):
+    modulo = MODULO_ESTOQUE
+
     """
     View para processar a importação de produtos via CSV.
     """

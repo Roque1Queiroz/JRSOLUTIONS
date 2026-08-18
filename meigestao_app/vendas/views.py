@@ -15,14 +15,23 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Venda
 from .forms import VendaForm, ItemVendaFormSet
-from meigestao_app.core.mixins import EmpresaFormMixin
+from meigestao_app.core.mixins import (
+    EmpresaFormMixin,
+    ExigeModuloPermissaoMixin,
+    ExigeEscritaModuloMixin,
+    ExigeExclusaoModuloMixin,
+)
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
 
 # Configuração de Logs Estruturados (HM-Engineer)
 logger = logging.getLogger(__name__)
 
-class VendaListView(LoginRequiredMixin, ListView):
+MODULO_VENDAS = 'vendas'
+
+
+class VendaListView(LoginRequiredMixin, ExigeModuloPermissaoMixin, ListView):
     """Lista todas as vendas com filtragem dinâmica e KPIs."""
+    modulo = MODULO_VENDAS
     
     model = Venda
     template_name = 'meigestao_app/vendas/venda_list.html'
@@ -60,7 +69,8 @@ class VendaListView(LoginRequiredMixin, ListView):
         return context
 
 
-class VendaCreateView(LoginRequiredMixin, EmpresaFormMixin, CreateView):
+class VendaCreateView(LoginRequiredMixin, ExigeEscritaModuloMixin, EmpresaFormMixin, CreateView):
+    modulo = MODULO_VENDAS
     """Cria uma nova venda via formulário transacional."""
     
     model = Venda
@@ -142,7 +152,8 @@ class VendaCreateView(LoginRequiredMixin, EmpresaFormMixin, CreateView):
             return self.form_invalid(form)
 
 
-class VendaDetailView(LoginRequiredMixin, DetailView):
+class VendaDetailView(LoginRequiredMixin, ExigeModuloPermissaoMixin, DetailView):
+    modulo = MODULO_VENDAS
     """Exibe o detalhamento completo de uma transação específica."""
     
     model = Venda
@@ -164,7 +175,8 @@ class VendaDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class VendaUpdateView(LoginRequiredMixin, EmpresaFormMixin, UpdateView):
+class VendaUpdateView(LoginRequiredMixin, ExigeEscritaModuloMixin, EmpresaFormMixin, UpdateView):
+    modulo = MODULO_VENDAS
     """Edita uma venda existente e seus itens relacionados."""
     
     model = Venda
@@ -243,7 +255,8 @@ class VendaUpdateView(LoginRequiredMixin, EmpresaFormMixin, UpdateView):
             return self.form_invalid(form)
 
 
-class VendaDeleteView(LoginRequiredMixin, DeleteView):
+class VendaDeleteView(LoginRequiredMixin, ExigeExclusaoModuloMixin, DeleteView):
+    modulo = MODULO_VENDAS
     """Remove uma venda do sistema."""
     
     model = Venda

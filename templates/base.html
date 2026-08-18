@@ -726,20 +726,25 @@
 
         <span class="sidebar-section">Gestão Comercial</span>
         <ul class="nav flex-column mb-3">
+            {% if 'clientes' in modulos_permitidos %}
             <li class="nav-item">
                 <a class="nav-link {% if 'clientes' in request.path %}active{% endif %}"
                     href="{% url 'clientes:cliente_list' %}">
                     <i class="bi bi-people"></i> Gestão de Clientes
                 </a>
             </li>
+            {% endif %}
+            {% if 'vendas' in modulos_permitidos %}
             <li class="nav-item">
                 <a class="nav-link {% if 'vendas' in request.path %}active{% endif %}"
                     href="{% url 'vendas:venda_list' %}">
                     <i class="bi bi-bag-check"></i> Gestão de Vendas
                 </a>
             </li>
+            {% endif %}
         </ul>
 
+        {% if 'estoque' in modulos_permitidos %}
         <span class="sidebar-section">Gestão de Estoque</span>
         <ul class="nav flex-column mb-3">
             <li class="nav-item">
@@ -748,7 +753,7 @@
                     <i class="bi bi-box-seam"></i> Gestão de Produtos
                 </a>
             </li>
-            {% if empresa_obj.plano != 'basico' %}
+            {% if empresa_obj.plano != 'basico' and 'almoxarifado' in modulos_permitidos %}
             <li class="nav-item">
                 <a class="nav-link {% if 'almoxarifado' in request.path %}active{% endif %}"
                     href="{% url 'almoxarifado:dashboard' %}">
@@ -757,8 +762,9 @@
             </li>
             {% endif %}
         </ul>
+        {% endif %}
 
-        {% if empresa_obj.plano != 'basico' %}
+        {% if empresa_obj.plano != 'basico' and 'producao' in modulos_permitidos %}
         <span class="sidebar-section">Gestão Operacional</span>
         <ul class="nav flex-column mb-3">
             <li class="nav-item">
@@ -767,21 +773,26 @@
                     <i class="bi bi-gear-wide-connected"></i> Gestão de Produção (PCP)
                 </a>
             </li>
+            {% if 'servicos' in modulos_permitidos %}
             <li class="nav-item">
                 <a class="nav-link {% if 'servicos' in request.path %}active{% endif %}"
                     href="{% url 'servicos:dashboard' %}">
                     <i class="bi bi-wrench-adjustable"></i> Ordens de Serviço (O.S.)
                 </a>
             </li>
+            {% endif %}
+            {% if 'compras' in modulos_permitidos %}
             <li class="nav-item">
                 <a class="nav-link {% if 'compras' in request.path %}active{% endif %}"
                     href="{% url 'compras:dashboard' %}">
                     <i class="bi bi-cart-check"></i> Gestão de Compras
                 </a>
             </li>
+            {% endif %}
         </ul>
         {% endif %}
 
+        {% if 'financeiro' in modulos_permitidos %}
         <span class="sidebar-section">Gestão Financeira</span>
         <ul class="nav flex-column mb-3">
             <li class="nav-item">
@@ -803,8 +814,9 @@
                 </a>
             </li>
         </ul>
+        {% endif %}
 
-        {% if empresa_obj.plano != 'basico' %}
+        {% if empresa_obj.plano != 'basico' and 'fiscal' in modulos_permitidos %}
         <span class="sidebar-section">Gestão Fiscal</span>
         <ul class="nav flex-column mb-3">
             <li class="nav-item">
