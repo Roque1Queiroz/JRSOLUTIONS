@@ -67,11 +67,12 @@ def test_vendedor_nao_ve_financeiro():
 
 
 def test_operador_so_leitura_basica():
-    # Operador só vê dashboard + clientes, e NÃO altera nada além do básico.
+    # Operador vê dashboard + clientes + vendas (leitura), e NÃO altera nada.
     assert funcao_pode_ver_modulo('operador', 'clientes')
-    assert not funcao_pode_ver_modulo('operador', 'vendas')
+    assert funcao_pode_ver_modulo('operador', 'vendas')   # leitura de vendas
     assert not funcao_pode_ver_modulo('operador', 'financeiro')
     assert not funcao_pode_alterar_modulo('operador', 'clientes')
+    assert not funcao_pode_alterar_modulo('operador', 'vendas')
 
 
 def test_almoxarife_controla_estoque_mas_nao_exclui():
@@ -99,7 +100,7 @@ class TestAcessoViewsPorFuncao:
         ('admin', 200),
         ('gerente', 200),
         ('vendedor', 200),
-        ('operador', 403),  # operador não vê vendas
+        ('operador', 200),  # operador AGORA vê vendas (leitura); não altera
     ])
     @pytest.mark.django_db
     def test_venda_list(self, client, usuario_com_permissao, permissao, esperado, empresa):
@@ -156,6 +157,17 @@ class TestEscritaEDeletePorFuncao:
         client.force_login(usu)  # operador
         resp = client.get(reverse("clientes:cliente_update", args=[cliente.pk]))
         assert resp.status_code == 403
+
+    @pytest.mark.django_db
+    def test_operador_ve_mas_nao_cria_venda(self, client, empresa):
+        """Operador ganhou LEITURA de vendas, mas continua SEM poder criar/alterar."""
+        usu = User.objects.create_user(username="op_venda_le", password="x")
+        Perfil.objects.create(usuario=usu, empresa=empresa, permissao="operador", data_admissao=date.today())
+        client.force_login(usu)
+        # leitura permitida (nova regra 19/08)
+        assert client.get(reverse("vendas:venda_list")).status_code == 200
+        # escrita negada
+        assert client.get(reverse("vendas:venda_create")).status_code == 403
 
     @pytest.mark.django_db
     def test_vendedor_nao_exclui_cliente(self, client, empresa):

@@ -45,7 +45,7 @@ MODULOS = {
 # Ver por função (módulos que a função consegue ABRIR).
 # 'todos' = todos os módulos.
 VER_MODULOS = {
-    'operador': ['dashboard', 'clientes'],
+    'operador': ['dashboard', 'clientes', 'vendas'],
     'vendedor': ['dashboard', 'clientes', 'vendas', 'estoque'],
     'almoxarife': ['dashboard', 'estoque', 'almoxarifado', 'producao', 'compras'],
     'gerente': 'todos',
