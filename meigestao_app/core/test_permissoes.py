@@ -32,6 +32,17 @@ def empresa():
 
 
 @pytest.fixture
+def empresa_profissional():
+    # Plano profissional libera os módulos expandidos (fiscal/almoxarifado/compras/
+    # producao) no middleware SaaS, deixando o RBAC decidir o acesso por função.
+    return Empresa.objects.create(
+        nome="Empresa Permissao Profissional",
+        cnpj="44.444.444/0001-44",
+        plano="profissional",
+    )
+
+
+@pytest.fixture
 def usuario_com_permissao(db, empresa, permissao):
     usuario = User.objects.create_user(
         username=f"cli_{permissao}", password="senha-forte-teste"
@@ -157,3 +168,63 @@ class TestEscritaEDeletePorFuncao:
         # Vendedor pode ver, mas NÃO pode excluir (matriz).
         resp_get = client.get(reverse("clientes:cliente_delete", args=[cliente.pk]))
         assert resp_get.status_code == 403
+
+
+# ───────────────────── 3) RBAC NOS MÓDULOS EXPANDIDOS ─────────────────────
+# almoxarifado, compras, fiscal, produção — mesma infraestrutura dos 4 núcleos.
+
+
+class TestRBACModulosExpandidos:
+    """Acesso por função aos módulos que receberam RBAC (19/08/2026)."""
+
+    def _usu(self, client, empresa, permissao, tag):
+        usu = User.objects.create_user(username=f"{tag}_{permissao}", password="x")
+        Perfil.objects.create(
+            usuario=usu, empresa=empresa, permissao=permissao, data_admissao=date.today()
+        )
+        client.force_login(usu)
+        return usu
+
+    @pytest.mark.django_db
+    def test_operador_nao_ve_compras_em_get(self, client, empresa_profissional):
+        self._usu(client, empresa_profissional, "operador", "op_c")
+        assert client.get(reverse("compras:dashboard")).status_code == 403
+
+    @pytest.mark.django_db
+    def test_vendedor_nao_ve_fiscal(self, client, empresa_profissional):
+        self._usu(client, empresa_profissional, "vendedor", "v_f")
+        assert client.get(reverse("fiscal:nota_fiscal_list")).status_code == 403
+
+    @pytest.mark.django_db
+    def test_operador_nao_ve_almoxarifado(self, client, empresa_profissional):
+        self._usu(client, empresa_profissional, "operador", "op_a")
+        assert client.get(reverse("almoxarifado:dashboard")).status_code == 403
+
+    @pytest.mark.django_db
+    def test_vendedor_nao_ve_producao(self, client, empresa_profissional):
+        self._usu(client, empresa_profissional, "vendedor", "v_p")
+        assert client.get(reverse("producao:dashboard")).status_code == 403
+
+    @pytest.mark.django_db
+    def test_almoxarife_ve_almoxarifado_e_compras(self, client, empresa_profissional):
+        self._usu(client, empresa_profissional, "almoxarife", "almox_g")
+        assert client.get(reverse("almoxarifado:dashboard")).status_code == 200
+        assert client.get(reverse("compras:dashboard")).status_code == 200
+
+    @pytest.mark.django_db
+    def test_producao_ve_producao_mas_nao_edita_compras(self, client, empresa_profissional):
+        self._usu(client, empresa_profissional, "producao", "func_p")
+        assert client.get(reverse("producao:dashboard")).status_code == 200
+        # producao NÃO altera compras (leitura lá apenas; escrita negada)
+        assert client.get(reverse("compras:fornecedor_create")).status_code == 403
+
+    @pytest.mark.django_db
+    def test_gerente_e_admin_abrem_todos_os_novos_modulos(self, client, empresa_profissional):
+        for nome, permissao in (("ger_novos", "gerente"), ("adm_novos", "admin")):
+            self._usu(client, empresa_profissional, permissao, nome)
+            assert client.get(reverse("compras:dashboard")).status_code == 200, nome
+            assert client.get(reverse("fiscal:nota_fiscal_list")).status_code == 200, nome
+            assert client.get(reverse("almoxarifado:dashboard")).status_code == 200, nome
+            assert client.get(reverse("producao:dashboard")).status_code == 200, nome
+
+

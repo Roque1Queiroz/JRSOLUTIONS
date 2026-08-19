@@ -20,7 +20,7 @@ permissões de todas as funções abaixo da sua na listagem HIERARQUIA_FUNCOES.
 HIERARQUIA_FUNCOES = [
     'operador',      # 0 - leitura básica
     'vendedor',      # 1 - pode gerir clientes/vendas
-    'almoxarife',    # 2 - pode gerir estoque/almoxarifado/produção
+    'almoxarife',    # 2 - pode gerir estoque/almoxarifado/produção e receber compras
     'gerente',       # 3 - visão ampla, gerencia quase tudo
     'admin',         # 4 - controle total (exceto APIs custom, que é do plano)
     'producao',      # 4b - função funcional de chão de fábrica (igual gerente p/ PCP)
@@ -47,7 +47,7 @@ MODULOS = {
 VER_MODULOS = {
     'operador': ['dashboard', 'clientes'],
     'vendedor': ['dashboard', 'clientes', 'vendas', 'estoque'],
-    'almoxarife': ['dashboard', 'estoque', 'almoxarifado', 'producao'],
+    'almoxarife': ['dashboard', 'estoque', 'almoxarifado', 'producao', 'compras'],
     'gerente': 'todos',
     'admin': 'todos',
     'producao': ['dashboard', 'producao', 'estoque', 'almoxarifado'],
@@ -57,7 +57,7 @@ VER_MODULOS = {
 ALTERAR_MODULOS = {
     'operador': [],           # leitura apenas
     'vendedor': ['clientes', 'vendas'],
-    'almoxarife': ['estoque', 'almoxarifado', 'producao'],
+    'almoxarife': ['estoque', 'almoxarifado', 'producao', 'compras'],
     'gerente': 'todos',
     'admin': 'todos',
     'producao': ['producao', 'estoque', 'almoxarifado'],

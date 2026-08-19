@@ -12,7 +12,12 @@ from .models import NotaFiscal
 from .forms import NotaFiscalForm
 from .utils import gerar_pdf_nota_fiscal
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
-from meigestao_app.core.mixins import EmpresaQuerysetMixin
+from meigestao_app.core.mixins import (
+    EmpresaQuerysetMixin,
+    ExigeModuloPermissaoMixin,
+    ExigeEscritaModuloMixin,
+    ExigeExclusaoModuloMixin,
+)
 
 
 class NotaFiscalFormEmpresaMixin:
@@ -22,7 +27,8 @@ class NotaFiscalFormEmpresaMixin:
         return kwargs
 
 
-class NotaFiscalListView(LoginRequiredMixin, ListView):
+class NotaFiscalListView(LoginRequiredMixin, ExigeModuloPermissaoMixin, ListView):
+    modulo = 'fiscal'
     """Lista todas as Notas Fiscais com filtros avançados"""
     model = NotaFiscal
     template_name = 'meigestao_app/fiscal/nota_fiscal_list.html'
@@ -88,7 +94,8 @@ class NotaFiscalListView(LoginRequiredMixin, ListView):
         return context
 
 
-class NotaFiscalCreateView(LoginRequiredMixin, NotaFiscalFormEmpresaMixin, CreateView):
+class NotaFiscalCreateView(LoginRequiredMixin, ExigeEscritaModuloMixin, NotaFiscalFormEmpresaMixin, CreateView):
+    modulo = 'fiscal'
     """Criar nova Nota Fiscal"""
     model = NotaFiscal
     form_class = NotaFiscalForm
@@ -101,14 +108,16 @@ class NotaFiscalCreateView(LoginRequiredMixin, NotaFiscalFormEmpresaMixin, Creat
         return super().form_valid(form)
 
 
-class NotaFiscalDetailView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
+class NotaFiscalDetailView(LoginRequiredMixin, ExigeModuloPermissaoMixin, EmpresaQuerysetMixin, DetailView):
+    modulo = 'fiscal'
     """Detalhes de uma Nota Fiscal"""
     model = NotaFiscal
     template_name = 'meigestao_app/fiscal/nota_fiscal_detail.html'
     context_object_name = 'nota_fiscal'
 
 
-class NotaFiscalUpdateView(LoginRequiredMixin, EmpresaQuerysetMixin, NotaFiscalFormEmpresaMixin, UpdateView):
+class NotaFiscalUpdateView(LoginRequiredMixin, ExigeEscritaModuloMixin, EmpresaQuerysetMixin, NotaFiscalFormEmpresaMixin, UpdateView):
+    modulo = 'fiscal'
     """Editar Nota Fiscal"""
     model = NotaFiscal
     form_class = NotaFiscalForm
@@ -121,14 +130,16 @@ class NotaFiscalUpdateView(LoginRequiredMixin, EmpresaQuerysetMixin, NotaFiscalF
         return super().form_valid(form)
 
 
-class NotaFiscalDeleteView(LoginRequiredMixin, EmpresaQuerysetMixin, DeleteView):
+class NotaFiscalDeleteView(LoginRequiredMixin, ExigeExclusaoModuloMixin, EmpresaQuerysetMixin, DeleteView):
+    modulo = 'fiscal'
     """Deletar Nota Fiscal"""
     model = NotaFiscal
     template_name = 'meigestao_app/fiscal/nota_fiscal_confirm_delete.html'
     success_url = reverse_lazy('fiscal:nota_fiscal_list')
 
 
-class NotaFiscalRelatorioView(LoginRequiredMixin, TemplateView):
+class NotaFiscalRelatorioView(LoginRequiredMixin, ExigeModuloPermissaoMixin, TemplateView):
+    modulo = 'fiscal'
     """Relatório completo de notas fiscais"""
     template_name = 'meigestao_app/fiscal/nota_fiscal_relatorio.html'
     
@@ -190,7 +201,8 @@ class NotaFiscalRelatorioView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class NotaFiscalPDFView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
+class NotaFiscalPDFView(LoginRequiredMixin, ExigeModuloPermissaoMixin, EmpresaQuerysetMixin, DetailView):
+    modulo = 'fiscal'
     """Gera PDF da nota fiscal"""
     model = NotaFiscal
     
@@ -205,7 +217,8 @@ class NotaFiscalPDFView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
         )
 
 
-class NotaFiscalCreateFromVendaView(LoginRequiredMixin, CreateView):
+class NotaFiscalCreateFromVendaView(LoginRequiredMixin, ExigeEscritaModuloMixin, CreateView):
+    modulo = 'fiscal'
     """Cria NF a partir de uma venda"""
     model = NotaFiscal
     form_class = NotaFiscalForm

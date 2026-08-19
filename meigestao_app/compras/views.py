@@ -9,12 +9,17 @@ from django.http import HttpResponseBadRequest
 from django.db import transaction
 from django.db.models import Min, Q
 from django.utils import timezone
-from meigestao_app.core.mixins import EmpresaQuerysetMixin
+from meigestao_app.core.mixins import (
+    EmpresaQuerysetMixin,
+    ExigeModuloPermissaoMixin,
+    ExigeEscritaModuloMixin,
+)
 from meigestao_app.estoque.models import Produto
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
 from .models import Fornecedor, PedidoCompra, Cotacao, ItemPedidoCompra
 
-class DashboardView(LoginRequiredMixin, TemplateView):
+class DashboardView(LoginRequiredMixin, ExigeModuloPermissaoMixin, TemplateView):
+    modulo = 'compras'
     template_name = 'meigestao_app/compras/dashboard.html'
     
     def get_context_data(self, **kwargs):
@@ -31,7 +36,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context['ultimos_pedidos'] = qs_pedidos.order_by('-criado_em')[:5]
         return context
 
-class FornecedorListView(LoginRequiredMixin, ListView):
+class FornecedorListView(LoginRequiredMixin, ExigeModuloPermissaoMixin, ListView):
+    modulo = 'compras'
     model = Fornecedor
     template_name = 'meigestao_app/compras/fornecedor_list.html'
     context_object_name = 'fornecedores'
@@ -40,7 +46,8 @@ class FornecedorListView(LoginRequiredMixin, ListView):
         empresa = get_empresa_do_usuario(self.request.user)
         return Fornecedor.objects.filter(empresa=empresa)
 
-class FornecedorCreateView(LoginRequiredMixin, CreateView):
+class FornecedorCreateView(LoginRequiredMixin, ExigeEscritaModuloMixin, CreateView):
+    modulo = 'compras'
     model = Fornecedor
     template_name = 'meigestao_app/compras/fornecedor_form.html'
     fields = ['nome', 'cnpj', 'email', 'telefone', 'endereco', 'ativo']
@@ -51,7 +58,8 @@ class FornecedorCreateView(LoginRequiredMixin, CreateView):
         messages.success(self.request, "Fornecedor cadastrado com sucesso!")
         return super().form_valid(form)
 
-class FornecedorUpdateView(LoginRequiredMixin, UpdateView):
+class FornecedorUpdateView(LoginRequiredMixin, ExigeEscritaModuloMixin, UpdateView):
+    modulo = 'compras'
     model = Fornecedor
     template_name = 'meigestao_app/compras/fornecedor_form.html'
     fields = ['nome', 'cnpj', 'email', 'telefone', 'endereco', 'ativo']
@@ -64,7 +72,8 @@ class FornecedorUpdateView(LoginRequiredMixin, UpdateView):
     def get_queryset(self):
         return Fornecedor.objects.filter(empresa=get_empresa_do_usuario(self.request.user))
 
-class PedidoCompraCreateView(LoginRequiredMixin, CreateView):
+class PedidoCompraCreateView(LoginRequiredMixin, ExigeEscritaModuloMixin, CreateView):
+    modulo = 'compras'
     model = PedidoCompra
     template_name = 'meigestao_app/compras/pedido_form.html'
     fields = ['observacoes', 'data_prevista']
@@ -75,7 +84,8 @@ class PedidoCompraCreateView(LoginRequiredMixin, CreateView):
         messages.success(self.request, "Solicitação de compra criada!")
         return super().form_valid(form)
 
-class PedidoCompraDetailView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
+class PedidoCompraDetailView(LoginRequiredMixin, ExigeModuloPermissaoMixin, EmpresaQuerysetMixin, DetailView):
+    modulo = 'compras'
     model = PedidoCompra
     template_name = 'meigestao_app/compras/pedido_detail.html'
     context_object_name = 'pedido'

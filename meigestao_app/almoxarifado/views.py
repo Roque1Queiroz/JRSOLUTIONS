@@ -1,8 +1,14 @@
 from django.db import models
 from django.views.generic import ListView, CreateView, DetailView, UpdateView, TemplateView, DeleteView
 from django.views import View
-from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
-from meigestao_app.core.mixins import EmpresaFormMixin, EmpresaQuerysetMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
+from meigestao_app.core.mixins import (
+    EmpresaFormMixin,
+    EmpresaQuerysetMixin,
+    ExigeModuloPermissaoMixin,
+    ExigeEscritaModuloMixin,
+    ExigeExclusaoModuloMixin,
+)
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
@@ -12,24 +18,8 @@ from django.db.models import Sum
 from .models import LocalArmazenamento, Setor, SaldoAlmoxarifado, RequisicaoInterna, ItemRequisicao, EnderecoArmazenamento
 from .forms import EnderecoArmazenamentoForm, SetorForm, RequisicaoInternaForm
 
-class AlmoxarifeAccessMixin(AccessMixin):
-    """
-    Garante que apenas usuários com nível de Almoxarife, Gerente ou Admin
-    possam acessar as funcionalidades do Almoxarifado.
-    """
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return self.handle_no_permission()
-        
-        permissao = getattr(request.user.perfil, 'permissao', None) if hasattr(request.user, 'perfil') else None
-        
-        if permissao not in ['almoxarife', 'gerente', 'admin'] and not request.user.is_superuser:
-            messages.error(request, "Acesso restrito ao módulo de Almoxarifado.")
-            return redirect('core:dashboard')
-            
-        return super().dispatch(request, *args, **kwargs)
-
-class AlmoxarifadoDashboardView(LoginRequiredMixin, AlmoxarifeAccessMixin, TemplateView):
+class AlmoxarifadoDashboardView(LoginRequiredMixin, ExigeModuloPermissaoMixin, TemplateView):
+    modulo = 'almoxarifado'
     """
     Dashboard principal do Almoxarifado.
     Visão geral de saldos, alertas e requisições pendentes.
@@ -56,7 +46,8 @@ class AlmoxarifadoDashboardView(LoginRequiredMixin, AlmoxarifeAccessMixin, Templ
         
         return context
 
-class RequisicaoListView(LoginRequiredMixin, AlmoxarifeAccessMixin, ListView):
+class RequisicaoListView(LoginRequiredMixin, ExigeModuloPermissaoMixin, ListView):
+    modulo = 'almoxarifado'
     """Lista de requisições internas com filtros"""
     model = RequisicaoInterna
     template_name = 'meigestao_app/almoxarifado/requisicao_list.html'
@@ -72,7 +63,8 @@ class RequisicaoListView(LoginRequiredMixin, AlmoxarifeAccessMixin, ListView):
             qs = qs.filter(solicitante=self.request.user)
         return qs
 
-class RequisicaoCreateView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaFormMixin, CreateView):
+class RequisicaoCreateView(LoginRequiredMixin, ExigeEscritaModuloMixin, EmpresaFormMixin, CreateView):
+    modulo = 'almoxarifado'
     """Criação de nova requisição interna"""
     model = RequisicaoInterna
     template_name = 'meigestao_app/almoxarifado/requisicao_form.html'
@@ -88,13 +80,15 @@ class RequisicaoCreateView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaFor
         messages.success(self.request, 'Requisição enviada com sucesso! Aguarde aprovação.')
         return super().form_valid(form)
 
-class RequisicaoDetailView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaQuerysetMixin, DetailView):
+class RequisicaoDetailView(LoginRequiredMixin, ExigeModuloPermissaoMixin, EmpresaQuerysetMixin, DetailView):
+    modulo = 'almoxarifado'
     """Detalhes da requisição e seus itens"""
     model = RequisicaoInterna
     template_name = 'meigestao_app/almoxarifado/requisicao_detail.html'
     context_object_name = 'requisicao'
 
-class RequisicaoAprovarView(LoginRequiredMixin, AlmoxarifeAccessMixin, View):
+class RequisicaoAprovarView(LoginRequiredMixin, ExigeEscritaModuloMixin, View):
+    modulo = 'almoxarifado'
     """Lógica para aprovação de requisição por gestores"""
     def post(self, request, pk, *args, **kwargs):
         requisicao = get_object_or_404(
@@ -131,7 +125,8 @@ class RequisicaoAprovarView(LoginRequiredMixin, AlmoxarifeAccessMixin, View):
 
 # --- NOVAS VIEWS DE ENDEREÇAMENTO E ETIQUETAS ---
 
-class EnderecoListView(LoginRequiredMixin, AlmoxarifeAccessMixin, ListView):
+class EnderecoListView(LoginRequiredMixin, ExigeModuloPermissaoMixin, ListView):
+    modulo = 'almoxarifado'
     """Lista de endereços (Corredores/Prateleiras)"""
     model = EnderecoArmazenamento
     template_name = 'meigestao_app/almoxarifado/endereco_list.html'
@@ -141,7 +136,8 @@ class EnderecoListView(LoginRequiredMixin, AlmoxarifeAccessMixin, ListView):
         empresa = get_empresa_do_usuario(self.request.user)
         return EnderecoArmazenamento.objects.filter(local__empresa=empresa).select_related('local')
 
-class EnderecoCreateView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaFormMixin, CreateView):
+class EnderecoCreateView(LoginRequiredMixin, ExigeEscritaModuloMixin, EmpresaFormMixin, CreateView):
+    modulo = 'almoxarifado'
     """Cadastro de novo endereço"""
     model = EnderecoArmazenamento
     template_name = 'meigestao_app/almoxarifado/endereco_form.html'
@@ -153,7 +149,8 @@ class EnderecoCreateView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaFormM
         messages.success(self.request, 'Endereço cadastrado com sucesso!')
         return super().form_valid(form)
 
-class CentralEtiquetasView(LoginRequiredMixin, AlmoxarifeAccessMixin, TemplateView):
+class CentralEtiquetasView(LoginRequiredMixin, ExigeModuloPermissaoMixin, TemplateView):
+    modulo = 'almoxarifado'
     """Central para seleção e impressão de etiquetas de locais e produtos"""
     template_name = 'meigestao_app/almoxarifado/central_etiquetas.html'
 
@@ -180,7 +177,8 @@ class PrateleiraView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):
         context['materiais'] = SaldoAlmoxarifado.objects.filter(local__empresa=empresa, endereco=self.object)
         return context
 
-class SetorListView(LoginRequiredMixin, AlmoxarifeAccessMixin, ListView):
+class SetorListView(LoginRequiredMixin, ExigeModuloPermissaoMixin, ListView):
+    modulo = 'almoxarifado'
     model = Setor
     template_name = 'meigestao_app/almoxarifado/setor_list.html'
     context_object_name = 'setores'
@@ -189,7 +187,8 @@ class SetorListView(LoginRequiredMixin, AlmoxarifeAccessMixin, ListView):
         empresa = get_empresa_do_usuario(self.request.user)
         return Setor.objects.filter(empresa=empresa)
 
-class SetorCreateView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaFormMixin, CreateView):
+class SetorCreateView(LoginRequiredMixin, ExigeEscritaModuloMixin, EmpresaFormMixin, CreateView):
+    modulo = 'almoxarifado'
     model = Setor
     form_class = SetorForm
     template_name = 'meigestao_app/almoxarifado/setor_form.html'
@@ -200,7 +199,8 @@ class SetorCreateView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaFormMixi
         messages.success(self.request, "Setor cadastrado com sucesso!")
         return super().form_valid(form)
 
-class SetorUpdateView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaQuerysetMixin, EmpresaFormMixin, UpdateView):
+class SetorUpdateView(LoginRequiredMixin, ExigeEscritaModuloMixin, EmpresaQuerysetMixin, EmpresaFormMixin, UpdateView):
+    modulo = 'almoxarifado'
     model = Setor
     form_class = SetorForm
     template_name = 'meigestao_app/almoxarifado/setor_form.html'
@@ -210,7 +210,8 @@ class SetorUpdateView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaQueryset
         messages.success(self.request, "Setor atualizado com sucesso!")
         return super().form_valid(form)
 
-class SetorDeleteView(LoginRequiredMixin, AlmoxarifeAccessMixin, EmpresaQuerysetMixin, DeleteView):
+class SetorDeleteView(LoginRequiredMixin, ExigeExclusaoModuloMixin, EmpresaQuerysetMixin, DeleteView):
+    modulo = 'almoxarifado'
     model = Setor
     template_name = 'meigestao_app/almoxarifado/setor_confirm_delete.html'
     success_url = reverse_lazy('almoxarifado:setor_list')
