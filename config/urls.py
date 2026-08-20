@@ -23,5 +23,15 @@ urlpatterns = [
     ]
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+# /media/ (logo da empresa p/ white label, anexos, etc.) também é servido em PRODUÇÃO.
+# ATENÇÃO: o helper django.conf.urls.static.static() retorna [] quando DEBUG=False (Django 4.2),
+# então registramos a rota via re_path direto para o upload aparecer mesmo com DJANGO_DEBUG=False.
+# Fix: white label (marca/logo do cliente) não aparecia em produção (URL /media/ dava 404).
+from django.urls import re_path as _re_path
+from django.views.static import serve as _serve_media
+urlpatterns += [
+    _re_path(r"^media/(?P<path>.*)$", _serve_media,
+             {"document_root": settings.MEDIA_ROOT}),
+]
