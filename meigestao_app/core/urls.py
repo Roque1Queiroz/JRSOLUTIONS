@@ -14,6 +14,8 @@ urlpatterns = [
     path('escolher-plano/', views.escolher_plano, name='escolher_plano'),
     path('contratar-plano/', views.contratar_plano, name='contratar_plano'),
     path('asaas/webhook/', views.asaas_webhook, name='asaas_webhook'),
+    # Cadastro self-service (landing): cria Empresa + usuário admin + 30 dias de trial.
+    path('cadastro/', views.cadastro, name='cadastro'),
     # Endpoint JSON seguro que alimenta o assistente de IA com dados da empresa.
     path('bot/contexto/', views.bot_contexto, name='bot_contexto'),
 ]

@@ -1,6 +1,11 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+from django.views.decorators.http import require_http_methods
+from meigestao_app.usuarios.models import Perfil
+import datetime
 from django.views.generic import TemplateView, CreateView, UpdateView, DeleteView, ListView
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
@@ -435,6 +440,77 @@ class LembreteListView(LoginRequiredMixin, ListView):
         if not self.request.user.is_staff:
             qs = qs.filter(usuario=self.request.user)
         return qs
+
+@require_http_methods(["GET", "POST"])
+def cadastro(request):
+    """Cadastro self-service: o visitante cria a conta na própria landing page e já
+    ganha os 30 dias de teste grátis (Empresa nasce como Enterprise em teste, acesso
+    total). O primeiro usuário é o administrador (admin) da empresa, e já sai logado.
+    """
+    if request.user.is_authenticated:
+        return redirect('core:dashboard')
+
+    erros = []
+    if request.method == 'POST':
+        nome = (request.POST.get('nome_empresa') or '').strip()
+        cnpj = (request.POST.get('cnpj') or '').strip()
+        primeiro_nome = (request.POST.get('primeiro_nome') or '').strip()
+        sobrenome = (request.POST.get('sobrenome') or '').strip()
+        email = (request.POST.get('email') or '').strip().lower()
+        senha = request.POST.get('senha') or ''
+        confirma = request.POST.get('confirma') or ''
+
+        if not nome:
+            erros.append('Informe o nome da empresa.')
+        if not cnpj:
+            erros.append('Informe o CNPJ da empresa.')
+        if not primeiro_nome:
+            erros.append('Informe seu primeiro nome.')
+        if not email or '@' not in email:
+            erros.append('Informe um e-mail válido.')
+        if len(senha) < 8:
+            erros.append('A senha deve ter pelo menos 8 caracteres.')
+        if senha and senha != confirma:
+            erros.append('A confirmação de senha não confere.')
+
+        if not erros:
+            if Empresa.objects.filter(cnpj=cnpj).exists():
+                erros.append('Já existe uma conta com este CNPJ. Se for sua, faça login.')
+            elif Empresa.objects.filter(nome__iexact=nome).exists():
+                erros.append('Já existe uma empresa com este nome.')
+            if User.objects.filter(username=email).exists():
+                erros.append('Já existe uma conta com este e-mail.')
+
+        if not erros:
+            # Cria a empresa e já inicia os 30 dias de teste (acesso total).
+            empresa = Empresa.objects.create(nome=nome, cnpj=cnpj, email=email, ativa=True)
+            empresa.iniciar_teste()
+
+            usuario = User.objects.create_user(
+                username=email, email=email, password=senha,
+                first_name=primeiro_nome, last_name=sobrenome,
+            )
+            Perfil.objects.create(
+                usuario=usuario, empresa=empresa, permissao='admin',
+                data_admissao=datetime.date.today(), ativo=True,
+            )
+
+            # Auto-login: o visitante cai direto no dashboard já usando.
+            autenticado = authenticate(username=email, password=senha)
+            if autenticado is not None:
+                login(request, autenticado)
+            messages.success(
+                request,
+                f'Bem-vindo(a)! Sua conta foi criada com 30 dias de teste grátis '
+                f'(até {empresa.trial_expira_em:%d/%m/%Y}).',
+            )
+            return redirect('core:dashboard')
+
+    return render(request, 'meigestao_app/core/cadastro.html', {
+        'erros': erros,
+        'valores': request.POST if request.method == 'POST' else {},
+    })
+
 
 class HomeView(TemplateView):
     """Página inicial."""
