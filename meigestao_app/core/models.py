@@ -45,6 +45,12 @@ class Empresa(BaseModel):
         verbose_name='Término do teste gratuito',
         help_text='Se preenchido, a empresa está em teste grátis com acesso total até esta data.'
     )
+    asaas_customer_id = models.CharField(
+        max_length=64, blank=True, null=True, verbose_name='ID do cliente no Asaas'
+    )
+    asaas_subscription_id = models.CharField(
+        max_length=64, blank=True, null=True, verbose_name='ID da assinatura no Asaas'
+    )
 
     DIAS_TRIAL = 30
 

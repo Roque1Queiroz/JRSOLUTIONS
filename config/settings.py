@@ -181,3 +181,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=0, minute=0),
     },
 }
+
+# ─── Asaas (pagamentos / cobrança) ───────────────────────────────────────
+# Chave de API (produção 'aact_prod_...' ou sandbox) definida no .env.
+ASAAS_API_KEY = env('ASAAS_API_KEY', default='')
+ASAAS_BASE_URL = env('ASAAS_BASE_URL', default='https://api.asaas.com/v3')
+# Autenticação do webhook (opcional; mesmo vazio, validamos re-consultando a API).
+ASAAS_WEBHOOK_TOKEN = env('ASAAS_WEBHOOK_TOKEN', default='')

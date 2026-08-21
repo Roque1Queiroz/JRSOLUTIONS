@@ -19,6 +19,11 @@ from django.shortcuts import redirect
 from django.core.exceptions import ObjectDoesNotExist
 from meigestao_app.financeiro.services import CientistaFinanceiroService
 from .forms import EmpresaSetupForm
+import json
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse, HttpResponseNotFound
+from . import asaas
 
 @login_required
 def setup_whitelabel(request):
@@ -56,13 +61,13 @@ def escolher_plano(request):
     planos = [
         {
             'id': 'basico', 'nome': 'Básico', 'preco': 'R$ 79', 'usuarios': 'até 2 usuários',
-            'desc': 'Para começar a organizar o dia a dia.', 'cta': 'Contratar', 'cta_url': '#',
+            'desc': 'Para começar a organizar o dia a dia.', 'cta': 'Contratar',
             'featured': False,
             'itens': ['Clientes, vendas e estoque', 'Financeiro e fluxo de caixa', 'Assistente de IA incluído'],
         },
         {
             'id': 'profissional', 'nome': 'Profissional', 'preco': 'R$ 199', 'usuarios': 'até 5 usuários',
-            'desc': 'O pacote completo para a equipe.', 'cta': 'Contratar', 'cta_url': '#',
+            'desc': 'O pacote completo para a equipe.', 'cta': 'Contratar',
             'featured': True,
             'itens': ['Tudo do Básico', 'Fiscal, compras, produção e almoxarifado',
                       'Acesso por função (RBAC)', 'Marca personalizada (white label)',
@@ -70,7 +75,7 @@ def escolher_plano(request):
         },
         {
             'id': 'enterprise', 'nome': 'Enterprise', 'preco': 'R$ 499', 'usuarios': 'até 20 usuários',
-            'desc': 'Para operações maiores e integrações customizadas.', 'cta': 'Falar com vendas', 'cta_url': '#',
+            'desc': 'Para operações maiores e integrações customizadas.', 'cta': 'Falar com vendas',
             'featured': False,
             'itens': ['Tudo do Profissional', 'APIs customizadas (integração)',
                       'Marca personalizada (white label)', 'Suporte prioritário',
@@ -81,6 +86,71 @@ def escolher_plano(request):
         'planos': planos,
         'empresa_atual': empresa,
     })
+
+
+@login_required
+def contratar_plano(request):
+    """Inicia a assinatura mensal do plano escolhido no Asaas e redireciona para o
+    checkout de pagamento. A ativação do plano ocorre no webhook, após confirmação."""
+    if request.method != 'POST' or not (plano := request.POST.get('plano', '')):
+        return redirect('core:escolher_plano')
+    empresa = _get_user_empresa(request.user)
+    if not empresa or plano not in asaas.PRECOS:
+        messages.error(request, 'Plano inválido.')
+        return redirect('core:escolher_plano')
+    if not asaas.configurado():
+        messages.error(request, 'Pagamento não configurado no momento. Tente mais tarde.')
+        return redirect('core:escolher_plano')
+    try:
+        sub = asaas.criar_assinatura(empresa, plano)
+        link = sub and asaas.link_de_pagamento(sub.get('id'))
+    except asaas.AsaasError:
+        link = None
+    if sub and link:
+        return redirect(link)
+    messages.info(request, 'Cobrança registrada. Finalize o pagamento no Asaas.')
+    return redirect('core:escolher_plano')
+
+
+@csrf_exempt
+def asaas_webhook(request):
+    """Recebe eventos do Asaas. Em pagamento confirmado/recebido, ativa o plano da
+    empresa. Localiza a empresa pelo externalReference (nosso id) ou pelo id da
+    assinatura; valida o token do webhook quando configurado."""
+    if request.method != 'POST':
+        return HttpResponseNotFound()
+    try:
+        dados = json.loads(request.body or b'{}')
+    except ValueError:
+        return HttpResponse('bad request', status=400)
+
+    token = getattr(settings, 'ASAAS_WEBHOOK_TOKEN', '')
+    if token and dados.get('authToken') != token:
+        return HttpResponse('forbidden', status=403)
+
+    evento = str(dados.get('event', '')).upper()
+    objeto = (dados.get('subscription') or dados.get('payment')
+              or dados.get('object') or dados)
+    if not isinstance(objeto, dict):
+        return HttpResponse('ok')
+
+    ext = (objeto.get('externalReference') or '').strip()
+    sid = objeto.get('id') or ''
+    empresa = Empresa.objects.filter(id=int(ext)).first() if ext.isdigit() else None
+    if not empresa and sid:
+        empresa = Empresa.objects.filter(asaas_subscription_id=sid).first()
+    if not empresa:
+        return HttpResponse('not found', status=404)
+
+    pagos = {
+        'PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED', 'PAYMENT_CREDIT_CARD_CAPTURE_CONFIRMED',
+        'SUBSCRIPTION_PAYMENT_CONFIRMED', 'SUBSCRIPTION_PAYMENT_RECEIVED',
+    }
+    if evento in pagos:
+        plano = asaas.plano_por_valor(objeto.get('value'))
+        if plano:
+            empresa.converter_plano(plano)
+    return HttpResponse('ok')
 
 def dashboard(request):
     # Pegamos a empresa do usuário logado

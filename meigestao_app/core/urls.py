@@ -12,6 +12,8 @@ urlpatterns = [
     path('lembrete/<int:pk>/excluir/', views.LembreteDeleteView.as_view(), name='lembrete_excluir'),
     path('plano/', views.plano_detail, name='plano_detail'),
     path('escolher-plano/', views.escolher_plano, name='escolher_plano'),
+    path('contratar-plano/', views.contratar_plano, name='contratar_plano'),
+    path('asaas/webhook/', views.asaas_webhook, name='asaas_webhook'),
     # Endpoint JSON seguro que alimenta o assistente de IA com dados da empresa.
     path('bot/contexto/', views.bot_contexto, name='bot_contexto'),
 ]

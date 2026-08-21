@@ -34,8 +34,12 @@
             <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>{{ it }}</li>
             {% endfor %}
           </ul>
-          <a class="btn mt-auto fw-semibold" href="{{ p.cta_url }}"
-             style="border-radius: 0.6rem; {% if p.featured %}background: var(--color-primary, #2563eb); color:#fff;{% else %}border:1px solid var(--color-line, #e3e8ee); color:var(--color-ink, #0f1419);{% endif %}">{{ p.cta }}</a>
+          <form method="post" action="{% url 'core:contratar_plano' %}">
+            {% csrf_token %}
+            <input type="hidden" name="plano" value="{{ p.id }}">
+            <button type="submit" class="btn w-100 mt-auto fw-semibold"
+               style="border-radius: 0.6rem; {% if p.featured %}background: var(--color-primary, #2563eb); color:#fff; border:none;{% else %}border:1px solid var(--color-line, #e3e8ee); color:var(--color-ink, #0f1419);{% endif %}">{{ p.cta }}</button>
+          </form>
         </div>
       </div>
     </div>
