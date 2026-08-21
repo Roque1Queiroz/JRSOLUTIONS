@@ -183,8 +183,9 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 # ─── Asaas (pagamentos / cobrança) ───────────────────────────────────────
-# Chave de API (produção 'aact_prod_...' ou sandbox) definida no .env.
-ASAAS_API_KEY = env('ASAAS_API_KEY', default='')
-ASAAS_BASE_URL = env('ASAAS_BASE_URL', default='https://api.asaas.com/v3')
+# Chave de API (produção 'aact_prod_...' ou sandbox). Lida direto de os.environ
+# porque o helper env() do django-environ usa cache tirado antes do read_env(.env).
+ASAAS_API_KEY = os.environ.get('ASAAS_API_KEY', '')
+ASAAS_BASE_URL = os.environ.get('ASAAS_BASE_URL', 'https://api.asaas.com/v3')
 # Autenticação do webhook (opcional; mesmo vazio, validamos re-consultando a API).
-ASAAS_WEBHOOK_TOKEN = env('ASAAS_WEBHOOK_TOKEN', default='')
+ASAAS_WEBHOOK_TOKEN = os.environ.get('ASAAS_WEBHOOK_TOKEN', '')
