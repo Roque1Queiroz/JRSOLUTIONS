@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from datetime import timedelta
+
 from django.db import models
+from django.utils import timezone
+
 
 class BaseModel(models.Model):
     """Modelo base abstrato para todos os modelos do sistema."""
@@ -36,6 +40,35 @@ class Empresa(BaseModel):
         verbose_name='Plano Contratado',
         help_text='Define as permissões, limites e acessos de módulos da empresa.'
     )
+    trial_expira_em = models.DateTimeField(
+        null=True, blank=True,
+        verbose_name='Término do teste gratuito',
+        help_text='Se preenchido, a empresa está em teste grátis com acesso total até esta data.'
+    )
+
+    DIAS_TRIAL = 30
+
+    @property
+    def em_teste(self):
+        """True enquanto a empresa está dentro da janela de teste grátis (acesso total)."""
+        return bool(self.trial_expira_em) and timezone.now() <= self.trial_expira_em
+
+    @property
+    def teste_expirado(self):
+        """True quando a janela de teste passou e a empresa ainda não converteu para um plano pago."""
+        return bool(self.trial_expira_em) and timezone.now() > self.trial_expira_em
+
+    def iniciar_teste(self, dias=None):
+        """Inicia (ou reinicia) o teste grátis com acesso total (Enterprise)."""
+        self.plano = 'enterprise'
+        self.trial_expira_em = timezone.now() + timedelta(days=(dias or self.DIAS_TRIAL))
+        self.save(update_fields=['plano', 'trial_expira_em', 'atualizado_em'])
+
+    def converter_plano(self, plano):
+        """Converte a empresa para um plano pago, encerrando o teste."""
+        self.plano = plano
+        self.trial_expira_em = None
+        self.save(update_fields=['plano', 'trial_expira_em', 'atualizado_em'])
 
     class Meta:
         app_label = 'core'

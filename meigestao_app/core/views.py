@@ -46,6 +46,42 @@ def setup_whitelabel(request):
 
     return render(request, 'meigestao_app/core/setup_whitelabel.html', {'form': form})
 
+
+@login_required
+def escolher_plano(request):
+    """Página apresentada quando o teste grátis (30 dias de acesso total) termina
+    e a empresa ainda não converteu: o usuário escolhe um plano para pagar (Asaas).
+    """
+    empresa = _get_user_empresa(request.user)
+    planos = [
+        {
+            'id': 'basico', 'nome': 'Básico', 'preco': 'R$ 79', 'usuarios': 'até 2 usuários',
+            'desc': 'Para começar a organizar o dia a dia.', 'cta': 'Contratar', 'cta_url': '#',
+            'featured': False,
+            'itens': ['Clientes, vendas e estoque', 'Financeiro e fluxo de caixa', 'Assistente de IA incluído'],
+        },
+        {
+            'id': 'profissional', 'nome': 'Profissional', 'preco': 'R$ 199', 'usuarios': 'até 5 usuários',
+            'desc': 'O pacote completo para a equipe.', 'cta': 'Contratar', 'cta_url': '#',
+            'featured': True,
+            'itens': ['Tudo do Básico', 'Fiscal, compras, produção e almoxarifado',
+                      'Acesso por função (RBAC)', 'Marca personalizada (white label)',
+                      'Assistente de IA incluído'],
+        },
+        {
+            'id': 'enterprise', 'nome': 'Enterprise', 'preco': 'R$ 499', 'usuarios': 'até 20 usuários',
+            'desc': 'Para operações maiores e integrações customizadas.', 'cta': 'Falar com vendas', 'cta_url': '#',
+            'featured': False,
+            'itens': ['Tudo do Profissional', 'APIs customizadas (integração)',
+                      'Marca personalizada (white label)', 'Suporte prioritário',
+                      'Assistente de IA incluído'],
+        },
+    ]
+    return render(request, 'meigestao_app/core/escolher_plano.html', {
+        'planos': planos,
+        'empresa_atual': empresa,
+    })
+
 def dashboard(request):
     # Pegamos a empresa do usuário logado
     empresa = _get_user_empresa(request.user)

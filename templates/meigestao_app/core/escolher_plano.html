@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Escolha seu plano — SISTEMA GESTOR{% endblock %}
+{% block page_title %}Escolha seu plano{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="text-center mb-4">
+    <h1 class="fw-bold" style="color: var(--color-ink, #0f1419);">Seu teste grátis terminou</h1>
+    <p class="text-muted mx-auto" style="max-width: 40rem; color: var(--color-muted, #6b7683);">
+      Você testou 30 dias com acesso total. Para continuar usando, escolha o plano
+      que mais combina com sua empresa.
+    </p>
+  </div>
+
+  <div class="row g-4 justify-content-center">
+    {% for p in planos %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm rounded-4 border-0 {% if p.featured %}border{% endif %}" style="{% if p.featured %}border: 2px solid var(--color-primary, #2563eb) !important;{% endif %}">
+        {% if p.featured %}
+        <span class="badge text-white position-absolute top-0 start-50 translate-middle px-3 py-2" style="background: var(--color-primary, #2563eb); white-space: nowrap;">Recomendado</span>
+        {% endif %}
+        <div class="card-body d-flex flex-column p-4">
+          <h3 class="fw-bold mb-0" style="color: var(--color-ink, #0f1419);">{{ p.nome }}</h3>
+          <div class="text-muted small" style="color: var(--color-muted, #6b7683);">{{ p.usuarios }}</div>
+          <div class="my-3">
+            <span class="fs-2 fw-bold" style="color: var(--color-ink, #0f1419);">{{ p.preco }}</span>
+            <span class="text-muted" style="color: var(--color-muted, #6b7683);">/mês</span>
+          </div>
+          <p class="small text-muted" style="color: var(--color-muted, #6b7683);">{{ p.desc }}</p>
+          <ul class="list-unstyled mb-4 small">
+            {% for it in p.itens %}
+            <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>{{ it }}</li>
+            {% endfor %}
+          </ul>
+          <a class="btn mt-auto fw-semibold" href="{{ p.cta_url }}"
+             style="border-radius: 0.6rem; {% if p.featured %}background: var(--color-primary, #2563eb); color:#fff;{% else %}border:1px solid var(--color-line, #e3e8ee); color:var(--color-ink, #0f1419);{% endif %}">{{ p.cta }}</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <p class="text-center text-muted small mt-4" style="color: var(--color-muted, #6b7683);">
+    Valor por assinatura mensal. Pagamento seguro via Asaas.
+  </p>
+</div>
+{% endblock %}

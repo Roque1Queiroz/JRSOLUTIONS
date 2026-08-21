@@ -43,6 +43,18 @@ class SaaSPlanRestrictionMiddleware:
 
         path = request.path_info.strip('/')
 
+        # ─── TESTE GRÁTIS ENCERRADO (30 dias de acesso total) ───
+        # Empresa que recebeu teste (Enterprise) e já ultrapassou a data limite é
+        # BLOQUEADA do sistema até escolher/pagar um plano. Só a página de escolha
+        # de plano, o logout e o admin permanecem acessíveis.
+        if getattr(empresa, 'teste_expirado', False):
+            if url_name not in ('escolher_plano', 'logout') and namespace != 'admin':
+                messages.warning(
+                    request,
+                    'Seu teste grátis de 30 dias terminou. Escolha um plano para continuar usando.',
+                )
+                return redirect('core:escolher_plano')
+
         # ─── RESTRIÇÕES DO PLANO BÁSICO ───
         if plano == 'basico':
             # Módulos não autorizados no Plano Básico
