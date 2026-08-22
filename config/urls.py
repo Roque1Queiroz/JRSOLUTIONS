@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from meigestao_app.core.views import DashboardView, cadastro
+from meigestao_app.core.views import DashboardView, cadastro, login_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -11,6 +11,8 @@ urlpatterns = [
     # Alias limpo da raiz para o cadastro self-service (mesma view do core; a landing
     # aponta o botão "Começar teste grátis" para esta URL).
     path('cadastro/', cadastro, name='cadastro'),
+    # Alias limpo da raiz para o login público do cliente.
+    path('entrar/', login_view, name='entrar'),
     path('core/', include('meigestao_app.core.urls')),
     path('vendas/', include('meigestao_app.vendas.urls')),
     path('clientes/', include('meigestao_app.clientes.urls')),

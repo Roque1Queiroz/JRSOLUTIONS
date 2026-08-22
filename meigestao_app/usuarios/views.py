@@ -8,7 +8,7 @@ class UsuarioListView(LoginRequiredMixin, ListView):
     model = Perfil
     template_name = 'meigestao_app/usuarios/usuario_list.html'
     context_object_name = 'usuarios'
-    login_url = 'admin:login'
+    login_url = 'core:login'
 
     def get_queryset(self):
         return super().get_queryset().filter(

@@ -1150,7 +1150,7 @@ class TestFinanceiroFlow:
         response = client.get(reverse(f'financeiro:{url_name}', kwargs={'pk': 999999}))
 
         assert response.status_code == 302
-        assert 'login' in response.url
+        assert reverse('core:login') in response.url
 
     def test_notifications_context_processor_returns_zero_for_user_without_profile(self, db):
         user = User.objects.create_user(username="semperfil", password="password", is_staff=False)

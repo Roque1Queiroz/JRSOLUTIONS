@@ -1,7 +1,9 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
 from meigestao_app.usuarios.models import Perfil
@@ -232,7 +234,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     """Dashboard principal da aplicação."""
     
     template_name = 'meigestao_app/core/dashboard.html'
-    login_url = 'admin:login'
+    login_url = 'core:login'
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -510,6 +512,51 @@ def cadastro(request):
         'erros': erros,
         'valores': request.POST if request.method == 'POST' else {},
     })
+
+
+@require_http_methods(["GET", "POST"])
+def login_view(request):
+    """Login público do cliente (substitui a tela do Django admin na rotina normal).
+
+    O cliente que se cadastrou pela landing volta e entra com a mesma identidade
+    visual do sistema. Válida credenciais e redireciona para 'next' (quando vindo
+    de uma página protegida) ou para o dashboard.
+    """
+    if request.user.is_authenticated:
+        return redirect('core:dashboard')
+
+    proximo = request.GET.get('next') or ''
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            usuario = form.get_user()
+            login(request, usuario)
+            messages.success(
+                request,
+                f'Bem-vindo(a), {usuario.first_name or usuario.username}!',
+            )
+            destino = proximo or 'core:dashboard'
+            # Protege contra open-redirect: só aceita 'next' interno/seguro.
+            if not url_has_allowed_host_and_scheme(
+                    destino, allowed_hosts={request.get_host()}):
+                destino = 'core:dashboard'
+            return redirect(destino)
+        erros = list(form.non_field_errors()) or ['E-mail ou senha inválidos.']
+        return render(request, 'meigestao_app/core/login.html', {
+            'form': form, 'erros': erros, 'valores': request.POST, 'next': proximo,
+        })
+
+    form = AuthenticationForm(request)
+    return render(request, 'meigestao_app/core/login.html', {
+        'form': form, 'erros': [], 'valores': {}, 'next': proximo,
+    })
+
+
+@require_http_methods(["GET", "POST"])
+def logout_view(request):
+    """Encerra a sessão e volta para o login público."""
+    logout(request)
+    return redirect('core:login')
 
 
 class HomeView(TemplateView):

@@ -436,7 +436,7 @@ class TestIsolamentoEstoqueEntreEmpresas:
         )
 
         assert response.status_code == 302
-        assert 'login' in response.url
+        assert reverse('core:login') in response.url
 
     def test_superusuario_faz_ajuste_absoluto(self, client, db):
         empresa = Empresa.objects.create(nome="Empresa Super Ajuste", cnpj="48.989.898/0001-48")

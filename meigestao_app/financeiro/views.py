@@ -343,7 +343,7 @@ class TransacaoListView(FluxoTransacaoMixin, LoginRequiredMixin, ExigeModuloPerm
     model = Transacao
     template_name = 'meigestao_app/financeiro/transacao_list.html'
     context_object_name = 'transacoes'
-    login_url = 'admin:login'
+    login_url = 'core:login'
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)

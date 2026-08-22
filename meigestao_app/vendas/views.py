@@ -37,7 +37,7 @@ class VendaListView(LoginRequiredMixin, ExigeModuloPermissaoMixin, ListView):
     template_name = 'meigestao_app/vendas/venda_list.html'
     context_object_name = 'vendas'
     paginate_by = 20
-    login_url = 'admin:login'
+    login_url = 'core:login'
 
     def get_create_url(self):
         return reverse_lazy('vendas:venda_create')
@@ -77,7 +77,7 @@ class VendaCreateView(LoginRequiredMixin, ExigeEscritaModuloMixin, EmpresaFormMi
     form_class = VendaForm
     template_name = 'meigestao_app/vendas/venda_form.html'
     success_url = reverse_lazy('vendas:venda_list')
-    login_url = 'admin:login'
+    login_url = 'core:login'
 
     def get_initial(self):
         initial = super().get_initial()
@@ -159,7 +159,7 @@ class VendaDetailView(LoginRequiredMixin, ExigeModuloPermissaoMixin, DetailView)
     model = Venda
     template_name = 'meigestao_app/vendas/venda_detail.html'
     context_object_name = 'venda'
-    login_url = 'admin:login'
+    login_url = 'core:login'
 
     def get_queryset(self) -> QuerySet:
         empresa = get_empresa_do_usuario(self.request.user)
@@ -183,7 +183,7 @@ class VendaUpdateView(LoginRequiredMixin, ExigeEscritaModuloMixin, EmpresaFormMi
     form_class = VendaForm
     template_name = 'meigestao_app/vendas/venda_form.html'
     success_url = reverse_lazy('vendas:venda_list')
-    login_url = 'admin:login'
+    login_url = 'core:login'
 
     def get_queryset(self) -> QuerySet:
         empresa = get_empresa_do_usuario(self.request.user)
@@ -262,7 +262,7 @@ class VendaDeleteView(LoginRequiredMixin, ExigeExclusaoModuloMixin, DeleteView):
     model = Venda
     template_name = 'meigestao_app/vendas/venda_confirm_delete.html'
     success_url = reverse_lazy('vendas:venda_list')
-    login_url = 'admin:login'
+    login_url = 'core:login'
 
     def get_queryset(self) -> QuerySet:
         empresa = get_empresa_do_usuario(self.request.user)

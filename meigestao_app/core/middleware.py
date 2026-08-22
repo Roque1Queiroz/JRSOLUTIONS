@@ -48,7 +48,7 @@ class SaaSPlanRestrictionMiddleware:
         # BLOQUEADA do sistema até escolher/pagar um plano. Só a página de escolha
         # de plano, o logout e o admin permanecem acessíveis.
         if getattr(empresa, 'teste_expirado', False):
-            if url_name not in ('escolher_plano', 'logout') and namespace != 'admin':
+            if url_name not in ('escolher_plano', 'contratar_plano', 'logout') and namespace != 'admin':
                 messages.warning(
                     request,
                     'Seu teste grátis de 30 dias terminou. Escolha um plano para continuar usando.',

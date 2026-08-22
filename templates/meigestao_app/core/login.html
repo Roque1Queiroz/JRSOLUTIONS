@@ -1,0 +1,73 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrar — SISTEMA GESTOR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+    :root{--pg:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%)}
+    *{font-family:'Inter',system-ui,sans-serif}
+    body{margin:0;min-height:100vh;background:#f8fafc;display:flex;align-items:center;justify-content:center;padding:24px}
+    .wrap{width:100%;max-width:420px}
+    .brand{text-align:center;margin-bottom:22px;color:#1e293b}
+    .brand .logo{font-size:1.7rem;font-weight:800;letter-spacing:.5px;background:var(--pg);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .brand p{color:#64748b;font-size:.9rem;margin:.2rem 0 0}
+    .card{border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 15px 40px -12px rgba(30,41,59,.18);padding:30px}
+    .card h1{font-size:1.35rem;font-weight:700;color:#1e293b;margin-bottom:4px}
+    .card .sub{color:#64748b;font-size:.88rem;margin-bottom:22px}
+    .form-label{font-size:.82rem;font-weight:600;color:#334155}
+    .form-control{border-radius:10px;padding:.55rem .8rem;border-color:#e2e8f0;font-size:.92rem}
+    .form-control:focus{border-color:#7c3aed;box-shadow:0 0 0 .2rem rgba(124,58,237,.12)}
+    .btn-primary{background:var(--pg);border:none;border-radius:10px;padding:.7rem;font-weight:700;font-size:.95rem}
+    .btn-primary:hover{opacity:.92}
+    .alert-danger,.alert-info{border-radius:10px;font-size:.85rem;padding:.6rem .9rem}
+    .foot{text-align:center;margin-top:16px;color:#64748b;font-size:.85rem}
+    .foot a{color:#4f46e5;font-weight:600;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="brand">
+        <div class="logo">⚙ SISTEMA GESTOR</div>
+        <p>Gestão completa para o seu negócio</p>
+    </div>
+
+    <div class="card">
+        <h1>Entrar</h1>
+        <p class="sub">Acesse sua conta para gerenciar sua empresa.</p>
+
+        {% if erros %}
+        <div class="alert alert-danger mb-3">
+            <i class="bi bi-exclamation-triangle me-1"></i>{{ erros.0 }}
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'core:login' %}{% if next %}?next={{ next }}{% endif %}" novalidate>
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label" for="id_username">E-mail</label>
+                <input type="text" class="form-control" id="id_username" name="username"
+                       value="{{ valores.username }}" required autofocus autocomplete="username"
+                       placeholder="voce@empresa.com.br">
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="id_password">Senha</label>
+                <input type="password" class="form-control" id="id_password" name="password"
+                       required autocomplete="current-password" placeholder="Sua senha">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+                Entrar <i class="bi bi-box-arrow-in-right ms-1"></i>
+            </button>
+        </form>
+    </div>
+
+    <div class="foot">
+        Não tem uma conta? <a href="{% url 'core:cadastro' %}">Criar conta grátis</a> — 30 dias grátis.
+    </div>
+</div>
+</body>
+</html>
