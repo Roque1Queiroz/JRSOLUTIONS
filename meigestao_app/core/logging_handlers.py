@@ -21,6 +21,27 @@ import traceback
 import urllib.parse
 import urllib.request
 
+from django.utils.log import AdminEmailHandler
+
+
+class SafeAdminEmailHandler(AdminEmailHandler):
+    """AdminEmailHandler blindado contra falha de renderização do traceback.
+
+    O Django monta o relatório ANTES de checar ADMINS. Se a fonte do erro não
+    for um arquivo legível (ex.: código rodado via /dev/stdin, view gerada em
+    memória, pacote .getsource indisponível), `ExceptionReporter.get_traceback_text()`
+    lança IndexError que ESCAPA do emit() e quebra a cadeia de handlers — o que
+    impede os próximos handlers (ex.: o Telegram) de rodar e pode até vazar
+    para a requisição. Este wrapper absorve qualquer exceção do emit,
+    registra em stderr via handleError e deixa a cadeia continuar.
+    """
+    def emit(self, record: logging.LogRecord) -> None:
+        try:
+            super().emit(record)
+        except Exception:
+            self.handleError(record)
+
+
 # Fallback de chat_id por empresa na mesma requisição (opcional). Boa evolução
 # futura: rotear por tenant. Por ora envia para um único chat do dono.
 _DEFAULT_CHAT_ID_ENV = "TELEGRAM_CHAT_ID"

@@ -110,7 +110,7 @@ LOGGING = {
             'level': 'ERROR',
         },
         'mail_admins': {
-            'class': 'django.utils.log.AdminEmailHandler',
+            'class': 'meigestao_app.core.logging_handlers.SafeAdminEmailHandler',
             'formatter': 'verbose',
         },
         'telegram': {
