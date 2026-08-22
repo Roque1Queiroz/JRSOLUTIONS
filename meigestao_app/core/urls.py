@@ -19,6 +19,9 @@ urlpatterns = [
     # Login/logout público do cliente (substitui a tela do Django admin na rotina normal).
     path('entrar/', views.login_view, name='login'),
     path('sair/', views.logout_view, name='logout'),
+    # Páginas públicas legais (LGPD / termos).
+    path('privacidade/', views.privacidade, name='privacidade'),
+    path('termos/', views.termos, name='termos'),
     # Endpoint JSON seguro que alimenta o assistente de IA com dados da empresa.
     path('bot/contexto/', views.bot_contexto, name='bot_contexto'),
 ]

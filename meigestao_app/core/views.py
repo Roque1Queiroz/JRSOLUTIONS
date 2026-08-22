@@ -559,6 +559,16 @@ def logout_view(request):
     return redirect('core:login')
 
 
+def privacidade(request):
+    """Página pública de Política de Privacidade (LGPD)."""
+    return render(request, 'meigestao_app/core/privacidade.html')
+
+
+def termos(request):
+    """Página pública de Termos de Uso."""
+    return render(request, 'meigestao_app/core/termos.html')
+
+
 class HomeView(TemplateView):
     """Página inicial."""
     

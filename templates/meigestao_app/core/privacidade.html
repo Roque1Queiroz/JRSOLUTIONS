@@ -1,0 +1,99 @@
+{% extends "meigestao_app/core/legal_base.html" %}
+{% block titulo %}Política de Privacidade (LGPD){% endblock %}
+{% block conteudo %}
+<h1>Política de Privacidade</h1>
+<div class="meta">Em conformidade com a Lei Geral de Proteção de Dados Pessoais — <strong>LGPD (Lei nº 13.709/2018)</strong> · Última atualização: {% now "d/m/Y" %}</div>
+
+<div class="aviso">
+  Este documento explica quais dados pessoais o <strong>Sistema Gestor</strong> coleta, por que coleta,
+  como são tratados e os seus direitos como titular. Leia atentamente antes de usar o serviço.
+</div>
+
+<h2>1. Quem é responsável pelo tratamento (Controlador)</h2>
+<p>
+  O <strong>JR Solutions Tecnologia</strong> (nome fantasia do responsável pelo Sistema Gestor) é o
+  <strong>controlador</strong> dos dados tratados por meio do sistema. Para questões relacionadas à
+  proteção de dados, entre em contato com o nosso <strong>Encarregado de Dados (DPO)</strong> pelo e-mail:
+  <strong>[informe o e-mail do DPO, ex.: dpo@jrsolutions.com.br]</strong>.
+</p>
+<p><em>[Preencher: CNPJ do controlador e endereço — ex.: Mogi das Cruzes/SP]</em></p>
+
+<h2>2. Quais dados tratamos</h2>
+<ul>
+  <li><strong>Dados cadastrais da empresa:</strong> razão social/nome, CNPJ, e-mail, telefone, endereço, cidade, estado, CEP;</li>
+  <li><strong>Dados de usuários (login):</strong> nome, sobrenome e e-mail;</li>
+  <li><strong>Dados de operações do negócio:</strong> clientes, fornecedores, produtos, vendas, financeiro, estoque, compras, serviços e produção, inseridos pelo próprio cliente no uso do sistema;</li>
+  <li><strong>Dados de cobrança:</strong> quando aplicável, dados necessários à emissão de cobrança (PIX) processados pelo provedor de pagamento <strong>Asaas</strong>;</li>
+  <li><strong>Dados de uso e técnicos:</strong> registros de acesso (logs), endereço IP, dados de navegação e de sessão.</li>
+</ul>
+
+<h2>3. Por que tratamos os dados (finalidades)</h2>
+<ul>
+  <li>Prestar e manter o funcionamento do sistema de gestão contratado;</li>
+  <li>Gerenciar contas, usuários e permissões de acesso;</li>
+  <li>Faturamento, cobrança e gestão de planos/triais;</li>
+  <li>Segurança, auditoria e prevenção de fraudes e uso indevido;</li>
+  <li>Atendimento e suporte ao cliente;</li>
+  <li>Quando ativado, alimentar o assistente de <strong>inteligência artificial (chatbot)</strong> com dados da própria empresa para respostas contextuais;</li>
+  <li>Cumprimento de obrigações legais e regulatórias.</li>
+</ul>
+
+<h2>4. Base legal para o tratamento (LGPD, art. 7º)</h2>
+<ul>
+  <li><strong>Execução do contrato</strong> e procedimentos preliminares (art. 7º, V) — uso principal do sistema;</li>
+  <li><strong>Legítimo interesse</strong> (art. 7º, IX) — segurança, prevenção de fraude e melhoria do serviço;</li>
+  <li><strong>Consentimento</strong> (art. 7º, I), quando aplicável (ex.: comunicações não essenciais);</li>
+  <li><strong>Obrigação legal</strong> (art. 7º, II), quando exigido por lei.</li>
+</ul>
+
+<h2>5. Compartilhamento de dados</h2>
+<p>
+  O Sistema Gestor compartilha dados apenas com provedores necessários à operação do serviço e
+  sempre mediante contratos que respeitam a LGPD, tais como:
+</p>
+<ul>
+  <li><strong>Provedor de pagamento (Asaas)</strong> — para processar cobranças/PIX;</li>
+  <li><strong>Provedor de inteligência artificial (ex.: Groq)</strong> — apenas para processar a consulta do chatbot quando ativado pela empresa;</li>
+  <li><strong>Hospedagem/infraestrutura em nuvem</strong> — onde os dados ficam armazenados com segurança.</li>
+</ul>
+<p>O Sistema Gestor <strong>não vende dados pessoais</strong> e trata cada empresa de forma <strong>isolada (multi-tenant)</strong>.</p>
+
+<h2>6. Armazenamento, segurança e retenção</h2>
+<ul>
+  <li>Os dados são armazenados em infraestrutura com <strong>acesso restrito, criptografia de tráfego (HTTPS)</strong>, controle de permissões (RBAC) e isolamento entre empresas;</li>
+  <li>O banco de dados possui <strong>backup automático diário</strong> com retenção definida, para garantir disponibilidade e recuperação;</li>
+  <li>Os dados são mantidos <strong>pelo período necessário às finalidades</strong> ou exigência legal; após, são eliminados de forma segura.</li>
+</ul>
+
+<h2>7. Cookies e tecnologias</h2>
+<p>
+  O sistema utiliza cookies <strong>essenciais</strong> (sessão e proteção CSRF) para o funcionamento correto
+  do serviço. Não utilizamos cookies de publicidade ou rastreamento de terceiros.
+</p>
+
+<h2>8. Seus direitos (LGPD, art. 18)</h2>
+<p>Você pode solicitar, a qualquer momento:</p>
+<ul>
+  <li>Confirmação da existência de tratamento e <strong>acesso</strong> aos dados;</li>
+  <li><strong>Correção</strong> de dados incompletos, inexatos ou desatualizados;</li>
+  <li><strong>Anonimização, bloqueio ou eliminação</strong> de dados desnecessários, excessivos ou tratados em desconformidade;</li>
+  <li><strong>Portabilidade</strong> dos dados;</li>
+  <li><strong>Eliminação</strong> de dados tratados com base em consentimento;</li>
+  <li>Informação sobre com quem os dados foram <strong>compartilhados</strong>;</li>
+  <li><strong>Revogação do consentimento</strong>.</li>
+</ul>
+
+<h2>9. Como exercer seus direitos</h2>
+<p>
+  Envie sua solicitação para o nosso Encarregado de Dados pelo e-mail
+  <strong>[informe o e-mail do DPO]</strong> ou pelas configurações da sua conta no sistema. Responderemos,
+  em regra, <strong>em até 15 dias</strong>. Você também pode recorrer à <strong>ANPD</strong> (Autoridade Nacional de
+  Proteção de Dados) caso entenda que seus direitos não foram atendidos.
+</p>
+
+<h2>10. Atualizações desta política</h2>
+<p>
+  Esta política pode ser atualizada para refletir mudanças no serviço ou na legislação. A versão
+  vigente estará sempre disponível neste endereço, com a data da última atualização.
+</p>
+{% endblock %}
