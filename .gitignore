@@ -56,3 +56,6 @@ deploy-cliente/
 logs/
 *.log
 .env
+
+# Backups temporarios de deploy - nunca versionar
+*.bak_*
