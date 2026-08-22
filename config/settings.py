@@ -13,6 +13,10 @@ env = environ.Env(
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Diretório de logs (criado no boot — não some ao recriar o container)
+LOG_DIR = Path(env('DJANGO_LOG_DIR', default=str(BASE_DIR / 'logs')))
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+
 # Lê o arquivo .env se ele existir
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
@@ -41,6 +45,97 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# ---------------------------------------------------------------------------
+# ADMINS + Email (aviso de erro 500 em produção)  —  item 2
+#   Configure DJANGO_ADMIN_EMAILS no .env com os emails separados por vírgula.
+# ---------------------------------------------------------------------------
+_ADMIN_EMAILS = [e.strip() for e in env('DJANGO_ADMIN_EMAILS', default='')
+                 .split(',') if e.strip()]
+ADMINS = [('Administrador', e) for e in _ADMIN_EMAILS]
+MANAGERS = ADMINS
+
+# Backend de email. Padrão = console (não entrega de verdade; escreve no log do
+# processo). Para o aviso de erro CHEGAR no seu email, configure um SMTP no .env:
+#   EMAIL_HOST_USER / EMAIL_HOST_PASSWORD (ex.: app password do Gmail) e
+#   DJANGO_EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_BACKEND = env(
+    'DJANGO_EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend',
+)
+EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL',
+                         default='sistema@jrsolutions.com.br')
+SERVER_EMAIL = env('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
+
+# ---------------------------------------------------------------------------
+# LOGGING profissional (arquivos com rotação diária + console + email) — item 1
+#   Gera logs/gestor.log  (tudo, rotaciona a cada 30 dias)
+#   Gera logs/gestor_errors.log  (só erros, retém 60 dias — histórico p/ achar erro)
+# ---------------------------------------------------------------------------
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name} '
+                      '{filename}:{lineno} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': str(LOG_DIR / 'gestor.log'),
+            'when': 'midnight',
+            'backupCount': 30,
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+        },
+        'file_errors': {
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': str(LOG_DIR / 'gestor_errors.log'),
+            'when': 'midnight',
+            'backupCount': 60,
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+            'level': 'ERROR',
+        },
+        'mail_admins': {
+            'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO' if not DEBUG else 'DEBUG',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['file_errors', 'mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'meigestao_app': {
+            'handlers': ['console', 'file', 'file_errors'],
+            'level': 'INFO' if not DEBUG else 'DEBUG',
+            'propagate': False,
+        },
+        '': {  # root / fallback
+            'handlers': ['console', 'file', 'file_errors'],
+            'level': 'WARNING',
+        },
+    },
+}
 
 INSTALLED_APPS = [
     'django.contrib.admin',
