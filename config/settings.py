@@ -113,6 +113,10 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler',
             'formatter': 'verbose',
         },
+        'telegram': {
+            'class': 'meigestao_app.core.logging_handlers.TelegramBotHandler',
+            'formatter': 'verbose',
+        },
     },
     'loggers': {
         'django': {
@@ -121,12 +125,12 @@ LOGGING = {
             'propagate': False,
         },
         'django.request': {
-            'handlers': ['file_errors', 'mail_admins'],
+            'handlers': ['file_errors', 'mail_admins', 'telegram'],
             'level': 'ERROR',
             'propagate': False,
         },
         'meigestao_app': {
-            'handlers': ['console', 'file', 'file_errors'],
+            'handlers': ['console', 'file', 'file_errors', 'telegram'],
             'level': 'INFO' if not DEBUG else 'DEBUG',
             'propagate': False,
         },
