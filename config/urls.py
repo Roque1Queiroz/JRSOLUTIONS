@@ -4,7 +4,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from meigestao_app.core.views import (DashboardView, cadastro, login_view,
-                                      privacidade, termos)
+                                      privacidade, termos, demo_dashboard)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -17,6 +17,8 @@ urlpatterns = [
     # Páginas legais públicas (LGPD / termos) — links da landing e do rodapé.
     path('privacidade/', privacidade, name='privacidade'),
     path('termos/', termos, name='termos'),
+    # Painel executivo em modo DEMONSTRAÇÃO (público, para vender).
+    path('demo/', demo_dashboard, name='demo'),
     path('core/', include('meigestao_app.core.urls')),
     path('vendas/', include('meigestao_app.vendas.urls')),
     path('clientes/', include('meigestao_app.clientes.urls')),
