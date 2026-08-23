@@ -41,7 +41,7 @@ class ReciboReembolsoForm(forms.ModelForm):
         fields = ['colaborador', 'nome_solicitante', 'prioridade', 'item', 'valor', 'data_compra', 'foto_recibo', 'observacoes']
         widgets = {
             'colaborador': forms.Select(attrs={'class': 'form-select'}),
-            'nome_solicitante': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Preencha se o solicitante não estiver na lista'}),
+            'nome_solicitante': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Se não estiver na lista'}),
             'prioridade': forms.Select(attrs={'class': 'form-select'}),
             'item': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Uber, Almoço com Cliente, etc.'}),
             'valor': forms.NumberInput(attrs={
