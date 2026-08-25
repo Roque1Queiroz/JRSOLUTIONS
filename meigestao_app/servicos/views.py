@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 from .models import OrdemServico, ItemOrdemServico
+from .forms import OrdemServicoForm
 from .utils import CompanyIsolationMixin
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -33,8 +34,13 @@ class OSListView(LoginRequiredMixin, CompanyIsolationMixin, ListView):
 class OSCreateView(LoginRequiredMixin, CompanyIsolationMixin, CreateView):
     model = OrdemServico
     template_name = 'meigestao_app/servicos/os_form.html'
-    fields = ['tipo', 'cliente', 'responsavel', 'descricao']
+    form_class = OrdemServicoForm
     success_url = reverse_lazy('servicos:os_list')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["empresa"] = get_empresa_do_usuario(self.request.user)
+        return kwargs
 
     def form_valid(self, form):
         form.instance.empresa = get_empresa_do_usuario(self.request.user)

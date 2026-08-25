@@ -5,8 +5,8 @@ set -e
 
 echo "🚀 Iniciando ambiente do SISTEMA GESTOR..."
 
-# 1. Aguardar o banco de dados (PostgreSQL) se estivermos usando um
-if [ -n "$DB_HOST" ]; then
+# 1. Aguardar o banco de dados (PostgreSQL) somente se estivermos usando PostgreSQL
+if [ "${DB_TYPE:-sqlite}" = "postgres" ] && [ -n "$DB_HOST" ]; then
     DB_PORT="${DB_PORT:-5432}"
     DB_USER="${DB_USER:-postgres}"
     DB_NAME="${DB_NAME:-postgres}"
@@ -16,6 +16,8 @@ if [ -n "$DB_HOST" ]; then
       sleep 1
     done
     echo "✅ PostgreSQL pronto!"
+else
+    echo "ℹ️ Modo banco: ${DB_TYPE:-sqlite} (sem aguardar PostgreSQL externo)."
 fi
 
 # 2. Executar migrações do banco de dados
