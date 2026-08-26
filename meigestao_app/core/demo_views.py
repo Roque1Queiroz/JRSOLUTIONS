@@ -6,11 +6,13 @@ from datetime import timedelta
 from django.db.models import F, Sum
 from django.shortcuts import render
 from django.utils import timezone
+from django.views.decorators.clickjacking import xframe_options_exempt
 
 from meigestao_app.financeiro.models import Transacao
 from meigestao_app.vendas.models import ItemVenda, Venda
 
 
+@xframe_options_exempt
 def demo_dashboard(request):
     """Painel executivo de DEMONSTRAÇÃO (público, para vender).
 
