@@ -33,6 +33,16 @@ from django.http import HttpResponse, HttpResponseNotFound
 from . import asaas
 from .demo_views import demo_dashboard
 
+
+def _cnpj_valido(cnpj: str) -> bool:
+    """Valida um CNPJ usando os dígitos verificadores (validate_docbr)."""
+    from validate_docbr import CNPJ
+    try:
+        return CNPJ().validate(cnpj)
+    except Exception:
+        return False
+
+
 @login_required
 def setup_whitelabel(request):
     empresa = _get_user_empresa(request.user)
@@ -467,6 +477,8 @@ def cadastro(request):
             erros.append('Informe o nome da empresa.')
         if not cnpj:
             erros.append('Informe o CNPJ da empresa.')
+        elif not _cnpj_valido(cnpj):
+            erros.append('CNPJ inválido. Verifique os números e tente novamente.')
         if not primeiro_nome:
             erros.append('Informe seu primeiro nome.')
         if not email or '@' not in email:
@@ -488,6 +500,7 @@ def cadastro(request):
             # Cria a empresa e já inicia os 30 dias de teste (acesso total).
             empresa = Empresa.objects.create(nome=nome, cnpj=cnpj, email=email, ativa=True)
             empresa.iniciar_teste()
+            empresa.criar_dados_padrao()
 
             usuario = User.objects.create_user(
                 username=email, email=email, password=senha,

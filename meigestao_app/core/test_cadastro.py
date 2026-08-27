@@ -10,10 +10,17 @@ from meigestao_app.core.models import Empresa
 from meigestao_app.usuarios.models import Perfil
 
 
+# CNPJs e CPFs VÁLIDOS (dígitos verificadores reais) — usados para respeitar a
+# validação de documentos adicionada na auditoria de segurança (2026-08-27).
+CNPJ_BASE = '30.883.224/4935-98'
+CNPJ_DUPLICADO = '22.105.824/5213-04'
+CNPJ_DOIS = '12.165.009/4830-00'
+
+
 def _dados(**over):
     base = {
         'nome_empresa': 'Loja do Teste ME',
-        'cnpj': '12.345.678/0001-90',
+        'cnpj': CNPJ_BASE,
         'primeiro_nome': 'Maria',
         'sobrenome': 'Silva',
         'email': 'maria@teste.com.br',
@@ -36,7 +43,7 @@ def test_post_cadastro_cria_empresa_usuario_e_trial(client, db):
     resp = client.post(reverse('core:cadastro'), _dados())
     assert resp.status_code in (302, 200)
 
-    empresa = Empresa.objects.filter(cnpj='12.345.678/0001-90').first()
+    empresa = Empresa.objects.filter(cnpj=CNPJ_BASE).first()
     assert empresa is not None
     assert empresa.em_teste is True
     assert empresa.plano == 'enterprise'
@@ -62,12 +69,21 @@ def test_post_cadastro_senhas_nao_confere(client, db):
     resp = client.post(reverse('core:cadastro'), _dados(confirma='outra-senha-123'))
     assert resp.status_code == 200
     assert b'confirma' in resp.content.lower() or 'confirma' in resp.content.decode()
+    assert not Empresa.objects.filter(cnpj=CNPJ_BASE).exists()
+
+
+def test_post_cadastro_cnpj_invalido_negado(client, db):
+    """CNPJ com dígitos verificadores inválidos deve ser recusado."""
+    resp = client.post(reverse('core:cadastro'), _dados(cnpj='12.345.678/0001-90'))
+    corpo = resp.content.decode()
+    assert resp.status_code == 200
+    assert 'CNPJ inválido' in corpo
     assert not Empresa.objects.filter(cnpj='12.345.678/0001-90').exists()
 
 
 def test_post_cadastro_cnpj_duplicado(client, db):
-    Empresa.objects.create(nome='Ja Existe', cnpj='12.345.678/0001-90')
-    resp = client.post(reverse('core:cadastro'), _dados())
+    Empresa.objects.create(nome='Ja Existe', cnpj=CNPJ_DUPLICADO)
+    resp = client.post(reverse('core:cadastro'), _dados(cnpj=CNPJ_DUPLICADO))
     corpo = resp.content.decode()
     assert resp.status_code == 200
     assert 'Já existe uma conta com este CNPJ' in corpo
@@ -85,7 +101,7 @@ def test_post_cadastro_email_duplicado(client, db):
 def test_post_cadastro_usuario_logado_redireciona(client, db, django_user_model):
     from meigestao_app.core.models import Empresa
     from meigestao_app.usuarios.models import Perfil
-    e = Empresa.objects.create(nome='Marcas ME', cnpj='98.877.665/0001-00')
+    e = Empresa.objects.create(nome='Marcas ME', cnpj=CNPJ_DOIS)
     u = django_user_model.objects.create_user(username='logado@x.com', password='senha-forte')
     Perfil.objects.create(usuario=u, empresa=e, permissao='admin', data_admissao=datetime.date.today())
     client.force_login(u)

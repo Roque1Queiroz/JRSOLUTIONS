@@ -106,6 +106,14 @@ class Empresa(BaseModel):
     def tem_apis_customizadas(self):
         return self.plano == 'enterprise'
 
+    def criar_dados_padrao(self):
+        """Cria registros iniciais úteis para uma empresa nova (evita telas com
+        listas vazias logo após o cadastro, ex.: categorias de produto)."""
+        from meigestao_app.estoque.models import Categoria
+        padroes = ['Geral', 'Matéria-prima', 'Acabado', 'Serviço']
+        for nome in padroes:
+            Categoria.objects.get_or_create(empresa=self, nome=nome)
+
 
 class Lembrete(BaseModel):
     """Modelo para anotações e lembretes de serviços futuros."""

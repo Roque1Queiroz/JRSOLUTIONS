@@ -25,16 +25,23 @@ class ClienteForm(forms.ModelForm):
         if not cpf_cnpj:
             raise ValidationError('Este campo é obrigatório.')
 
-        # Remove formatação para validar o tamanho exato
         import re
         apenas_numeros = re.sub(r'[^0-9]', '', str(cpf_cnpj))
-        
-        if len(apenas_numeros) != 11 and len(apenas_numeros) != 14:
+
+        from validate_docbr import CPF, CNPJ
+
+        if len(apenas_numeros) == 11:
+            if not CPF().validate(apenas_numeros):
+                raise ValidationError('CPF inválido. Verifique os números e tente novamente.')
+        elif len(apenas_numeros) == 14:
+            if not CNPJ().validate(apenas_numeros):
+                raise ValidationError('CNPJ inválido. Verifique os números e tente novamente.')
+        else:
             raise ValidationError('Documento incompleto/inválido. O CPF deve ter 11 dígitos e o CNPJ 14 dígitos.')
 
         if Cliente.objects.filter(cpf_cnpj=cpf_cnpj).exclude(pk=self.instance.pk).exists():
             raise ValidationError('Este CPF/CNPJ já está cadastrado em outro cliente.')
-        
+
         return cpf_cnpj
 
     def clean_cep(self):
