@@ -12,6 +12,7 @@ from datetime import timedelta
 from .models import Categoria, Produto, Estoque, MovimentacaoEstoque
 from .forms import CategoriaForm, ProdutoForm, EstoqueForm, MovimentacaoEstoqueForm
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
+from meigestao_app.core.utils.csv_modelos import modelo_produtos_csv
 from meigestao_app.core.mixins import (
     EmpresaFormMixin,
     EmpresaQuerysetMixin,
@@ -407,7 +408,7 @@ class ProdutoImportView(LoginRequiredMixin, ExigeEscritaModuloMixin, View):
 
             try:
                 # 1. Tratar Categoria
-                cat_nome = row.get('categoria', 'Geral')
+                cat_nome = row.get('categoria') or 'Geral'
                 categoria, _ = Categoria.objects.get_or_create(empresa=empresa, nome=cat_nome)
 
                 # 3. Criar Produto
@@ -422,22 +423,23 @@ class ProdutoImportView(LoginRequiredMixin, ExigeEscritaModuloMixin, View):
                     ativo=True
                 )
 
-                # 4. Inicializar Estoque
+                # 4. Inicializar Estoque (via movimentação — o modelo aplica o efeito
+                # no estoque e valida a empresa; setar quantidade manualmente aqui
+                # duplicaria a contagem, pois MovimentacaoEstoque.save() soma sozinho).
                 qtd_inicial_str = row.get('estoque_inicial', '0')
                 qtd_inicial = int(float(qtd_inicial_str.replace(',', '.'))) if qtd_inicial_str else 0
-                
-                estoque, _ = Estoque.objects.get_or_create(produto=produto)
+
                 if qtd_inicial > 0:
-                    estoque.quantidade = qtd_inicial
-                    estoque.save()
-                    
-                    # Registrar movimentação inicial se houver estoque
                     MovimentacaoEstoque.objects.create(
+                        empresa=empresa,
                         produto=produto,
                         tipo_movimento='entrada',
                         quantidade=qtd_inicial,
                         motivo='Importação Inicial CSV'
                     )
+                else:
+                    # Garante o registro de estoque zerado para o produto
+                    Estoque.objects.get_or_create(produto=produto, defaults={'empresa': empresa})
 
                 return True, ""
             except Exception as e:

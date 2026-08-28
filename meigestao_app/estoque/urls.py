@@ -15,6 +15,7 @@ urlpatterns = [
     path('produtos/', views.ProdutoListView.as_view(), name='produto_list'),
     path('produtos/criar/', views.ProdutoCreateView.as_view(), name='produto_create'),
     path('produtos/importar/', views.ProdutoImportView.as_view(), name='produto_import'),
+    path('produtos/importar/modelo/', views.modelo_produtos_csv, name='modelo_csv'),
     path('produtos/<int:pk>/', views.ProdutoDetailView.as_view(), name='produto_detail'),
     path('produtos/<int:pk>/editar/', views.ProdutoUpdateView.as_view(), name='produto_update'),
     path('produtos/<int:pk>/deletar/', views.ProdutoDeleteView.as_view(), name='produto_delete'),

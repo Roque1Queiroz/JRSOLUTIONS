@@ -36,6 +36,13 @@
                         Opcionais: <strong>categoria</strong>, <strong>preco_custo</strong>, <strong>estoque_inicial</strong>, <strong>descricao</strong>.
                     </div>
                     
+                    <div class="mb-3">
+                        <a href="{% url 'estoque:modelo_csv' %}" class="btn btn-sm btn-outline-primary rounded-3">
+                            <i class="bi bi-download me-1"></i> Baixar modelo CSV
+                        </a>
+                        <div class="form-text">Abra o modelo no Excel, substitua a linha <strong>EXEMPLO -</strong> pelos seus dados (ou apague-a) e salve como CSV.</div>
+                    </div>
+
                     <div class="mb-4">
                         <label for="csv_file" class="form-label fw-bold small text-secondary">Selecione o arquivo .csv</label>
                         <div class="input-group">

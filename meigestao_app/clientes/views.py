@@ -7,6 +7,7 @@ from django.views.generic import ListView, CreateView, DetailView, UpdateView, D
 from django.shortcuts import redirect
 from .models import Cliente
 from meigestao_app.core.utils.csv_importer import CSVImportService
+from meigestao_app.core.utils.csv_modelos import modelo_clientes_csv
 from meigestao_app.core.utils.helpers import get_empresa_do_usuario
 from meigestao_app.core.mixins import (
     ExigeModuloPermissaoMixin,

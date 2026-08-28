@@ -10,4 +10,5 @@ urlpatterns = [
     path('<int:pk>/editar/', views.ClienteUpdateView.as_view(), name='cliente_update'),
     path('<int:pk>/deletar/', views.ClienteDeleteView.as_view(), name='cliente_delete'),
     path('importar/', views.ClienteImportView.as_view(), name='cliente_import'),
+    path('importar/modelo/', views.modelo_clientes_csv, name='modelo_csv'),
 ]

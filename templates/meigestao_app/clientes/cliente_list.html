@@ -30,10 +30,18 @@
                 <div class="modal-body py-4">
                     <div class="alert alert-info border-0 rounded-4 mb-4 small">
                         <i class="bi bi-info-circle-fill me-2"></i>
-                        O arquivo deve conter as colunas: <strong>nome</strong>, <strong>cpf_cnpj</strong>, <strong>email</strong>, <strong>telefone</strong>. 
-                        As colunas separadas por ponto e vírgula (;) ou vírgula (,).
+                        Colunas Obrigatórias: <strong>nome</strong>, <strong>cpf_cnpj</strong>.<br>
+                        Opcionais: <strong>email</strong>, <strong>telefone</strong>, <strong>endereco</strong>, <strong>cidade</strong>, <strong>estado</strong>, <strong>cep</strong>.<br>
+                        Separador: ponto e vírgula (;) ou vírgula (,).
                     </div>
-                    
+
+                    <div class="mb-3">
+                        <a href="{% url 'clientes:modelo_csv' %}" class="btn btn-sm btn-outline-primary rounded-3">
+                            <i class="bi bi-download me-1"></i> Baixar modelo CSV
+                        </a>
+                        <div class="form-text">Abra o modelo no Excel, substitua a linha <strong>EXEMPLO -</strong> pelos seus dados (ou apague-a) e salve como CSV.</div>
+                    </div>
+
                     <div class="mb-4">
                         <label for="csv_file" class="form-label fw-bold small text-secondary">Selecione o arquivo .csv</label>
                         <div class="input-group">
