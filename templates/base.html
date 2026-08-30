@@ -1148,8 +1148,9 @@
     <script>
         const sessionId = 'session_' + Math.floor(Math.random() * 1000000);
         // O bot do assistente roda como serviço separado na porta 8003, no MESMO
-        // host da página (funciona de qualquer máquina, não apenas localhost).
-        const API_URL = `${window.location.protocol}//${window.location.hostname}:8003`;
+                // host da página (funciona de qualquer máquina, não apenas localhost).
+                // Acesso via proxy (nginx) para não expor a porta 8003 publicamente.
+                const API_URL = `${window.location.origin}/chatbot-api`;
 
         // Dados agregados e SEGUROS da empresa autenticada (via Django), que o
         // assistente pode usar como contexto além do manual. Endpoint @login_required.
