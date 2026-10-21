@@ -1,9 +1,23 @@
 # -*- coding: utf-8 -*-
+import threading
 
 from django.db import IntegrityError, models, transaction
 from django.db.models import Max
 
 from meigestao_app.core.models import BaseModel, Empresa
+
+# Lock em memoria para serializar a atribuicao de codigo de cliente dentro do
+# MESMO processo Python (sqlite ignora select_for_update em varias conexoes).
+# Cada chave por empresa garante que empresas diferentes nao se bloqueiam.
+_codigo_lock_global = threading.Lock()
+_codigo_locks_por_empresa = {}
+
+
+def _lock_por_empresa(empresa_id):
+    """Retorna (e cria sob demanda) um lock especifico da empresa."""
+    if empresa_id not in _codigo_locks_por_empresa:
+        _codigo_locks_por_empresa[empresa_id] = threading.Lock()
+    return _codigo_locks_por_empresa[empresa_id]
 
 
 class Cliente(BaseModel):
@@ -48,26 +62,33 @@ class Cliente(BaseModel):
     def save(self, *args, **kwargs):
         if self.codigo or not self.empresa_id:
             return super().save(*args, **kwargs)
-        ultimo_erro = None
-        for _ in range(8):
-            try:
-                with transaction.atomic():
-                    sequencia, _ = SequenciaCliente.objects.select_for_update().get_or_create(
-                        empresa_id=self.empresa_id
-                    )
-                    # Não usa só o máximo vivo: cliente apagado não devolve o número.
-                    maior_vivo = Cliente.objects.filter(empresa_id=self.empresa_id).aggregate(
-                        m=Max('codigo')
-                    )['m'] or 0
-                    proximo = max(sequencia.ultimo, maior_vivo) + 1
-                    sequencia.ultimo = proximo
-                    sequencia.save(update_fields=['ultimo'])
-                    self.codigo = proximo
-                    return super().save(*args, **kwargs)
-            except IntegrityError as exc:
-                ultimo_erro = exc
-                self.codigo = None
-        raise ultimo_erro
+        # Serializa por empresa dentro do mesmo processo. Quando o banco
+        # for Postgres, select_for_update() dentro do atomic() tambem
+        # protege entre processos. No SQLite, este lock em memoria
+        # combinado com o UNIQUE constraint e a retry fecha a janela.
+        with _codigo_lock_global:
+            lock_empresa = _lock_por_empresa(self.empresa_id)
+        with lock_empresa:
+            ultimo_erro = None
+            for _ in range(8):
+                try:
+                    with transaction.atomic():
+                        sequencia, _ = SequenciaCliente.objects.select_for_update().get_or_create(
+                            empresa_id=self.empresa_id
+                        )
+                        # Não usa só o máximo vivo: cliente apagado não devolve o número.
+                        maior_vivo = Cliente.objects.filter(empresa_id=self.empresa_id).aggregate(
+                            m=Max('codigo')
+                        )['m'] or 0
+                        proximo = max(sequencia.ultimo, maior_vivo) + 1
+                        sequencia.ultimo = proximo
+                        sequencia.save(update_fields=['ultimo'])
+                        self.codigo = proximo
+                        return super().save(*args, **kwargs)
+                except IntegrityError as exc:
+                    ultimo_erro = exc
+                    self.codigo = None
+            raise ultimo_erro
 
 
 class SequenciaCliente(models.Model):

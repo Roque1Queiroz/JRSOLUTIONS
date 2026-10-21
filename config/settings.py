@@ -208,8 +208,28 @@ else:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
-        }
+            # Timeout para evitar 'database is locked' em operacoes concorrentes.
+            # Padrao do Django e 5s; em testes com threads precisamos de mais.
+            'OPTIONS': {
+                'timeout': 20,
+            },
+            'TEST': {
+                'NAME': BASE_DIR / 'test_db.sqlite3',
+            },
+        },
     }
+
+    # Aplica PRAGMA journal_mode=WAL no SQLite para permitir leituras
+    # durante escritas (testes com threads concorrentes).
+    from django.db.backends.signals import connection_created
+
+    def _ativar_wal(sender, connection, **kwargs):
+        if connection.vendor == 'sqlite':
+            cursor = connection.cursor()
+            cursor.execute('PRAGMA journal_mode=WAL;')
+            cursor.execute('PRAGMA synchronous=NORMAL;')
+
+    connection_created.connect(_ativar_wal)
 
 AUTH_PASSWORD_VALIDATORS = [
     {
