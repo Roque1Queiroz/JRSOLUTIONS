@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | **Versão** | 1.0 |
-| **Status** | implementado em 2026-10-21 (commit `9316755`); 8/8 CA verdes |
+| **Status** | aprovado — na fila, ainda não implementar |
 | **Autor** | José Roque / Hermes |
 | **Data** | 2026-10-09 |
 | **Módulos afetados** | financeiro |
