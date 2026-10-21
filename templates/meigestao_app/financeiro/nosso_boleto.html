@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <title>Nosso boleto {{ parcela.referencia }}</title>
+    <style>
+        body { font-family: sans-serif; margin: 2rem; color: #222; }
+        .folha { border: 1px solid #ccc; padding: 1.5rem; max-width: 640px; }
+        button { margin-bottom: 1rem; }
+        @media print { button { display: none; } }
+    </style>
+</head>
+<body>
+    <button type="button" onclick="window.print()">Imprimir</button>
+    <div class="folha">
+        <h1>Nosso boleto</h1>
+        <p>Folha interna. Não é boleto bancário.</p>
+        <p>Referência: {{ parcela.referencia }}</p>
+        <p>Credor: {{ compromisso.credor|default:"—" }}</p>
+        <p>Descrição: {{ compromisso.descricao }}</p>
+        <p>parcela {{ parcela.numero }} de {{ compromisso.numero_parcelas }}</p>
+        <p>Valor: R$ {{ parcela.valor }}</p>
+        <p>Vencimento: {{ parcela.vencimento|date:"d/m/Y" }}</p>
+    </div>
+</body>
+</html>

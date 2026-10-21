@@ -1,5 +1,5 @@
 from django import forms
-from .models import Transacao, ContaBancaria, ReciboReembolso
+from .models import Transacao, ContaBancaria, ReciboReembolso, CompromissoParcelado
 from meigestao_app.usuarios.models import Perfil
 
 class TransacaoForm(forms.ModelForm):
@@ -89,3 +89,20 @@ class ReciboReembolsoForm(forms.ModelForm):
             raise forms.ValidationError("Selecione um colaborador da lista ou informe um nome manualmente.")
         
         return cleaned_data
+
+
+class CompromissoParceladoForm(forms.ModelForm):
+    class Meta:
+        model = CompromissoParcelado
+        fields = [
+            'descricao', 'credor', 'valor_total', 'numero_parcelas',
+            'primeiro_vencimento', 'observacao',
+        ]
+        widgets = {
+            'descricao': forms.TextInput(attrs={'class': 'form-control'}),
+            'credor': forms.TextInput(attrs={'class': 'form-control'}),
+            'valor_total': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
+            'numero_parcelas': forms.NumberInput(attrs={'class': 'form-control', 'min': '2', 'max': '120'}),
+            'primeiro_vencimento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'observacao': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }

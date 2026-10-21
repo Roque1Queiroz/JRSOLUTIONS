@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-bold mb-0">Parcelas</h3>
+        <a class="btn btn-primary" href="{% url 'financeiro:compromisso_criar' %}">Novo compromisso</a>
+    </div>
+    <p class="text-muted">Compromissos a pagar. O pagamento entra no caixa quando a parcela é marcada como paga.</p>
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Descrição</th>
+                        <th>Credor</th>
+                        <th>Total</th>
+                        <th>Em aberto</th>
+                        <th>Vencida</th>
+                        <th>Paga</th>
+                        <th>Saldo que falta</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in compromissos %}
+                    <tr>
+                        <td><a href="{% url 'financeiro:compromisso_detalhe' item.pk %}">{{ item.descricao }}</a></td>
+                        <td>{{ item.credor|default:"—" }}</td>
+                        <td>R$ {{ item.valor_total }}</td>
+                        <td>{{ item.qtd_aberta }}</td>
+                        <td>{{ item.qtd_vencida }}</td>
+                        <td>{{ item.qtd_paga }}</td>
+                        <td>R$ {{ item.saldo_falta }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-muted p-4">Nenhum compromisso parcelado.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

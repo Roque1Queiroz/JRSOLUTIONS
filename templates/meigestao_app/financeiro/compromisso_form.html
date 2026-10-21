@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <h3 class="fw-bold mb-3">Novo compromisso</h3>
+    <p class="text-muted">Folha interna para acompanhar gasto parcelado. Não é boleto bancário.</p>
+    <form method="post" class="card border-0 shadow-sm p-4">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a class="btn btn-link" href="{% url 'financeiro:compromisso_lista' %}">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

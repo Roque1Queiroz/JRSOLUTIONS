@@ -111,3 +111,102 @@ class RelatorioInteligencia(BaseModel):
     def __str__(self):
         return f'Relatório {self.empresa} - {self.data_referencia}'
 
+
+
+class CompromissoParcelado(BaseModel):
+    """Gasto que nasce parcelado. Folha interna, nao boleto bancario."""
+
+    empresa = models.ForeignKey(
+        Empresa, on_delete=models.CASCADE, related_name='compromissos_parcelados',
+        verbose_name='Empresa',
+    )
+    descricao = models.CharField(max_length=255, verbose_name='Descrição')
+    credor = models.CharField(max_length=255, blank=True, verbose_name='Credor')
+    valor_total = models.DecimalField(
+        max_digits=15, decimal_places=2, verbose_name='Valor total',
+    )
+    numero_parcelas = models.PositiveIntegerField(verbose_name='Número de parcelas')
+    primeiro_vencimento = models.DateField(verbose_name='Primeiro vencimento')
+    observacao = models.TextField(blank=True, verbose_name='Observação')
+
+    class Meta:
+        ordering = ['-criado_em']
+        verbose_name = 'Compromisso parcelado'
+        verbose_name_plural = 'Compromissos parcelados'
+
+    def __str__(self):
+        return self.descricao
+
+    def clean(self):
+        from decimal import Decimal
+        from django.core.exceptions import ValidationError
+        erros = {}
+        if self.valor_total is None or self.valor_total <= 0:
+            erros['valor_total'] = 'O valor total tem que ser maior que zero.'
+        if self.numero_parcelas is None or self.numero_parcelas < 2 or self.numero_parcelas > 120:
+            erros['numero_parcelas'] = 'O numero de parcelas tem que ficar entre 2 e 120.'
+        if erros:
+            raise ValidationError(erros)
+
+    def save(self, *args, **kwargs):
+        novo = self.pk is None
+        self.full_clean()
+        super().save(*args, **kwargs)
+        if novo:
+            self.gerar_parcelas()
+
+    def gerar_parcelas(self):
+        from .parcelas import dividir_valor, referencia_parcela, somar_meses
+        if self.parcelas.exists():
+            return
+        valores = dividir_valor(self.valor_total, self.numero_parcelas)
+        for indice, valor in enumerate(valores, start=1):
+            ParcelaCompromisso.objects.create(
+                compromisso=self,
+                numero=indice,
+                valor=valor,
+                vencimento=somar_meses(self.primeiro_vencimento, indice - 1),
+                referencia=referencia_parcela(self.id, indice),
+            )
+
+
+class ParcelaCompromisso(BaseModel):
+    """Uma parcela do compromisso e a folha interna (nosso boleto)."""
+
+    compromisso = models.ForeignKey(
+        CompromissoParcelado, on_delete=models.CASCADE, related_name='parcelas',
+        verbose_name='Compromisso',
+    )
+    numero = models.PositiveIntegerField(verbose_name='Número')
+    valor = models.DecimalField(max_digits=15, decimal_places=2, verbose_name='Valor')
+    vencimento = models.DateField(verbose_name='Vencimento')
+    paga = models.BooleanField(default=False, verbose_name='Paga')
+    data_pagamento = models.DateField(null=True, blank=True, verbose_name='Data do pagamento')
+    transacao = models.ForeignKey(
+        Transacao, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='parcela_compromisso', verbose_name='Transação',
+    )
+    referencia = models.CharField(max_length=32, unique=True, verbose_name='Referência')
+
+    class Meta:
+        ordering = ['numero']
+        verbose_name = 'Parcela de compromisso'
+        verbose_name_plural = 'Parcelas de compromisso'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['compromisso', 'numero'],
+                name='uniq_parcela_compromisso_numero',
+            ),
+        ]
+
+    def __str__(self):
+        return self.referencia
+
+    @property
+    def situacao(self):
+        from django.utils import timezone
+        if self.paga:
+            return 'paga'
+        if self.vencimento < timezone.localdate():
+            return 'vencida'
+        return 'em aberto'

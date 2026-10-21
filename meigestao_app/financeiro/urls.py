@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import compromisso_views
 
 app_name = 'financeiro'
 
@@ -25,4 +26,12 @@ urlpatterns = [
     # Relatórios Financeiros
     path('relatorios/', views.RelatorioFinanceiroListView.as_view(), name='relatorio_list'),
     path('relatorios/criar/', views.RelatorioFinanceiroCreateView.as_view(), name='relatorio_criar'),
+
+    path('parcelas/', compromisso_views.CompromissoListView.as_view(), name='compromisso_lista'),
+    path('parcelas/nova/', compromisso_views.CompromissoCreateView.as_view(), name='compromisso_criar'),
+    path('parcelas/<int:pk>/', compromisso_views.CompromissoDetailView.as_view(), name='compromisso_detalhe'),
+    path('parcelas/<int:pk>/boleto/<int:parcela_id>/', compromisso_views.NossoBoletoView.as_view(), name='nosso_boleto'),
+    path('parcelas/<int:pk>/pagar/<int:parcela_id>/', compromisso_views.ParcelaPagarView.as_view(), name='parcela_pagar'),
+    path('parcelas/<int:pk>/excluir/', compromisso_views.CompromissoDeleteView.as_view(), name='compromisso_excluir'),
 ]
+
