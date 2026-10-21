@@ -1,0 +1,33 @@
+# Requirements do servico de chatbot (Sistema Gestor)
+# DERIVADO dos imports de main.py e rag.py — nao copiado de fonte original.
+# Se voce tiver acesso a um requirements.txt original, sobrescreva este.
+
+# Web framework
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.9.2
+
+# Banco do historico (SQLAlchemy classica, compativel com o original)
+sqlalchemy==2.0.35
+
+# LangChain (RAG) — versoes compativeis com a logica do rag.py
+langchain==0.3.0
+langchain-core==0.3.0
+langchain-text-splitters==0.3.0
+langchain-chroma==0.1.4
+langchain-community==0.3.0
+langchain-classic==0.1.0
+langchain-groq==0.2.0
+langchain-huggingface==0.1.0
+
+# Embeddings (sentence-transformers via HF) — modelo multilingual
+sentence-transformers==3.1.1
+
+# Loaders
+pypdf==5.1.0
+
+# .env
+python-dotenv==1.0.1
+
+# HTTP client (caso o main.py use para health checks)
+httpx==0.27.2

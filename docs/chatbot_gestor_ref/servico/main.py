@@ -6,9 +6,11 @@ from pydantic import BaseModel
 from langchain_core.messages import HumanMessage, AIMessage
 from typing import Optional, Dict, Any
 
-from database import init_db, get_db
-from models import ChatSession, ChatMessage
-from rag import process_and_index_document, get_chat_chain, formatar_empresa_dados
+# Imports relativos ao package do servico do bot.
+# Estrutura esperada: chatbot/servico/{main,database,models,rag}.py
+from .database import init_db, get_db
+from .models import ChatSession, ChatMessage
+from .rag import process_and_index_document, get_chat_chain, formatar_empresa_dados
 
 
 @asynccontextmanager
