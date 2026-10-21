@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | **Versão** | 1.0 |
-| **Status** | aprovado — na fila, executar junto com a leva das 22h de 2026-10-09 |
+| **Status** | parcialmente implementado em 2026-10-21 — proxy Django 2/2 testes, compose sem porta 8003, Dockerfile/requirements/entrypoint derivados; database.py e models.py reconstruídos do dump (fonte original sumiu). Ver `docs/chatbot_gestor_ref/servico/README.md` para origem de cada arquivo. |
 | **Autor** | José Roque / Hermes |
 | **Data** | 2026-10-10 |
 | **Módulos afetados** | core (proxy), deploy-cliente, serviço do chatbot |
