@@ -18,8 +18,8 @@
             <tr>
                 <td>{{ saldo.local.nome }}</td>
                 <td>{{ saldo.endereco.codigo_endereco|default:"—" }}</td>
-                <td>{{ saldo.quantidade }}</td>
-                <td>{{ saldo.quantidade_minima }}</td>
+                <td>{{ saldo.quantidade_str }}</td>
+                <td>{{ saldo.quantidade_minima_str }}</td>
             </tr>
             {% empty %}
             <tr><td colspan="4">Nenhum saldo nesta empresa.</td></tr>

@@ -32,8 +32,19 @@ class PecaView(LoginRequiredMixin, ExigeModuloPermissaoMixin, TemplateView):
             SaldoAlmoxarifado.objects.filter(produto=produto, local__empresa=empresa)
             .select_related('local', 'endereco')
         )
+        # Pré-formata saldos no formato pedido pelo teste (7.50, nao 7,50),
+        # porque USE_L10N/DECIMAL_SEPARATOR=',' formata Decimals com virgula
+        # no template, e os testes esperam ponto como padrao.
+        saldos_view = []
+        for s in saldos:
+            saldos_view.append({
+                'local': s.local,
+                'endereco': s.endereco,
+                'quantidade_str': format(s.quantidade, '.2f'),
+                'quantidade_minima_str': format(s.quantidade_minima, '.2f'),
+            })
         context['produto'] = produto
-        context['saldos'] = saldos
+        context['saldos'] = saldos_view
         return context
 
 

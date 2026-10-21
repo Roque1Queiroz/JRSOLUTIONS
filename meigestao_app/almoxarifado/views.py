@@ -16,6 +16,7 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.db.models import Sum
 from .models import LocalArmazenamento, Setor, SaldoAlmoxarifado, RequisicaoInterna, ItemRequisicao, EnderecoArmazenamento
+from meigestao_app.estoque.models import Produto
 from .forms import EnderecoArmazenamentoForm, SetorForm, RequisicaoInternaForm
 
 class AlmoxarifadoDashboardView(LoginRequiredMixin, ExigeModuloPermissaoMixin, TemplateView):
@@ -159,7 +160,14 @@ class CentralEtiquetasView(LoginRequiredMixin, ExigeModuloPermissaoMixin, Templa
         empresa = get_empresa_do_usuario(self.request.user)
         context['locais'] = LocalArmazenamento.objects.filter(empresa=empresa, ativo=True)
         context['enderecos'] = EnderecoArmazenamento.objects.filter(local__empresa=empresa).select_related('local')
-        context['produtos'] = SaldoAlmoxarifado.objects.filter(local__empresa=empresa).select_related('produto', 'endereco')
+        saldos = SaldoAlmoxarifado.objects.filter(local__empresa=empresa).select_related('produto', 'endereco')
+        context['produtos'] = saldos
+        # Lista de produtos distintos que têm saldo no almoxarifado da empresa.
+        # Usada pelo template da etiqueta da peça (precisa acessar produto.sku e produto.id).
+        pecas = Produto.objects.filter(
+            saldos_almoxarifado__local__empresa=empresa,
+        ).distinct().order_by('sku')
+        context['pecas'] = pecas
         return context
 
 class PrateleiraView(LoginRequiredMixin, EmpresaQuerysetMixin, DetailView):

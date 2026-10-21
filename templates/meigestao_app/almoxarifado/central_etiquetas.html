@@ -69,7 +69,7 @@
                             <input type="checkbox" class="js-imprimir-peca" checked data-alvo="etiqueta-peca-{{ produto.id }}">
                             Imprimir {{ produto.sku }}
                         </label>
-                        <div class="etiqueta-peca label-print-surface" id="etiqueta-peca-{{ produto.id }}">
+                        <div class="etiqueta-peca" id="etiqueta-peca-{{ produto.id }}">
                             <div class="label-card p-2 border rounded-3 bg-white text-center" style="width: 120px;">
                                 <div id="qr-peca-{{ produto.id }}" class="qrcode-wrapper d-flex justify-content-center" data-url="{{ request.scheme }}://{{ request.get_host }}/almoxarifado/peca/{{ produto.sku|urlencode }}/"></div>
                                 <div class="font-monospace fw-bold small">{{ produto.sku }}</div>
