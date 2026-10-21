@@ -5,6 +5,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth.models import User
+import requests
+from django.conf import settings
+from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from meigestao_app.usuarios.models import Perfil
 import datetime
@@ -618,3 +621,46 @@ def plano_detail(request):
     return render(request, 'meigestao_app/core/plano_detalhes.html', context)
 
 
+@login_required
+def chatbot_proxy(request):
+    """Encaminha /chatbot-api/* para o servico do bot na rede Docker interna.
+
+    O navegador chama `${origin}/chatbot-api/chat` (base.html). Esse path
+    nao bate em porta nenhuma; e resolvido pelo Django, que faz
+    proxy reverso para `CHATBOT_INTERNAL_URL` (ex.: http://chatbot:8003).
+
+    Vantagens:
+    - O frontend continua chamando o mesmo path (sem mudar nada no JS).
+    - O bot fica isolado na rede Docker; porta 8003 nunca e publicada.
+    - Quando o servico do bot nao esta configurado (sem GROQ_API_KEY ou
+      sem container), devolve 503 com mensagem amigavel em portugues,
+      sem vazar detalhes tecnicos como a porta 8003.
+    """
+    internal_url = (getattr(settings, 'CHATBOT_INTERNAL_URL', '') or '').strip().rstrip('/')
+    if not internal_url:
+        return JsonResponse(
+            {'detail': 'Assistente nao configurado nesta instalacao. Fale com o administrador do sistema.'},
+            status=503,
+        )
+
+    # Encaminha o payload (JSON ou form-encoded) e headers essenciais.
+    payload = request.body if request.body else request.POST
+    headers = {'Content-Type': request.content_type or 'application/json'}
+    target = f'{internal_url}/chat'
+
+    try:
+        upstream = requests.post(
+            target,
+            data=payload,
+            headers=headers,
+            timeout=30,
+        )
+    except requests.RequestException:
+        return JsonResponse(
+            {'detail': 'Assistente indisponivel no momento. Tente novamente em alguns instantes.'},
+            status=503,
+        )
+
+    # Devolve o body do bot ao frontend, mantendo o content-type.
+    content_type = upstream.headers.get('Content-Type', 'application/json')
+    return HttpResponse(upstream.content, status=upstream.status_code, content_type=content_type)

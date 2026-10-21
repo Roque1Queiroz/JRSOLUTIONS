@@ -198,6 +198,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+# ─── Bot (assistente de IA) ─────────────────────────────────────────
+# URL interna do servico do bot (rede Docker do on-premise).
+# Em dev local sem Docker, deixe vazio: o proxy devolve 503 amigavel.
+CHATBOT_INTERNAL_URL = env('CHATBOT_INTERNAL_URL', default='')
+
 # Configuração Dinâmica de Banco de Dados
 if env('DB_TYPE') == 'postgres':
     DATABASES = {

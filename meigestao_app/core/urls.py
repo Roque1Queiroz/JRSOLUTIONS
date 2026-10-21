@@ -24,4 +24,7 @@ urlpatterns = [
     path('termos/', views.termos, name='termos'),
     # Endpoint JSON seguro que alimenta o assistente de IA com dados da empresa.
     path('bot/contexto/', views.bot_contexto, name='bot_contexto'),
+    # Proxy reverso para o servico do bot (FastAPI :8003) na rede Docker.
+    # A URL deve bater com o que o frontend chama: ${origin}/chatbot-api/chat
+    path('chatbot-api/chat', views.chatbot_proxy, name='chatbot_proxy'),
 ]
