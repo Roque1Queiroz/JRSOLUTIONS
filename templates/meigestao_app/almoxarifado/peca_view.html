@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <h3 class="fw-bold">{{ produto.nome }}</h3>
+    <p>Código: {{ produto.sku }}</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Local</th>
+                <th>Endereço</th>
+                <th>Saldo</th>
+                <th>Mínimo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for saldo in saldos %}
+            <tr>
+                <td>{{ saldo.local.nome }}</td>
+                <td>{{ saldo.endereco.codigo_endereco|default:"—" }}</td>
+                <td>{{ saldo.quantidade }}</td>
+                <td>{{ saldo.quantidade_minima }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">Nenhum saldo nesta empresa.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

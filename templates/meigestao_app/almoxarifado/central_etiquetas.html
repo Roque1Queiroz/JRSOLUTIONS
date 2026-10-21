@@ -62,22 +62,20 @@
                 <span class="badge bg-light text-muted border">{{ produtos|length }} produtos</span>
             </div>
             <div class="card-body p-4">
-                <div class="row g-3" id="barcode-container">
-                    {% for item in produtos %}
-                    <div class="col-md-12 label-print-surface">
-                        <div class="label-card p-3 border rounded-3 bg-white shadow-sm d-flex align-items-center gap-3">
-                            <div class="flex-grow-1">
-                                <div class="fw-extrabold text-primary mb-1">{{ item.produto.nome }}</div>
-                                <div class="small fw-bold bg-light p-1 rounded d-inline-block mb-2">
-                                    <i class="bi bi-geo-alt me-1"></i>{{ item.endereco|default:"Localização não definida" }}
-                                </div>
-                                <div class="barcode-text font-monospace fw-bold">{{ item.produto.sku }}</div>
-                            </div>
-                            <!-- Simple Barcode Simulation or actual library -->
-                            <div class="barcode-visual p-2 bg-light rounded text-center" style="width: 140px;">
-                                <svg id="barcode-{{ item.produto.id }}"></svg>
+                <div class="row g-3" id="peca-container">
+                    {% for produto in pecas %}
+                    <div class="col-md-12">
+                        <label class="small no-print d-block mb-1">
+                            <input type="checkbox" class="js-imprimir-peca" checked data-alvo="etiqueta-peca-{{ produto.id }}">
+                            Imprimir {{ produto.sku }}
+                        </label>
+                        <div class="etiqueta-peca label-print-surface" id="etiqueta-peca-{{ produto.id }}">
+                            <div class="label-card p-2 border rounded-3 bg-white text-center" style="width: 120px;">
+                                <div id="qr-peca-{{ produto.id }}" class="qrcode-wrapper d-flex justify-content-center" data-url="{{ request.scheme }}://{{ request.get_host }}/almoxarifado/peca/{{ produto.sku|urlencode }}/"></div>
+                                <div class="font-monospace fw-bold small">{{ produto.sku }}</div>
                             </div>
                         </div>
+                        <span class="etiqueta-peca-fim" hidden></span>
                     </div>
                     {% empty %}
                     <div class="col-12 text-center py-4">
@@ -132,16 +130,20 @@
         });
         {% endfor %}
 
-        // Renderizar Barcodes para Produtos
-        {% for item in produtos %}
-        JsBarcode("#barcode-{{ item.produto.id }}", "{{ item.produto.sku }}", {
-            format: "CODE128",
-            width: 2,
-            height: 50,
-            displayValue: false,
-            margin: 0
+        {% for produto in pecas %}
+        new QRCode(document.getElementById("qr-peca-{{ produto.id }}"), {
+            text: "{{ request.scheme }}://{{ request.get_host }}/almoxarifado/peca/{{ produto.sku|urlencode }}/",
+            width: 72,
+            height: 72,
+            correctLevel : QRCode.CorrectLevel.M
         });
         {% endfor %}
+        document.querySelectorAll('.js-imprimir-peca').forEach(function(box) {
+            box.addEventListener('change', function() {
+                var alvo = document.getElementById(box.getAttribute('data-alvo'));
+                if (alvo) alvo.style.display = box.checked ? '' : 'none';
+            });
+        });
     });
 </script>
 {% endblock %}

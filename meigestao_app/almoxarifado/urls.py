@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .peca_views import PecaView
 
 app_name = 'almoxarifado'
 
@@ -15,6 +16,7 @@ urlpatterns = [
     path('enderecos/novo/', views.EnderecoCreateView.as_view(), name='endereco_create'),
     path('etiquetas/', views.CentralEtiquetasView.as_view(), name='central_etiquetas'),
     path('p/<slug:codigo>/', views.PrateleiraView.as_view(), name='prateleira_view'),
+    path('peca/<path:sku>/', PecaView.as_view(), name='peca_view'),
 
     # Setores / Centros de Custo
     path('setores/', views.SetorListView.as_view(), name='setor_list'),
