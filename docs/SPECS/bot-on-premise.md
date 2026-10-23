@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | **Versão** | 1.0 |
-| **Status** | parcialmente implementado em 2026-10-21 — proxy Django 2/2 testes, compose sem porta 8003, Dockerfile/requirements/entrypoint derivados; database.py e models.py reconstruídos do dump (fonte original sumiu). Ver `docs/chatbot_gestor_ref/servico/README.md` para origem de cada arquivo. |
+| **Status** | implementado em 2026-10-22 — 4/4 CA verdes (proxy 2/2 + zip 4/4 + fonte 3/3, slice 1-4); testes em `meigestao_app/core/test_chatbot_proxy.py`, `test_chatbot_onpremise_zip.py`, `test_chatbot_onpremise_fonte.py`. Ver `docs/chatbot_gestor_ref/servico/README.md` para origem de cada arquivo. |
 | **Autor** | José Roque / Hermes |
 | **Data** | 2026-10-10 |
 | **Módulos afetados** | core (proxy), deploy-cliente, serviço do chatbot |
