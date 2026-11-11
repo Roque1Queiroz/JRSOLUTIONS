@@ -4,7 +4,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from meigestao_app.core.views import (DashboardView, cadastro, login_view,
-                                      privacidade, termos, demo_dashboard)
+                                      privacidade, termos, demo_dashboard,
+                                      chatbot_proxy)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -19,6 +20,11 @@ urlpatterns = [
     path('termos/', termos, name='termos'),
     # Painel executivo em modo DEMONSTRAÇÃO (público, para vender).
     path('demo/', demo_dashboard, name='demo'),
+    # Proxy do bot na RAIZ: o base.html chama `${origin}/chatbot-api/chat`.
+    # Na nuvem o nginx-proxy-manager intercepta /chatbot-api antes do Django,
+    # mas no on-premise (sem nginx) esta rota é a única que atende o frontend.
+    # A rota espelhada em `core/` (/core/chatbot-api/chat) continua existindo.
+    path('chatbot-api/chat', chatbot_proxy, name='chatbot_proxy'),
     path('core/', include('meigestao_app.core.urls')),
     path('vendas/', include('meigestao_app.vendas.urls')),
     path('clientes/', include('meigestao_app.clientes.urls')),

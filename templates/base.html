@@ -807,7 +807,7 @@
         <span class="sidebar-section">Gestão Financeira</span>
         <ul class="nav flex-column mb-3">
             <li class="nav-item">
-                <a class="nav-link {% if 'financeiro' in request.path and 'reembolso' not in request.path and 'receitas' not in request.path %}active{% endif %}"
+                <a class="nav-link {% if 'financeiro' in request.path and 'reembolso' not in request.path and 'receitas' not in request.path and 'parcelas' not in request.path %}active{% endif %}"
                     href="{% url 'financeiro:transacao_lista' %}">
                     <i class="bi bi-wallet2"></i> Gestão de Caixa
                 </a>
@@ -822,6 +822,12 @@
                 <a class="nav-link {% if 'reembolso' in request.path %}active{% endif %}"
                     href="{% url 'financeiro:reembolso_lista' %}">
                     <i class="bi bi-clipboard2-check"></i> Gestão de Reembolsos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'parcelas' in request.path %}active{% endif %}"
+                    href="{% url 'financeiro:compromisso_lista' %}">
+                    <i class="bi bi-receipt"></i> Parcelas
                 </a>
             </li>
         </ul>
@@ -1148,9 +1154,9 @@
     <script>
         const sessionId = 'session_' + Math.floor(Math.random() * 1000000);
         // O bot do assistente roda como serviço separado na porta 8003, no MESMO
-                // host da página (funciona de qualquer máquina, não apenas localhost).
-                // Acesso via proxy (nginx) para não expor a porta 8003 publicamente.
-                const API_URL = `${window.location.origin}/chatbot-api`;
+        // host da página (funciona de qualquer máquina, não apenas localhost).
+        // Acesso via proxy (nginx) para não expor a porta 8003 publicamente.
+        const API_URL = `${window.location.origin}/chatbot-api`;
 
         // Dados agregados e SEGUROS da empresa autenticada (via Django), que o
         // assistente pode usar como contexto além do manual. Endpoint @login_required.

@@ -40,11 +40,8 @@ urllib3==2.6.3
 validate-docbr==1.10.0
 webencodings==0.5.1
 xhtml2pdf==0.2.17
-weasyprint==60.1
 celery==5.3.4
 redis==5.0.1
-pandas==2.1.4
-plotly==5.18.0
 psycopg2-binary==2.9.9
 gunicorn==21.2.0
 whitenoise==6.6.0

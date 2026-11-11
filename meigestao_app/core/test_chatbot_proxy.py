@@ -71,6 +71,27 @@ def test_chatbot_chat_sem_url_interna_retorna_503_amigavel(client):
 
     assert response.status_code == 503
     body = response.json()
-    # Mensagem em portugues, sem expor detalhes tecnicos como a porta
+    # Mensagem em portugues, sem expor detalhes tecnicos como a porta 8003
     assert 'assistente' in body.get('detail', '').lower() or 'configurado' in body.get('detail', '').lower()
     assert '8003' not in body.get('detail', '')
+
+
+@pytest.mark.django_db
+def test_chatbot_rota_da_raiz_atende_o_frontend(client):
+    """CA5 (regressao on-premise): o base.html chama `${origin}/chatbot-api/chat`,
+    caminho literal SEM o prefixo /core/. No on-premise nao existe nginx, entao a
+    rota precisa existir na raiz do Django — antes ela respondia 404 e o
+    assistente simplesmente nao funcionava no pacote do cliente."""
+    _, user = _empresa_usuario(username='bot_proxy_raiz')
+    client.force_login(user)
+
+    with override_settings(CHATBOT_INTERNAL_URL=''):
+        response = client.post(
+            '/chatbot-api/chat',
+            data='{"session_id": "s3", "message": "oi"}',
+            content_type='application/json',
+        )
+
+    # 503 = rota existe e responde o erro amigavel; 404 = rota ausente (bug)
+    assert response.status_code == 503
+    assert '8003' not in response.content.decode('utf-8', 'ignore')

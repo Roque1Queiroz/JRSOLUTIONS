@@ -48,5 +48,8 @@ RUN chmod +x /app/scripts/*.sh || true
 # Porta padrão do Django/Gunicorn
 EXPOSE 8000
 
-# O Entrypoint gerencia migrações e prepara o ambiente antes de subir o sistema
-ENTRYPOINT ["/app/scripts/entrypoint.sh"]
+# O Entrypoint gerencia migrações e prepara o ambiente antes de subir o sistema.
+# v2.5: invocado via `bash` para não depender do bit de execução no bind mount
+# (o zip não guarda o +x e o compose monta ./app:/app, então um ENTRYPOINT direto
+# em /app/scripts/entrypoint.sh morre com "permission denied").
+ENTRYPOINT ["bash", "/app/scripts/entrypoint.sh"]

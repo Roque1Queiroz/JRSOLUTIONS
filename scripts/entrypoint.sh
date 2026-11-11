@@ -21,8 +21,18 @@ else
 fi
 
 # 2. Executar migrações do banco de dados
+# v2.5: gate RUN_MIGRATIONS — só o serviço `web` aplica migrations. O compose
+# do pacote on-premise define RUN_MIGRATIONS=true só em web; worker/beat
+# sobem o mesmo entrypoint e sem este gate migrariam em paralelo
+# (concorrência no lock do Postgres). A nuvem (que usa SQLite) não
+# define RUN_MIGRATIONS, então migramos por padrão e mantemos o
+# comportamento atual dela.
 echo "🔄 Aplicando migrações do Django..."
-python manage.py migrate --noinput
+if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
+  python manage.py migrate --noinput
+else
+  echo "   RUN_MIGRATIONS=false — pulando migrate (apenas web roda migrations)."
+fi
 
 # 3. Coletar arquivos estáticos para o WhiteNoise/Gunicorn
 echo "📦 Coletando arquivos estáticos..."

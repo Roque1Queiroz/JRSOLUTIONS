@@ -205,8 +205,20 @@ CHATBOT_INTERNAL_URL = env('CHATBOT_INTERNAL_URL', default='')
 
 # Configuração Dinâmica de Banco de Dados
 if env('DB_TYPE') == 'postgres':
+    # v2.5: monta o engine postgres a partir das variáveis DB_* (o que o
+    # compose define via POSTGRES_DB/USER/PASSWORD). Antes usava env.db(),
+    # que SÓ lê DATABASE_URL — formato que o .env do pacote on-premise
+    # não usa, então caía em ImproperlyConfigured. A nuvem não usa este
+    # branch (DB_TYPE=sqlite), então a mudança é segura.
     DATABASES = {
-        'default': env.db(),
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env('DB_NAME', default='gestor'),
+            'USER': env('DB_USER', default='gestor'),
+            'PASSWORD': env('DB_PASSWORD', default=''),
+            'HOST': env('DB_HOST', default='db'),
+            'PORT': env('DB_PORT', default='5432'),
+        },
     }
 else:
     DATABASES = {

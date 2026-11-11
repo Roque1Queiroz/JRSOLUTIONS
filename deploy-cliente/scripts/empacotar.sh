@@ -96,10 +96,13 @@ cp "$ROOT/scripts/patch_seguranca.sh" "$STAGE/$FOLDER/scripts/"
 chmod +x "$STAGE/$FOLDER/scripts/"*.sh "$STAGE/$FOLDER/scripts/"*.bat
 
 # Servico do bot (FastAPI + Chroma). Copia Dockerfile e codigo do bot.
-# MANUAL_EMBED_BOT.md fica na RAIZ do zip (montado em /data no container).
+# v2.5: o manual fica na RAIZ do zip (é onde o compose monta em /data);
+# a cópia em chatbot/MANUAL_EMBED_BOT.md é só referência interna.
 cp -a "$ROOT/chatbot" "$STAGE/$FOLDER/"
 chmod +x "$STAGE/$FOLDER/chatbot/entrypoint.sh"
-cp "$SRC/docs/MANUAL_EMBED_BOT.md" "$STAGE/$FOLDER/" 2>/dev/null || true
+# v2.5: garante o manual na raiz e remove a cópia interna (CA8).
+cp -f "$ROOT/chatbot/MANUAL_EMBED_BOT.md" "$STAGE/$FOLDER/MANUAL_EMBED_BOT.md"
+rm -f "$STAGE/$FOLDER/chatbot/MANUAL_EMBED_BOT.md"
 
 # 5. Compactar com Python (zipfile) — sem depender do binário zip
 mkdir -p "$DIST"
