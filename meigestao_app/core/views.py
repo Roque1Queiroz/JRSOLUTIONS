@@ -621,6 +621,7 @@ def plano_detail(request):
     return render(request, 'meigestao_app/core/plano_detalhes.html', context)
 
 
+@csrf_exempt  # API JSON do próprio frontend: o fetch do base.html não envia token CSRF
 @login_required
 def chatbot_proxy(request):
     """Encaminha /chatbot-api/* para o servico do bot na rede Docker interna.

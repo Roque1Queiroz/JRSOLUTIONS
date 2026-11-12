@@ -95,3 +95,26 @@ def test_chatbot_rota_da_raiz_atende_o_frontend(client):
     # 503 = rota existe e responde o erro amigavel; 404 = rota ausente (bug)
     assert response.status_code == 503
     assert '8003' not in response.content.decode('utf-8', 'ignore')
+
+
+@pytest.mark.django_db
+def test_chatbot_rota_da_raiz_aceita_post_sem_csrf():
+    """CA6 (regressao on-premise): o fetch do base.html manda JSON sem token
+    CSRF (`headers: {'Content-Type': 'application/json'}`). Sem csrf_exempt o
+    Django responde 403 e o chat fica 'sem conexão' no cliente. Na nuvem o
+    nginx atende /chatbot-api antes do Django, então só o on-premise via o bug."""
+    from django.test import Client as DjangoClient
+
+    _, user = _empresa_usuario(username='bot_proxy_csrf')
+    c = DjangoClient(enforce_csrf_checks=True)
+    c.force_login(user)
+
+    with override_settings(CHATBOT_INTERNAL_URL=''):
+        response = c.post(
+            '/chatbot-api/chat',
+            data='{"session_id": "s4", "message": "oi", "empresa_dados": null}',
+            content_type='application/json',
+        )
+
+    assert response.status_code == 503, f'esperado 503 (rota viva), veio {response.status_code}'
+    assert '8003' not in response.content.decode('utf-8', 'ignore')

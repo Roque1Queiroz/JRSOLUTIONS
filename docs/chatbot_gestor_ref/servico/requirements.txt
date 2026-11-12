@@ -1,33 +1,36 @@
-# Requirements do servico de chatbot (Sistema Gestor)
-# DERIVADO dos imports de main.py e rag.py — nao copiado de fonte original.
-# Se voce tiver acesso a um requirements.txt original, sobrescreva este.
+# Requirements do servico de chatbot (Sistema Gestor — on-premise)
+#
+# Versoes PINADAS a partir do `pip freeze` da venv do bot que roda em producao
+# na VM (Python 3.12.3), conferido em 2026-11-11. Nao invente versao aqui: o
+# requirements anterior pedia `langchain-classic==0.1.0`, que NAO EXISTE no
+# PyPI (as versoes comecam em 1.0.0) e quebrava o build da imagem do cliente.
+#
+# Para atualizar: `pip freeze` na venv de producao do bot e traga as versoes.
 
 # Web framework
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
-pydantic==2.9.2
+fastapi==0.141.1
+uvicorn[standard]==0.54.0
+pydantic==2.13.5
+python-multipart==0.0.32
 
-# Banco do historico (SQLAlchemy classica, compativel com o original)
-sqlalchemy==2.0.35
+# Banco do historico (SQLAlchemy classica)
+sqlalchemy==2.1.1
 
-# LangChain (RAG) — versoes compativeis com a logica do rag.py
-langchain==0.3.0
-langchain-core==0.3.0
-langchain-text-splitters==0.3.0
-langchain-chroma==0.1.4
-langchain-community==0.3.0
-langchain-classic==0.1.0
-langchain-groq==0.2.0
-langchain-huggingface==0.1.0
+# LangChain (RAG) — o bot NAO usa o meta-pacote `langchain`, so estes modulos
+langchain-core==1.6.5
+langchain-text-splitters==1.1.2
+langchain-chroma==1.1.0
+langchain-community==0.4.2
+langchain-classic==1.0.8
+langchain-groq==1.1.3
+langchain-huggingface==1.2.2
 
-# Embeddings (sentence-transformers via HF) — modelo multilingual
-sentence-transformers==3.1.1
+# Vetor store + embeddings (HuggingFaceEmbeddings no rag.py)
+chromadb==1.5.9
+sentence-transformers==6.1.0
 
-# Loaders
-pypdf==5.1.0
+# Leitura do manual em PDF
+pypdf==6.19.0
 
 # .env
-python-dotenv==1.0.1
-
-# HTTP client (caso o main.py use para health checks)
-httpx==0.27.2
+python-dotenv==1.2.3
