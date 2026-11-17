@@ -1,0 +1,139 @@
+# ─────────────────────────────────────────────────────────────
+#  SISTEMA GESTOR — PACOTE ON-PREMISE (instalação no cliente)
+#  Orquestra: PostgreSQL + Redis + Django/Gunicorn
+#  + Worker e Beat do Celery, tudo isolado do sistema operacional.
+#
+#  O código Django deve ficar na pasta ./app (veja README_INSTALACAO.md).
+#  O entrypoint do Docker já aplica migrações e coleta estáticos.
+# ─────────────────────────────────────────────────────────────
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: gestor_cliente_db
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_NAME:-gestor}
+      - POSTGRES_USER=${DB_USER:-gestor}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:?Defina DB_PASSWORD no arquivo .env}
+    # Sem "ports": banco acessível apenas pela rede interna do Compose.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-gestor} -d ${DB_NAME:-gestor}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: gestor_cliente_redis
+    restart: unless-stopped
+    # Sem "ports": Redis acessível apenas pela rede interna do Compose.
+
+  web:
+    build: ./app
+    container_name: gestor_cliente_web
+    restart: unless-stopped
+    # v2.5: só este serviço roda migrations (ver scripts/entrypoint.sh).
+    # worker/beat precisam de RUN_MIGRATIONS=false explícito.
+    environment:
+      - RUN_MIGRATIONS=true
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/1
+    command: ["gunicorn", "config.wsgi:application",
+              "--bind", "0.0.0.0:8000",
+              "--workers", "3",
+              "--timeout", "120",
+              "--access-logfile", "-",
+              "--error-logfile", "-"]
+    volumes:
+      - ./app:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      # Porta externa configurada no .env (APP_PORT). Default: 8000.
+      - "${APP_PORT:-8000}:8000"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  worker:
+    build: ./app
+    container_name: gestor_cliente_worker
+    restart: unless-stopped
+    command: ["celery", "-A", "config", "worker", "--loglevel=info"]
+    volumes:
+      - ./app:/app
+    env_file:
+      - .env
+    environment:
+      # v2.5: NÃO roda migrations (só o web migra).
+      - RUN_MIGRATIONS=false
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      - web
+      - redis
+
+  beat:
+    build: ./app
+    container_name: gestor_cliente_beat
+    restart: unless-stopped
+    command: ["celery", "-A", "config", "beat", "--loglevel=info"]
+    volumes:
+      - ./app:/app
+    env_file:
+      - .env
+    environment:
+      # v2.5: NÃO roda migrations (só o web migra).
+      - RUN_MIGRATIONS=false
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      - web
+      - redis
+
+  # ─── Chatbot (assistente de IA) ──────────────────────────────────
+  # Serviço FastAPI que responde o chat via Groq + ChromaDB.
+  # - Porta 8003 fica APENAS na rede interna do Compose (sem "ports:").
+  #   O Django (web) encaminha /chatbot-api/* para http://chatbot:8003.
+  # - MANUAL_EMBED_BOT.md fica num volume compartilhado para o bot
+  #   indexar na primeira subida (entrada via entrypoint do bot).
+  # - Os dados persistentes (ChromaDB + chat_history.db) ficam em volumes
+  #   nomeados para sobreviverem a `docker compose down` sem perder indices.
+  chatbot:
+    build: ./chatbot
+    image: gestor-cliente-chatbot:latest
+    container_name: gestor_cliente_chatbot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+            # v2.5: usa `:-` (default) em vez de `:?` (abort-required). Se a
+      # chave estiver vazia, o bot sobe e avisa no log (ver CA5 do teste).
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - CHATBOT_ALLOWED_ORIGIN=*
+      - CHATBOT_DATA_DIR=/data
+    volumes:
+      - chatbot_chroma:/data/db
+      - chatbot_history:/data/historico
+      - ./MANUAL_EMBED_BOT.md:/data/MANUAL_EMBED_BOT.md:ro
+    # Sem "ports:" — porta 8003 só fica acessível na rede interna (chatbot:8003).
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
+  chatbot_chroma:
+  chatbot_history:

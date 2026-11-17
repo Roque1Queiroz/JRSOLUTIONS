@@ -1,0 +1,11 @@
+# Segredos — NUNCA versionar
+.env
+
+# Dados e estáticos gerados
+app/staticfiles/
+app/media/
+__pycache__/
+*.pyc
+
+# Backups de patch do settings.py
+*.bak_*

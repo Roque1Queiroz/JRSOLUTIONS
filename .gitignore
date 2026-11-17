@@ -48,9 +48,11 @@ Arquivo_Morto/
 # Git/Hermes local
 .hermes/
 
-# Pacote on-premise (entrega ao cliente) — mantido fora do versionamento.
-# Os scripts são ferramenta de dev; empacotar/instalar geram dist/ e .env.
-deploy-cliente/
+# Pacote on-premise — o CÓDIGO é versionado (compose, chatbot, scripts, README,
+# testes do pacote). Fica de fora só o que é GERADO: dist/ (zips entregues ao
+# cliente), app/ (cópia do código montada na hora) e os segredos (.env).
+deploy-cliente/dist/
+deploy-cliente/app/
 
 # Logs do sistema (rotação diária) — nunca versionar
 logs/

@@ -23,7 +23,7 @@ deploy-cliente/
     └── patch_seguranca.sh    ← ajuste p/ HTTP local (com backup)
 ```
 
-Ao subir, são criados **5 contêineres**:
+Ao subir, são criados **6 contêineres**:
 
 | Serviço | Função |
 |---|---|
@@ -32,6 +32,10 @@ Ao subir, são criados **5 contêineres**:
 | `redis` | Fila do Celery |
 | `worker` | Processa tarefas em segundo plano |
 | `beat` | Agenda tarefas periódicas |
+| `chatbot` | Assistente de IA do sistema (FastAPI + Groq) — porta 8003 **só na rede interna** |
+
+> O `chatbot` não publica porta no host: quem conversa com ele é o Django
+> (`/chatbot-api/*`), via `CHATBOT_INTERNAL_URL`. Nunca exponha a 8003.
 
 ---
 
@@ -95,8 +99,45 @@ Se preferir ajustar na mão, esses são os campos importantes:
 | `DJANGO_SECURE_SSL_REDIRECT` | Redirecionar para https | `False` em rede local |
 | `DJANGO_SESSION_COOKIE_SECURE` | Cookie seguro | `False` em rede local |
 | `DJANGO_CSRF_COOKIE_SECURE` | Cookie CSRF seguro | `False` em rede local |
+| `GROQ_API_KEY` | Chave da Groq — liga o assistente de IA (vazio = chat desligado) | `gsk_...` |
+| `CHATBOT_INTERNAL_URL` | Endereço interno do assistente | `http://chatbot:8003` |
 
-> ⚠️ Depois de editar o `.env`, reinicie: `docker compose down && docker compose up -d`.
+> ⚠️ **Depois de editar o `.env`, recrie os containers:**
+> `docker compose up -d --force-recreate`
+> `docker restart` **não** basta — o `.env` só é lido na criação do container.
+
+---
+
+## 3.1 Assistente de IA (chatbot) — como ligar
+
+O botão de chat do sistema só funciona se **duas** variáveis estiverem no `.env`
+e se os containers forem **recriados** depois de preenchê-las:
+
+```bash
+# 1) edite o .env e garanta as duas linhas (sem aspas, sem espaço em volta do =)
+GROQ_API_KEY=gsk_sua_chave_aqui
+CHATBOT_INTERNAL_URL=http://chatbot:8003
+
+# 2) recrie os containers que leem essas variáveis
+docker compose up -d --force-recreate web chatbot
+
+# 3) confira o log do bot (na 1ª subida ele indexa o manual do sistema)
+docker compose logs --tail 30 chatbot
+```
+
+O que cada uma faz:
+
+- **`GROQ_API_KEY`** — é a chave do modelo de IA (obtida em
+  https://console.groq.com/keys). Sem ela o sistema **funciona normalmente**,
+  mas o chat responde *"Assistente não configurado"*.
+- **`CHATBOT_INTERNAL_URL`** — é o endereço do bot dentro da rede Docker.
+  Sem ela o Django responde *"Assistente não configurado nesta instalação"*,
+  mesmo com a chave preenchida (foi o erro mais comum na instalação).
+
+Na primeira subida o bot baixa o modelo de embeddings (~470 MB) e indexa o
+`MANUAL_EMBED_BOT.md` — **precisa de internet** nesse momento. Se falhar, o
+sistema continua no ar e o bot tenta de novo na próxima vez que o container
+subir (`docker compose restart chatbot`).
 
 ---
 
@@ -168,3 +209,8 @@ já gera tudo novo de forma automática).
 | Não acessa de outra máquina | `DJANGO_ALLOWED_HOSTS` sem o IP + firewall com porta `APP_PORT` aberta |
 | Tela de login não "segura" a sessão | Patch de segurança não aplicado — rode `bash scripts/patch_seguranca.sh` |
 | Demora muito no 1º acesso | Normal na primeira vez (compila as imagens) |
+| Chat responde "Assistente não configurado nesta instalação" | Falta `CHATBOT_INTERNAL_URL=http://chatbot:8003` no `.env` (ou o `web` não foi recriado) |
+| Chat responde "Assistente não configurado" | Falta `GROQ_API_KEY` no `.env` |
+| Chat responde "assistente indisponível" | Container `chatbot` parado/build quebrado — veja `docker compose logs chatbot` |
+| Container `chatbot` reiniciando em loop | Sem internet para baixar o modelo de embeddings; veja o log acima |
+| Chat "esquece" o histórico em toda atualização | Corrigido no v2.7 (histórico passou a ficar no volume) |
